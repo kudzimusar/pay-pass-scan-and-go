@@ -1,0 +1,145 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%; /* Updated foreground color */
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%; /* Updated card foreground color */
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%; /* Updated popover foreground color */
+    --primary: 222.2 47.4% 11.2%; /* Updated primary color */
+    --primary-foreground: 210 40% 98%; /* Updated primary foreground color */
+    --secondary: 210 40% 96%; /* Updated secondary color */
+    --secondary-foreground: 222.2 47.4% 11.2%; /* Updated secondary foreground color */
+    --muted: 210 40% 96%; /* Updated muted color */
+    --muted-foreground: 215.4 16.3% 46.9%; /* Updated muted foreground color */
+    --accent: 210 40% 96%; /* Updated accent color */
+    --accent-foreground: 222.2 47.4% 11.2%; /* Updated accent foreground color */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%; /* Updated destructive foreground color */
+    --border: 214.3 31.8% 91.4%; /* Updated border color */
+    --input: 214.3 31.8% 91.4%; /* Updated input color */
+    --ring: 222.2 84% 4.9%;
+    --radius: 0.5rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 5.3% 26.1%;
+    --sidebar-primary: 240 5.9% 10%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+    --brand-emerald: 16 65% 47%; /* Added brand color */
+  }
+  .dark {
+    --background: 222.2 84% 4.9%; /* Updated background color */
+    --foreground: 210 40% 98%; /* Updated foreground color */
+    --card: 222.2 84% 4.9%; /* Updated card color */
+    --card-foreground: 210 40% 98%; /* Updated card foreground color */
+    --popover: 222.2 84% 4.9%; /* Updated popover color */
+    --popover-foreground: 210 40% 98%; /* Updated popover foreground color */
+    --primary: 210 40% 98%; /* Updated primary color */
+    --primary-foreground: 222.2 47.4% 11.2%; /* Updated primary foreground color */
+    --secondary: 217.2 32.6% 17.5%; /* Updated secondary color */
+    --secondary-foreground: 210 40% 98%; /* Updated secondary foreground color */
+    --muted: 217.2 32.6% 17.5%; /* Updated muted color */
+    --muted-foreground: 215 20.2% 65.1%; /* Updated muted foreground color */
+    --accent: 217.2 32.6% 17.5%; /* Updated accent color */
+    --accent-foreground: 210 40% 98%; /* Updated accent foreground color */
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%; /* Updated destructive foreground color */
+    --border: 217.2 32.6% 17.5%; /* Updated border color */
+    --input: 217.2 32.6% 17.5%; /* Updated input color */
+    --ring: 212.7 26.8% 83.9%; /* Updated ring color */
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  html,
+  body {
+    @apply bg-background text-foreground;
+    height: 100%; /* Added height */
+  }
+  body {
+    background: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
+
+.bg-gradient-paypass {
+  @apply bg-gradient-to-br from-emerald-600 to-emerald-700; /* Added gradient class */
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Mobile-first responsive utilities */
+.min-h-svh {
+  min-height: 100svh;
+}
+
+@supports not (height: 100svh) {
+  .min-h-svh {
+    min-height: 100vh;
+  }
+}
+
+/* Loading animation */
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
