@@ -1,44 +1,29 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { db } from "../../_lib/db"
-import { verifyToken } from "../../_lib/auth"
+import { NextResponse } from "next/server"
+import { verifyAuthHeader } from "../../_lib/auth"
+import { storage } from "../../_lib/storage"
+import { topupSchema } from "../../_lib/schema"
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
+  const auth = verifyAuthHeader(req.headers.get("authorization"))
+  if (!auth || auth.type !== "user") return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   try {
-    const auth = req.headers.get("authorization")
-    const payload = verifyToken<{ type: "user"; userId: string }>(auth)
-    if ((payload as any).type !== "user") {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 })
-    }
+    const raw = await req.json()
+    const data = topupSchema.parse(raw)
 
-    const { amount, currency, method } = await req.json()
-    if (!amount || !currency || !method) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 })
-    }
-
-    // Simulate processing delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
-    // Create transaction record
-    const tx = db.createTransaction({
-      userId: (payload as any).userId,
+    const tx = await storage.createTransaction({
+      userId: auth.userId,
       type: "topup",
       category: "transfer",
-      amount: String(amount),
-      currency,
-      description: `Top-up via ${method}`,
+      amount: data.amount,
+      currency: data.currency,
+      description: `Top-up via ${data.method}`,
       status: "completed",
-      paymentMethod: method,
+      paymentMethod: data.method,
     })
+    await storage.updateWalletBalance(auth.userId, data.currency, data.amount)
 
-    // Update wallet balance
-    db.updateWalletBalance((payload as any).userId, currency, String(amount))
-
-    return NextResponse.json({
-      success: true,
-      transaction: tx,
-      message: `Successfully added ${currency === "USD" ? "$" : "Z$"}${amount} to your wallet`,
-    })
-  } catch (e) {
+    return NextResponse.json({ success: true, transaction: tx, message: "Top-up successful" })
+  } catch {
     return NextResponse.json({ error: "Top-up failed" }, { status: 500 })
   }
 }

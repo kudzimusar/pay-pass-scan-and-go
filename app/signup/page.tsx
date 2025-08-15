@@ -14,43 +14,25 @@ import Link from "next/link"
 import { UserPlus, ArrowLeft } from "lucide-react"
 
 export default function SignupPage() {
-  const { register } = useAuth()
+  const { signup } = useAuth()
   const router = useRouter()
-  const [formData, setFormData] = useState({
-    fullName: "",
-    phone: "",
-    email: "",
-    pin: "",
-    confirmPin: "",
-    biometricEnabled: false,
-  })
+  const [name, setName] = useState("Demo User")
+  const [phone, setPhone] = useState("773333333")
+  const [pin, setPin] = useState("1234")
+  const [msg, setMsg] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [biometricEnabled, setBiometricEnabled] = useState(false)
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (formData.pin !== formData.confirmPin) {
-      setError("PINs do not match")
-      return
-    }
-    if (formData.pin.length < 4) {
-      setError("PIN must be at least 4 digits")
-      return
-    }
-
+    setMsg(null)
     setLoading(true)
-    setError(null)
     try {
-      await register({
-        fullName: formData.fullName,
-        phone: formData.phone,
-        email: formData.email,
-        pin: formData.pin,
-        biometricEnabled: formData.biometricEnabled,
-      })
+      await signup(name, phone, pin, biometricEnabled)
+      setMsg("Signed up! Go to your dashboard.")
       router.push("/dashboard")
     } catch (e: any) {
-      setError(e?.message || "Registration failed")
+      setMsg(e?.message || "Signup failed")
     } finally {
       setLoading(false)
     }
@@ -81,12 +63,7 @@ export default function SignupPage() {
             <form onSubmit={onSubmit} className="space-y-4">
               <div>
                 <Label>Full Name</Label>
-                <Input
-                  value={formData.fullName}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, fullName: e.target.value }))}
-                  placeholder="John Doe"
-                  required
-                />
+                <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="John Doe" required />
               </div>
 
               <div>
@@ -98,41 +75,20 @@ export default function SignupPage() {
                   <Input
                     className="rounded-l-none"
                     placeholder="771234567"
-                    value={formData.phone}
-                    onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value }))}
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <Label>Email (Optional)</Label>
-                <Input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
-                  placeholder="john@example.com"
-                />
-              </div>
-
-              <div>
                 <Label>PIN</Label>
                 <Input
                   type="password"
-                  value={formData.pin}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, pin: e.target.value }))}
+                  value={pin}
+                  onChange={(e) => setPin(e.target.value)}
                   placeholder="4-digit PIN"
-                  required
-                />
-              </div>
-
-              <div>
-                <Label>Confirm PIN</Label>
-                <Input
-                  type="password"
-                  value={formData.confirmPin}
-                  onChange={(e) => setFormData((prev) => ({ ...prev, confirmPin: e.target.value }))}
-                  placeholder="Confirm your PIN"
                   required
                 />
               </div>
@@ -140,15 +96,15 @@ export default function SignupPage() {
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="biometric"
-                  checked={formData.biometricEnabled}
-                  onCheckedChange={(checked) => setFormData((prev) => ({ ...prev, biometricEnabled: !!checked }))}
+                  checked={biometricEnabled}
+                  onCheckedChange={(checked) => setBiometricEnabled(!!checked)}
                 />
                 <Label htmlFor="biometric" className="text-sm">
                   Enable biometric authentication
                 </Label>
               </div>
 
-              {error && <p className="text-sm text-red-600">{error}</p>}
+              {msg && <p className="text-sm text-red-600">{msg}</p>}
 
               <Button type="submit" disabled={loading} className="w-full bg-emerald-600 hover:bg-emerald-700">
                 {loading ? "Creating Account..." : "Create Account"}

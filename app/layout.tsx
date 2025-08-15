@@ -2,14 +2,14 @@ import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
-import { Providers } from "./providers"
+import Providers from "./providers"
 
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "PayPass Scan & Go",
-  description: "Fast, secure QR payments for Zimbabwe",
-    generator: 'v0.dev'
+  title: "PayPass - Your Digital Wallet",
+  description: "Secure digital payments and wallet management for Zimbabwe",
+    generator: 'v0.app'
 }
 
 export default function RootLayout({

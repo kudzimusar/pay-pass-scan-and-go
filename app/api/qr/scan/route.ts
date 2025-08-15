@@ -1,27 +1,33 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { db } from "../../_lib/db"
-import { verifyToken } from "../../_lib/auth"
+import { NextResponse } from "next/server"
+import { verifyAuthHeader } from "../../_lib/auth"
+import { storage } from "../../_lib/storage"
+import { getRedis } from "../../_lib/redis"
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
+  const auth = verifyAuthHeader(req.headers.get("authorization"))
+  if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   try {
-    const auth = req.headers.get("authorization")
-    const payload = verifyToken<{ type: "user"; userId: string }>(auth)
-    if ((payload as any).type !== "user") {
-      return NextResponse.json({ error: "Access denied" }, { status: 403 })
-    }
-
     const { qrCode } = await req.json()
-    const route = db.getRouteByQr(qrCode)
-    if (!route) {
-      return NextResponse.json({ error: "Invalid QR code" }, { status: 404 })
+    const redis = getRedis()
+    const cacheKey = qrCode ? `route:qr:${qrCode}` : ""
+    if (redis && cacheKey) {
+      const cached = await redis.get(cacheKey)
+      if (cached) return NextResponse.json(cached)
     }
-
-    const operator = db.getOperator(route.operatorId)
-    return NextResponse.json({
+    const route = await storage.getRouteByQrCode(String(qrCode || ""))
+    if (!route) return NextResponse.json({ error: "Invalid QR code" }, { status: 404 })
+    const operator = await storage.getOperator(route.operatorId)
+    const payload = {
       route,
-      operator: operator ? { id: operator.id, companyName: operator.companyName } : null,
-    })
-  } catch (e) {
-    return NextResponse.json({ error: "Scan failed" }, { status: 500 })
+      operator: operator
+        ? { id: operator.id, name: operator.name, phone: operator.phone, email: operator.email }
+        : null,
+    }
+    if (redis && cacheKey) {
+      await redis.set(cacheKey, payload, { ex: 300 })
+    }
+    return NextResponse.json(payload)
+  } catch {
+    return NextResponse.json({ error: "Failed to process QR code" }, { status: 500 })
   }
 }

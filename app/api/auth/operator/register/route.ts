@@ -1,28 +1,26 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { db, normalizePhoneNumber } from "../../../_lib/db"
-import { hashPin, signToken } from "../../../_lib/auth"
+import { NextResponse } from "next/server"
+import bcrypt from "bcryptjs"
+import { normalizePhoneNumber, signToken } from "../../../_lib/auth"
+import { storage } from "../../../_lib/storage"
+import { insertOperatorSchema } from "../../../_lib/schema"
+import { rateLimit } from "../../../_lib/redis"
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const body = await req.json()
-    const phone = normalizePhoneNumber(body.phone || "")
-    if (!body.companyName || !body.pin) {
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 })
-    }
-    if (db.getOperatorByPhone(phone)) {
-      return NextResponse.json({ error: "Operator with this phone number already exists" }, { status: 400 })
-    }
-    const pinHash = await hashPin(body.pin)
-    const operator = db.createOperator({
-      companyName: body.companyName,
-      phone,
-      email: body.email,
-      pinHash,
-    })
-    const token = signToken({ type: "operator", operatorId: operator.id, phone: operator.phone })
-    const { pinHash: _drop, ...safeOperator } = operator
-    return NextResponse.json({ operator: safeOperator, token })
-  } catch (e) {
+    const raw = await req.json()
+    const data = insertOperatorSchema.parse(raw)
+    const phone = normalizePhoneNumber(data.phone)
+    const rl = await rateLimit(`register:operator:${phone}`, 10, 60)
+    if (!rl.allowed) return NextResponse.json({ error: "Too many attempts, try later." }, { status: 429 })
+
+    const exists = await storage.getOperatorByPhone(phone)
+    if (exists) return NextResponse.json({ error: "Operator with this phone already exists" }, { status: 400 })
+    const hashedPin = await bcrypt.hash(data.pin, 10)
+    const op = await storage.createOperator({ name: data.name, phone, pin: hashedPin, email: data.email })
+    const token = signToken({ type: "operator", operatorId: op.id, phone: op.phone })
+    const { pin: _p, ...safe } = op
+    return NextResponse.json({ operator: safe, token })
+  } catch {
     return NextResponse.json({ error: "Invalid registration data" }, { status: 400 })
   }
 }

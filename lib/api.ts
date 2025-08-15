@@ -1,35 +1,30 @@
-export async function apiGet<T = any>(url: string, token?: string): Promise<T> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
+export async function apiGet<T>(path: string, token?: string): Promise<T> {
+  const res = await fetch(path, {
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    cache: "no-store",
+  })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new Error(data?.error || `GET ${path} failed (${res.status})`)
   }
-  if (token) {
-    headers.Authorization = `Bearer ${token}`
-  }
-
-  const response = await fetch(url, { headers })
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: "Request failed" }))
-    throw new Error(error.error || `HTTP ${response.status}`)
-  }
-  return response.json()
+  return res.json()
 }
 
-export async function apiPost<T = any>(url: string, data: any, token?: string): Promise<T> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  }
-  if (token) {
-    headers.Authorization = `Bearer ${token}`
-  }
-
-  const response = await fetch(url, {
+export async function apiPost<T>(path: string, body: any, token?: string): Promise<T> {
+  const res = await fetch(path, {
     method: "POST",
-    headers,
-    body: JSON.stringify(data),
+    headers: {
+      "Content-Type": "application/json",
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    },
+    body: JSON.stringify(body),
   })
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: "Request failed" }))
-    throw new Error(error.error || `HTTP ${response.status}`)
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new Error(data?.error || `POST ${path} failed (${res.status})`)
   }
-  return response.json()
+  return res.json()
 }

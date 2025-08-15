@@ -1,16 +1,38 @@
 import { NextResponse } from "next/server"
 import { neon } from "@neondatabase/serverless"
+import { getRedis } from "../_lib/redis"
 
 export async function GET() {
-  const url = process.env.DATABASE_URL
-  if (!url) {
-    return NextResponse.json({ ok: true, neon: false, message: "No DATABASE_URL set" })
-  }
+  const status: any = { ok: true, express: false }
   try {
-    const sql = neon(url)
-    const res = await sql`select 1 as one`
-    return NextResponse.json({ ok: true, neon: true, result: res[0] })
-  } catch (e) {
-    return NextResponse.json({ ok: false, neon: true, error: (e as any)?.message || String(e) }, { status: 500 })
+    const url = process.env.DATABASE_URL
+    if (url) {
+      const sql = neon(url)
+      const res = await sql`select 1 as one`
+      status.neon = true
+      status.db = res[0]
+    } else {
+      status.neon = false
+    }
+  } catch (e: any) {
+    status.neon = true
+    status.dbError = e?.message || String(e)
+    status.ok = false
   }
+
+  try {
+    const r = getRedis()
+    if (r) {
+      await r.ping()
+      status.redis = true
+    } else {
+      status.redis = false
+    }
+  } catch (e: any) {
+    status.redis = true
+    status.redisError = e?.message || String(e)
+    status.ok = false
+  }
+
+  return NextResponse.json(status, { status: status.ok ? 200 : 500 })
 }

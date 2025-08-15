@@ -1,18 +1,66 @@
-import { type NextRequest, NextResponse } from "next/server"
-import { db, normalizePhoneNumber } from "../../../_lib/db"
-import { comparePin, signToken } from "../../../_lib/auth"
+import { NextResponse } from "next/server"
+import bcrypt from "bcryptjs"
+import { z } from "zod"
+import { cookieOptions, normalizePhoneNumber, signToken } from "../../../_lib/auth"
+import { storage } from "../../../_lib/storage"
+import { rateLimit } from "../../../_lib/redis"
 
-export async function POST(req: NextRequest) {
+const schema = z.object({
+  phone: z.string().min(5, "Phone is required"),
+  pin: z.string().min(4, "PIN is required"),
+})
+
+function getClientIp(req: Request) {
+  const xf = req.headers.get("x-forwarded-for")
+  if (xf) return xf.split(",")[0]?.trim()
+  return req.headers.get("x-real-ip") || "unknown"
+}
+
+export async function POST(req: Request) {
   try {
     const body = await req.json()
-    const phone = normalizePhoneNumber(body.phone || "")
-    const operator = db.getOperatorByPhone(phone)
+    const parsed = schema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid input" }, { status: 400 })
+    }
+    const { phone, pin } = parsed.data
+    const normalized = normalizePhoneNumber(phone)
+
+    const ip = getClientIp(req)
+    const rl1 = await rateLimit(`oplogin:phone:${normalized}`, 5, 60)
+    const rl2 = await rateLimit(`oplogin:ip:${ip}`, 20, 60)
+    if (!rl1.allowed || !rl2.allowed) {
+      return NextResponse.json({ error: "Too many attempts, try again later." }, { status: 429 })
+    }
+
+    const operator = await storage.getOperatorByPhone(normalized)
     if (!operator) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
-    const ok = await comparePin(body.pin || "", operator.pinHash)
+
+    const ok = await bcrypt.compare(pin, operator.pin)
     if (!ok) return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
-    const token = signToken({ type: "operator", operatorId: operator.id, phone: operator.phone })
-    const { pinHash: _drop, ...safeOperator } = operator
-    return NextResponse.json({ operator: safeOperator, token })
+
+    const token = await signToken({ type: "operator", operatorId: operator.id, phone: operator.phone })
+
+    const res = NextResponse.json({
+      operator: {
+        id: operator.id,
+        companyName: operator.companyName,
+        phone: operator.phone,
+        email: operator.email,
+        createdAt: operator.createdAt,
+        updatedAt: operator.updatedAt,
+      },
+      token,
+    })
+    const cookie = cookieOptions()
+    res.cookies.set(cookie.name, token, {
+      httpOnly: cookie.httpOnly,
+      secure: cookie.secure,
+      sameSite: cookie.sameSite,
+      path: cookie.path,
+      maxAge: cookie.maxAge,
+    })
+    return res
   } catch {
     return NextResponse.json({ error: "Login failed" }, { status: 500 })
   }
