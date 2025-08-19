@@ -1,36 +1,36 @@
-import { NextResponse } from "next/server"
-import { verifyAuthHeader } from "../../_lib/auth"
-import { storage } from "../../_lib/storage"
-import { userSearchSchema } from "../../_lib/schema"
+import { type NextRequest, NextResponse } from "next/server"
+import { ensureSeeded, searchUsers } from "../../_lib/storage"
 
-export async function GET(req: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const auth = verifyAuthHeader(req.headers.get("authorization"))
-    if (!auth || auth.type !== "user") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    console.log("User search API called")
+
+    // Ensure storage is seeded
+    await ensureSeeded()
+
+    const { searchParams } = new URL(request.url)
+    const query = searchParams.get("q")
+    const excludeUserId = searchParams.get("excludeUserId")
+
+    if (!query || query.trim().length < 2) {
+      return NextResponse.json({ error: "Query must be at least 2 characters" }, { status: 400 })
     }
 
-    const url = new URL(req.url)
-    const query = url.searchParams.get("q") || ""
+    console.log("Searching for:", query, "excluding:", excludeUserId)
 
-    const validation = userSearchSchema.safeParse({ query })
-    if (!validation.success) {
-      return NextResponse.json({ error: "Invalid search query" }, { status: 400 })
-    }
+    const users = await searchUsers(query.trim(), excludeUserId || undefined)
 
-    const users = await storage.searchUsers(query, auth.userId) // Exclude current user
+    console.log("Found", users.length, "users")
+
+    // Remove sensitive data
+    const safeUsers = users.map(({ pin, ...user }) => user)
 
     return NextResponse.json({
       success: true,
-      users: users.map((user) => ({
-        id: user.id,
-        fullName: user.fullName,
-        phone: user.phone,
-        // Don't expose sensitive information
-      })),
+      users: safeUsers,
     })
   } catch (error) {
-    console.error("User search error:", error)
-    return NextResponse.json({ error: "Search failed" }, { status: 500 })
+    console.error("User search API error:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

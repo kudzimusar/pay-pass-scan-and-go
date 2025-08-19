@@ -1,53 +1,47 @@
 import { type NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
-import { generateToken } from "../../_lib/auth"
-import { storage } from "../../_lib/storage"
+import { ensureSeeded, getUserByPhone } from "../../_lib/storage"
 
 export async function POST(request: NextRequest) {
   try {
+    console.log("Login API called")
+
+    // Ensure storage is seeded
+    await ensureSeeded()
+
     const body = await request.json()
     const { phone, pin } = body
+
+    console.log("Login attempt for phone:", phone)
 
     if (!phone || !pin) {
       return NextResponse.json({ error: "Phone and PIN are required" }, { status: 400 })
     }
 
-    // Try to find user by phone
-    const user = await storage.getUserByPhone(phone)
-
+    // Find user by phone
+    const user = await getUserByPhone(phone)
     if (!user) {
+      console.log("User not found for phone:", phone)
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
+
+    console.log("User found:", user.fullName)
 
     // Verify PIN
     const isValidPin = await bcrypt.compare(pin, user.pin)
-
     if (!isValidPin) {
+      console.log("Invalid PIN for user:", user.fullName)
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
-    // Generate token
-    const token = generateToken({
-      userId: user.id,
-      type: "user",
-      phone: user.phone,
-    })
+    console.log("Login successful for:", user.fullName)
 
-    // Return user data without sensitive information
-    const userData = {
-      id: user.id,
-      fullName: user.fullName,
-      phone: user.phone,
-      email: user.email,
-      biometricEnabled: user.biometricEnabled,
-      createdAt: user.createdAt,
-      updatedAt: user.updatedAt,
-    }
-
+    // Return user data (excluding PIN)
+    const { pin: _, ...userWithoutPin } = user
     return NextResponse.json({
       success: true,
-      user: userData,
-      token,
+      user: userWithoutPin,
+      token: `token_${user.id}_${Date.now()}`,
     })
   } catch (error) {
     console.error("Login API error:", error)

@@ -1,56 +1,46 @@
-import { NextResponse } from "next/server"
-import { verifyAuthHeader } from "../../_lib/auth"
-import { storage } from "../../_lib/storage"
+import { type NextRequest, NextResponse } from "next/server"
+import { ensureSeeded, getUserReceivedPaymentRequests, getUserById } from "../../_lib/storage"
 
-export async function GET(req: Request) {
+export async function GET(request: NextRequest) {
   try {
-    const auth = verifyAuthHeader(req.headers.get("authorization"))
-    if (!auth || auth.type !== "user") {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    console.log("Pending requests API called")
+
+    // Ensure storage is seeded
+    await ensureSeeded()
+
+    const { searchParams } = new URL(request.url)
+    const userId = searchParams.get("userId")
+
+    if (!userId) {
+      return NextResponse.json({ error: "User ID is required" }, { status: 400 })
     }
 
-    const url = new URL(req.url)
-    const type = url.searchParams.get("type") || "received" // 'sent' or 'received'
+    console.log("Fetching pending requests for user:", userId)
 
-    let requests
-    if (type === "sent") {
-      requests = await storage.getPaymentRequestsBySender(auth.userId)
-    } else {
-      requests = await storage.getPaymentRequestsByRecipient(auth.userId)
-    }
+    // Get pending requests for the user
+    const requests = await getUserReceivedPaymentRequests(userId)
+    const pendingRequests = requests.filter((req) => req.status === "pending")
 
-    // Get user details for each request
-    const requestsWithUsers = await Promise.all(
-      requests.map(async (request) => {
-        const sender = await storage.getUser(request.senderId)
-        const recipient = await storage.getUser(request.recipientId)
+    console.log("Found", pendingRequests.length, "pending requests")
 
+    // Enrich requests with sender information
+    const enrichedRequests = await Promise.all(
+      pendingRequests.map(async (request) => {
+        const sender = await getUserById(request.senderId)
         return {
           ...request,
-          sender: sender
-            ? {
-                id: sender.id,
-                fullName: sender.fullName,
-                phone: sender.phone,
-              }
-            : null,
-          recipient: recipient
-            ? {
-                id: recipient.id,
-                fullName: recipient.fullName,
-                phone: recipient.phone,
-              }
-            : null,
+          senderName: sender?.fullName || "Unknown",
+          senderPhone: sender?.phone || "Unknown",
         }
       }),
     )
 
     return NextResponse.json({
       success: true,
-      requests: requestsWithUsers,
+      requests: enrichedRequests,
     })
   } catch (error) {
-    console.error("Get pending requests error:", error)
-    return NextResponse.json({ error: "Failed to get pending requests" }, { status: 500 })
+    console.error("Pending requests API error:", error)
+    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -10,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Smartphone, CreditCard, QrCode, Users, ArrowRight, TestTube, Zap, Shield } from "lucide-react"
+import { Smartphone, CreditCard, QrCode, Users, ArrowRight, TestTube, AlertCircle } from "lucide-react"
 
 export default function HomePage() {
   const router = useRouter()
@@ -25,6 +24,8 @@ export default function HomePage() {
     setError("")
 
     try {
+      console.log("Attempting login with:", { phone, pin: pin.length + " chars" })
+
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
@@ -33,24 +34,31 @@ export default function HomePage() {
         body: JSON.stringify({ phone, pin }),
       })
 
+      console.log("Response status:", response.status)
+      console.log("Response headers:", Object.fromEntries(response.headers.entries()))
+
       // Check if response is JSON
       const contentType = response.headers.get("content-type")
       if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text()
+        console.error("Non-JSON response:", text)
         throw new Error("Server returned non-JSON response")
       }
 
       const data = await response.json()
+      console.log("Response data:", data)
 
       if (response.ok && data.success) {
         localStorage.setItem("auth_token", data.token)
         localStorage.setItem("user_data", JSON.stringify(data.user))
+        console.log("Login successful, redirecting to dashboard")
         router.push("/dashboard")
       } else {
         setError(data.error || "Login failed")
       }
     } catch (error) {
       console.error("Login error:", error)
-      setError("Login failed. Please check your credentials and try again.")
+      setError("Unable to connect to server. Please try again.")
     } finally {
       setIsLoading(false)
     }
@@ -97,7 +105,7 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Demo Banner */}
+          {/* Demo Access Card */}
           <Card className="mb-6 bg-gradient-to-r from-purple-500 to-indigo-600 text-white border-0">
             <CardContent className="p-4">
               <div className="flex items-center space-x-3">
@@ -106,7 +114,7 @@ export default function HomePage() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-semibold">Try the Demo</h3>
-                  <p className="text-sm text-purple-100">Test all features with sample data</p>
+                  <p className="text-sm text-purple-100">Test with sample accounts and payment requests</p>
                 </div>
                 <Link href="/demo-login">
                   <Button
@@ -114,8 +122,7 @@ export default function HomePage() {
                     size="sm"
                     className="bg-white/20 text-white border-white/30 hover:bg-white/30"
                   >
-                    Demo Login
-                    <ArrowRight className="w-3 h-3 ml-1" />
+                    Demo
                   </Button>
                 </Link>
               </div>
@@ -131,6 +138,7 @@ export default function HomePage() {
             <CardContent>
               {error && (
                 <Alert className="mb-4 border-red-200 bg-red-50">
+                  <AlertCircle className="h-4 w-4 text-red-600" />
                   <AlertDescription className="text-red-800">{error}</AlertDescription>
                 </Alert>
               )}
@@ -173,56 +181,19 @@ export default function HomePage() {
                 </Button>
               </form>
 
-              <div className="mt-6 text-center">
-                <Link href="/signup" className="text-sm text-blue-600 hover:underline">
-                  Don't have an account? Sign up
-                </Link>
+              <div className="mt-6 text-center space-y-2">
+                <p className="text-sm text-gray-600">
+                  Don't have an account?{" "}
+                  <Link href="/signup" className="text-blue-600 hover:underline">
+                    Sign up
+                  </Link>
+                </p>
+                <p className="text-xs text-gray-500">
+                  Demo PIN: <span className="font-mono">1234</span> for all test accounts
+                </p>
               </div>
             </CardContent>
           </Card>
-
-          {/* Features */}
-          <div className="mt-8 space-y-4">
-            <h3 className="text-lg font-semibold text-gray-900 text-center">What's New</h3>
-
-            <div className="grid gap-3">
-              <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-3">
-                    <QrCode className="w-8 h-8 text-green-600" />
-                    <div>
-                      <h4 className="font-medium text-green-900">Scan & Go</h4>
-                      <p className="text-sm text-green-700">Universal QR payment system</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-r from-purple-50 to-indigo-50 border-purple-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-3">
-                    <Zap className="w-8 h-8 text-purple-600" />
-                    <div>
-                      <h4 className="font-medium text-purple-900">Request-to-Pay</h4>
-                      <p className="text-sm text-purple-700">Send payment requests instantly</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200">
-                <CardContent className="p-4">
-                  <div className="flex items-center space-x-3">
-                    <Shield className="w-8 h-8 text-blue-600" />
-                    <div>
-                      <h4 className="font-medium text-blue-900">Secure & Fast</h4>
-                      <p className="text-sm text-blue-700">PIN and biometric protection</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          </div>
         </div>
       </div>
     </div>

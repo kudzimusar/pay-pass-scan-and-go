@@ -1,77 +1,44 @@
 "use client"
 
 import type React from "react"
-import { createContext, useContext, useEffect, useMemo, useState } from "react"
+import { createContext, useContext, useState, useEffect } from "react"
 
-type User = {
+interface User {
   id: string
-  name: string
+  fullName: string
   phone: string
-  balance: number
-  role: "user" | "operator" | "admin"
+  email: string
+  biometricEnabled: boolean
+  walletBalance: number
+  createdAt: string
+  updatedAt: string
 }
 
-type AuthContextType = {
-  token: string | null
+interface AuthContextType {
   user: User | null
-  isLoading: boolean
   login: (phone: string, pin: string) => Promise<boolean>
-  signup: (name: string, phone: string, pin: string) => Promise<boolean>
   logout: () => void
+  isLoading: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-// Demo data with proper balance values
-const DEMO_USERS = [
-  {
-    id: "1",
-    name: "John Doe",
-    phone: "+263772630634",
-    pin: "1234",
-    balance: 250.75,
-    role: "user" as const,
-  },
-  {
-    id: "2",
-    name: "Transport Co",
-    phone: "+263773456789",
-    pin: "9876",
-    balance: 1500.0,
-    role: "operator" as const,
-  },
-  {
-    id: "3",
-    name: "Admin User",
-    phone: "+263775678901",
-    pin: "0000",
-    balance: 5000.0,
-    role: "admin" as const,
-  },
-]
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [token, setToken] = useState<string | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [isLoading, setIsLoading] = useState(false)
 
+  // Check for existing session on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem("token")
-    const storedUser = localStorage.getItem("user")
+    const token = localStorage.getItem("auth_token")
+    const userData = localStorage.getItem("user_data")
 
-    if (storedToken && storedUser) {
+    if (token && userData) {
       try {
-        const parsedUser = JSON.parse(storedUser)
-        // Ensure balance is a number
-        if (parsedUser && typeof parsedUser.balance !== "number") {
-          parsedUser.balance = 0
-        }
-        setToken(storedToken)
-        setUser(parsedUser)
+        setUser(JSON.parse(userData))
       } catch (error) {
-        // Clear invalid data
-        localStorage.removeItem("token")
-        localStorage.removeItem("user")
+        console.error("Error parsing stored user data:", error)
+        localStorage.removeItem("auth_token")
+        localStorage.removeItem("user_data")
       }
     }
   }, [])
@@ -80,62 +47,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ phone, pin }),
+      })
 
-      const cleanPhone = phone.replace(/\s/g, "")
-      const demoUser = DEMO_USERS.find((u) => u.phone === cleanPhone && u.pin === pin)
+      const data = await response.json()
 
-      if (!demoUser) {
+      if (response.ok && data.success) {
+        setUser(data.user)
+        localStorage.setItem("auth_token", data.token)
+        localStorage.setItem("user_data", JSON.stringify(data.user))
+        return true
+      } else {
+        console.error("Login failed:", data.error)
         return false
       }
-
-      const userData: User = {
-        id: demoUser.id,
-        name: demoUser.name,
-        phone: demoUser.phone,
-        balance: demoUser.balance || 0, // Ensure balance is always a number
-        role: demoUser.role,
-      }
-
-      const demoToken = `demo_token_${Date.now()}`
-
-      setToken(demoToken)
-      setUser(userData)
-      localStorage.setItem("token", demoToken)
-      localStorage.setItem("user", JSON.stringify(userData))
-
-      return true
     } catch (error) {
-      return false
-    } finally {
-      setIsLoading(false)
-    }
-  }
-
-  const signup = async (name: string, phone: string, pin: string): Promise<boolean> => {
-    setIsLoading(true)
-
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      const userData: User = {
-        id: Date.now().toString(),
-        name,
-        phone,
-        balance: 0, // Default balance for new users
-        role: "user" as const,
-      }
-
-      const demoToken = `demo_token_${Date.now()}`
-
-      setToken(demoToken)
-      setUser(userData)
-      localStorage.setItem("token", demoToken)
-      localStorage.setItem("user", JSON.stringify(userData))
-
-      return true
-    } catch (error) {
+      console.error("Login error:", error)
       return false
     } finally {
       setIsLoading(false)
@@ -143,19 +75,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const logout = () => {
-    setToken(null)
     setUser(null)
-    localStorage.removeItem("token")
-    localStorage.removeItem("user")
+    localStorage.removeItem("auth_token")
+    localStorage.removeItem("user_data")
   }
 
-  const value = useMemo(() => ({ token, user, isLoading, login, signup, logout }), [token, user, isLoading])
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={{ user, login, logout, isLoading }}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {
-  const ctx = useContext(AuthContext)
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider")
-  return ctx
+  const context = useContext(AuthContext)
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider")
+  }
+  return context
 }

@@ -3,480 +3,351 @@
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
-import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import {
-  ArrowLeft,
-  Search,
-  User,
-  DollarSign,
-  Send,
-  CheckCircle,
-  AlertCircle,
-  Phone,
-  Clock,
-  Receipt,
-} from "lucide-react"
+import { ArrowLeft, Search, DollarSign, Send, CheckCircle, AlertCircle } from "lucide-react"
 
-interface SearchUser {
+interface RequestMoneyUser {
   id: string
   fullName: string
   phone: string
+  email: string
 }
 
 const billTypes = [
-  { value: "Bus Ticket", label: "🚌 Bus Ticket", description: "Transport fare sharing" },
-  { value: "Groceries", label: "🛒 Groceries", description: "Shared shopping expenses" },
-  { value: "Utility Bill", label: "⚡ Utility Bill", description: "Electricity, water, internet" },
-  { value: "Shared Ride", label: "🚗 Shared Ride", description: "Taxi or ride sharing" },
-  { value: "Other", label: "📄 Other", description: "General payment request" },
+  { value: "Groceries", label: "Groceries" },
+  { value: "Transport", label: "Transport" },
+  { value: "Utilities", label: "Utilities" },
+  { value: "Food & Dining", label: "Food & Dining" },
+  { value: "Entertainment", label: "Entertainment" },
+  { value: "Other", label: "Other" },
 ]
 
 export default function RequestMoneyPage() {
   const router = useRouter()
-  const [step, setStep] = useState<"search" | "details" | "confirm" | "success">("search")
+  const [currentUser, setCurrentUser] = useState<any>(null)
   const [searchQuery, setSearchQuery] = useState("")
-  const [searchResults, setSearchResults] = useState<SearchUser[]>([])
-  const [selectedUser, setSelectedUser] = useState<SearchUser | null>(null)
-  const [isSearching, setIsSearching] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-
-  // Form data
+  const [searchResults, setSearchResults] = useState<RequestMoneyUser[]>([])
+  const [selectedUser, setSelectedUser] = useState<RequestMoneyUser | null>(null)
   const [amount, setAmount] = useState("")
-  const [billType, setBillType] = useState("")
   const [description, setDescription] = useState("")
-  const [currency] = useState<"USD" | "ZWL">("USD")
+  const [billType, setBillType] = useState("")
+  const [isSearching, setIsSearching] = useState(false)
+  const [isSending, setIsSending] = useState(false)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
 
-  const searchUsers = async (query: string) => {
-    if (query.length < 2) {
-      setSearchResults([])
+  useEffect(() => {
+    // Get current user from localStorage
+    const userData = localStorage.getItem("user_data")
+    if (!userData) {
+      router.push("/demo-login")
       return
     }
 
-    setIsSearching(true)
     try {
-      const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}`, {
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-        },
-      })
-
-      if (response.ok) {
-        const data = await response.json()
-        setSearchResults(data.users || [])
-      } else {
-        setSearchResults([])
-      }
+      const user = JSON.parse(userData)
+      setCurrentUser(user)
     } catch (error) {
-      console.error("Search error:", error)
-      setSearchResults([])
-    } finally {
-      setIsSearching(false)
+      console.error("Error parsing user data:", error)
+      router.push("/demo-login")
     }
-  }
+  }, [router])
 
   useEffect(() => {
-    const debounceTimer = setTimeout(() => {
-      if (searchQuery) {
-        searchUsers(searchQuery)
+    const searchUsers = async () => {
+      if (searchQuery.trim().length < 2) {
+        setSearchResults([])
+        return
       }
-    }, 300)
 
+      setIsSearching(true)
+      try {
+        const response = await fetch(
+          `/api/users/search?q=${encodeURIComponent(searchQuery)}&exclude=${currentUser?.id}`,
+        )
+        const data = await response.json()
+
+        if (data.success) {
+          setSearchResults(data.users)
+        } else {
+          setError("Failed to search users")
+        }
+      } catch (error) {
+        console.error("Search error:", error)
+        setError("Failed to search users")
+      } finally {
+        setIsSearching(false)
+      }
+    }
+
+    const debounceTimer = setTimeout(searchUsers, 300)
     return () => clearTimeout(debounceTimer)
-  }, [searchQuery])
+  }, [searchQuery, currentUser?.id])
 
-  const selectUser = (user: SearchUser) => {
+  const handleUserSelect = (user: RequestMoneyUser) => {
     setSelectedUser(user)
-    setStep("details")
+    setSearchQuery("")
+    setSearchResults([])
+    setError("")
   }
 
-  const validateForm = () => {
+  const handleSendRequest = async () => {
+    if (!selectedUser || !amount || !description || !billType) {
+      setError("Please fill in all fields")
+      return
+    }
+
     const amountNum = Number.parseFloat(amount)
     if (isNaN(amountNum) || amountNum <= 0) {
-      alert("Please enter a valid amount")
-      return false
+      setError("Please enter a valid amount")
+      return
     }
-    if (amountNum > 1000) {
-      alert("Amount cannot exceed $1000")
-      return false
-    }
-    if (!billType) {
-      alert("Please select a bill type")
-      return false
-    }
-    return true
-  }
 
-  const handleDetailsSubmit = () => {
-    if (validateForm()) {
-      setStep("confirm")
-    }
-  }
+    setIsSending(true)
+    setError("")
 
-  const sendPaymentRequest = async () => {
-    if (!selectedUser || !validateForm()) return
-
-    setIsSubmitting(true)
     try {
       const response = await fetch("/api/requests/send", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
         },
         body: JSON.stringify({
-          recipientId: selectedUser.id,
-          amount: Number.parseFloat(amount),
-          currency,
+          senderId: currentUser.id,
+          receiverId: selectedUser.id,
+          amount: amountNum,
+          description,
           billType,
-          description: description || `${billType} payment request`,
         }),
       })
 
-      if (response.ok) {
-        setStep("success")
+      const data = await response.json()
+
+      if (data.success) {
+        setSuccess(`Payment request sent to ${selectedUser.fullName}!`)
+        // Reset form
+        setSelectedUser(null)
+        setAmount("")
+        setDescription("")
+        setBillType("")
+
+        // Redirect to dashboard after 2 seconds
+        setTimeout(() => {
+          router.push("/dashboard")
+        }, 2000)
       } else {
-        const error = await response.json()
-        alert(error.error || "Failed to send payment request")
+        setError(data.error || "Failed to send request")
       }
     } catch (error) {
       console.error("Send request error:", error)
-      alert("Failed to send payment request")
+      setError("Failed to send request")
     } finally {
-      setIsSubmitting(false)
+      setIsSending(false)
     }
   }
 
-  const resetForm = () => {
-    setStep("search")
-    setSearchQuery("")
-    setSearchResults([])
-    setSelectedUser(null)
-    setAmount("")
-    setBillType("")
-    setDescription("")
+  if (!currentUser) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100">
       <div className="w-full max-w-md mx-auto bg-white min-h-screen shadow-xl">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 px-6 py-8 text-white">
+        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-8 text-white">
           <div className="flex items-center mb-4">
-            <Link href="/dashboard" className="p-2 hover:bg-white/20 rounded-lg transition-colors mr-3">
-              <ArrowLeft className="w-6 h-6" />
+            <Link href="/dashboard">
+              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 p-2">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
             </Link>
-            <div>
-              <h1 className="text-2xl font-bold">Request Money</h1>
-              <p className="text-purple-100">Send payment requests to contacts</p>
-            </div>
+            <h1 className="text-xl font-bold ml-2">Request Money</h1>
           </div>
-
-          {/* Progress Indicator */}
-          <div className="flex items-center space-x-2">
-            {["search", "details", "confirm", "success"].map((stepName, index) => (
-              <div key={stepName} className="flex items-center">
-                <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium ${
-                    step === stepName
-                      ? "bg-white text-purple-600"
-                      : index < ["search", "details", "confirm", "success"].indexOf(step)
-                        ? "bg-purple-300 text-purple-800"
-                        : "bg-white/20 text-white"
-                  }`}
-                >
-                  {index + 1}
-                </div>
-                {index < 3 && <div className="w-8 h-0.5 bg-white/30 mx-1" />}
-              </div>
-            ))}
-          </div>
+          <p className="text-purple-100 text-sm">Send a payment request to someone</p>
         </div>
 
         <div className="px-6 py-6">
-          {/* Step 1: Search Users */}
-          {step === "search" && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Search className="w-8 h-8 text-purple-600" />
-                </div>
-                <h2 className="text-xl font-bold text-gray-900 mb-2">Find Contact</h2>
-                <p className="text-gray-600">Search by name, phone number, or email</p>
-              </div>
-
-              {/* Search Input */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <Input
-                  type="text"
-                  placeholder="Search contacts..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-                {isSearching && (
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-purple-600"></div>
-                  </div>
-                )}
-              </div>
-
-              {/* Search Results */}
-              {searchResults.length > 0 && (
-                <div className="space-y-2">
-                  <h3 className="font-medium text-gray-900">Search Results</h3>
-                  {searchResults.map((user) => (
-                    <Card
-                      key={user.id}
-                      className="cursor-pointer hover:shadow-md transition-all hover:border-purple-300"
-                      onClick={() => selectUser(user)}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                            <User className="w-5 h-5 text-purple-600" />
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-medium text-gray-900">{user.fullName}</h4>
-                            <div className="flex items-center space-x-2 text-sm text-gray-500">
-                              <Phone className="w-3 h-3" />
-                              <span>{user.phone}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-
-              {searchQuery.length >= 2 && searchResults.length === 0 && !isSearching && (
-                <Alert>
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>No users found matching your search.</AlertDescription>
-                </Alert>
-              )}
-            </div>
+          {error && (
+            <Alert className="mb-4 border-red-200 bg-red-50">
+              <AlertCircle className="h-4 w-4 text-red-600" />
+              <AlertDescription className="text-red-800">{error}</AlertDescription>
+            </Alert>
           )}
 
-          {/* Step 2: Payment Details */}
-          {step === "details" && selectedUser && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <DollarSign className="w-8 h-8 text-blue-600" />
-                </div>
-                <h2 className="text-xl font-bold text-gray-900 mb-2">Payment Details</h2>
-                <p className="text-gray-600">Requesting payment from {selectedUser.fullName}</p>
-              </div>
+          {success && (
+            <Alert className="mb-4 border-green-200 bg-green-50">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">{success}</AlertDescription>
+            </Alert>
+          )}
 
-              {/* Selected User */}
-              <Card className="bg-purple-50 border-purple-200">
-                <CardContent className="p-4">
+          {/* Step 1: Select User */}
+          <Card className="mb-6">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center">
+                <DollarSign className="w-5 h-5 mr-2" />
+                {selectedUser ? "Selected Contact" : "Select Contact"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {selectedUser ? (
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                      <User className="w-5 h-5 text-purple-600" />
+                    <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+                      <DollarSign className="w-5 h-5 text-white" />
                     </div>
                     <div>
-                      <h4 className="font-medium text-gray-900">{selectedUser.fullName}</h4>
+                      <p className="font-semibold text-gray-900">{selectedUser.fullName}</p>
                       <p className="text-sm text-gray-600">{selectedUser.phone}</p>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                  <Button variant="outline" size="sm" onClick={() => setSelectedUser(null)}>
+                    Change
+                  </Button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      placeholder="Search by name, phone, or email..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
 
-              {/* Amount Input */}
-              <div>
-                <Label htmlFor="amount">Amount ({currency})</Label>
-                <div className="relative mt-1">
-                  <DollarSign className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  {isSearching && (
+                    <div className="text-center py-4">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600 mx-auto"></div>
+                    </div>
+                  )}
+
+                  {searchResults.length > 0 && (
+                    <div className="space-y-2 max-h-60 overflow-y-auto">
+                      {searchResults.map((user) => (
+                        <div
+                          key={user.id}
+                          onClick={() => handleUserSelect(user)}
+                          className="flex items-center space-x-3 p-3 hover:bg-gray-50 rounded-lg cursor-pointer transition-colors"
+                        >
+                          <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                            <DollarSign className="w-4 h-4 text-gray-600" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-medium text-gray-900">{user.fullName}</p>
+                            <p className="text-sm text-gray-600">{user.phone}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {searchQuery.length >= 2 && !isSearching && searchResults.length === 0 && (
+                    <p className="text-center text-gray-500 py-4">No users found</p>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Step 2: Request Details */}
+          {selectedUser && (
+            <Card className="mb-6">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center">
+                  <DollarSign className="w-5 h-5 mr-2" />
+                  Request Details
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="amount">Amount ($)</Label>
                   <Input
                     id="amount"
                     type="number"
                     step="0.01"
-                    min="0"
-                    max="1000"
+                    min="0.01"
                     placeholder="0.00"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="pl-10 text-lg"
                   />
                 </div>
-              </div>
 
-              {/* Bill Type Selection */}
-              <div>
-                <Label htmlFor="billType">Bill Type</Label>
-                <Select value={billType} onValueChange={setBillType}>
-                  <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Select bill type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {billTypes.map((type) => (
-                      <SelectItem key={type.value} value={type.value}>
-                        <div>
-                          <div className="font-medium">{type.label}</div>
-                          <div className="text-xs text-gray-500">{type.description}</div>
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Description */}
-              <div>
-                <Label htmlFor="description">Description (Optional)</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Add a note about this payment request..."
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="mt-1"
-                  rows={3}
-                />
-              </div>
-
-              {/* Actions */}
-              <div className="space-y-3">
-                <Button onClick={handleDetailsSubmit} className="w-full" size="lg">
-                  Continue
-                </Button>
-                <Button variant="outline" onClick={() => setStep("search")} className="w-full">
-                  Change Contact
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 3: Confirmation */}
-          {step === "confirm" && selectedUser && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="w-8 h-8 text-green-600" />
+                <div>
+                  <Label htmlFor="billType">Category</Label>
+                  <Select value={billType} onValueChange={setBillType}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {billTypes.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <h2 className="text-xl font-bold text-gray-900 mb-2">Confirm Request</h2>
-                <p className="text-gray-600">Review your payment request details</p>
-              </div>
 
-              {/* Request Summary */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Payment Request Summary</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Requesting from</span>
-                    <span className="font-medium">{selectedUser.fullName}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Phone</span>
-                    <span className="font-medium">{selectedUser.phone}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Amount</span>
-                    <span className="font-medium text-lg">${Number.parseFloat(amount).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Bill Type</span>
-                    <Badge variant="secondary">{billTypes.find((t) => t.value === billType)?.label}</Badge>
-                  </div>
-                  {description && (
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Description</span>
-                      <span className="font-medium text-sm">{description}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 flex items-center">
-                      <Clock className="w-3 h-3 mr-1" />
-                      Expires
-                    </span>
-                    <span className="font-medium">24 hours</span>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Info Alert */}
-              <Alert>
-                <Receipt className="h-4 w-4" />
-                <AlertDescription>
-                  {selectedUser.fullName} will receive an instant notification and can accept or decline your request.
-                </AlertDescription>
-              </Alert>
-
-              {/* Actions */}
-              <div className="space-y-3">
-                <Button onClick={sendPaymentRequest} disabled={isSubmitting} className="w-full" size="lg">
-                  {isSubmitting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Sending Request...
-                    </>
-                  ) : (
-                    <>
-                      <Send className="w-4 h-4 mr-2" />
-                      Send Payment Request
-                    </>
-                  )}
-                </Button>
-                <Button variant="outline" onClick={() => setStep("details")} className="w-full" disabled={isSubmitting}>
-                  Edit Details
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 4: Success */}
-          {step === "success" && selectedUser && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <CheckCircle className="w-12 h-12 text-green-600" />
+                <div>
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    placeholder="What is this request for?"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={3}
+                  />
                 </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Request Sent!</h2>
-                <p className="text-gray-600">Your payment request has been sent successfully</p>
-              </div>
-
-              {/* Success Details */}
-              <Card className="bg-green-50 border-green-200">
-                <CardContent className="p-6 text-center">
-                  <h3 className="font-semibold text-green-900 mb-2">
-                    ${Number.parseFloat(amount).toFixed(2)} requested from {selectedUser.fullName}
-                  </h3>
-                  <p className="text-sm text-green-800 mb-4">
-                    {selectedUser.fullName} will receive an instant notification and can respond within 24 hours.
-                  </p>
-                  <Badge variant="secondary" className="bg-green-100 text-green-800">
-                    {billTypes.find((t) => t.value === billType)?.label}
-                  </Badge>
-                </CardContent>
-              </Card>
-
-              {/* Actions */}
-              <div className="space-y-3">
-                <Link href="/payment-requests">
-                  <Button className="w-full">View All Requests</Button>
-                </Link>
-                <Button variant="outline" onClick={resetForm} className="w-full bg-transparent">
-                  Send Another Request
-                </Button>
-                <Link href="/dashboard">
-                  <Button variant="ghost" className="w-full">
-                    Back to Dashboard
-                  </Button>
-                </Link>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           )}
+
+          {/* Send Button */}
+          {selectedUser && (
+            <Button
+              onClick={handleSendRequest}
+              disabled={isSending || !amount || !description || !billType}
+              className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
+              size="lg"
+            >
+              {isSending ? (
+                <div className="flex items-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Sending Request...
+                </div>
+              ) : (
+                <div className="flex items-center">
+                  <Send className="w-4 h-4 mr-2" />
+                  Send Request
+                </div>
+              )}
+            </Button>
+          )}
+
+          {/* Quick Tips */}
+          <Card className="mt-6 bg-gradient-to-r from-blue-50 to-cyan-50 border-blue-200">
+            <CardContent className="p-4">
+              <h3 className="font-semibold text-blue-900 text-sm mb-2">Quick Tips</h3>
+              <ul className="text-xs text-blue-800 space-y-1">
+                <li>• Search by name, phone number, or email</li>
+                <li>• Be specific in your description</li>
+                <li>• Requests expire after 24 hours</li>
+                <li>• The recipient will get a notification</li>
+              </ul>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
