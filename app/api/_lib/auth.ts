@@ -1,47 +1,35 @@
-// Server-only auth utilities. Using jsonwebtoken and Zimbabwe phone normalization.
 import jwt from "jsonwebtoken"
 
-const DEV_SECRET = "paypass-dev-secret"
-const JWT_SECRET = process.env.JWT_SECRET || DEV_SECRET
+const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production"
 
-export type UserAuthPayload = { type: "user"; userId: string; phone: string }
-export type OperatorAuthPayload = { type: "operator"; operatorId: string; phone: string }
-export type MerchantAuthPayload = { type: "merchant"; merchantId: string; phone: string }
-export type AdminAuthPayload = { type: "admin"; adminId: string; phone: string }
-export type PartnerAuthPayload = { type: "partner"; partnerId: string; phone: string }
-export type AuthPayload =
-  | UserAuthPayload
-  | OperatorAuthPayload
-  | MerchantAuthPayload
-  | AdminAuthPayload
-  | PartnerAuthPayload
-
-export function normalizePhoneNumber(phone: string): string {
-  const clean = String(phone || "").trim()
-  if (!clean) return ""
-  if (clean.startsWith("+")) return clean
-  const digits = clean.replace(/\D/g, "")
-  if (digits.startsWith("263")) return "+" + digits
-  if (digits.startsWith("0")) return "+263" + digits.slice(1)
-  if (digits.length === 9) return "+263" + digits
-  return digits ? "+" + digits : ""
+export interface AuthPayload {
+  userId: string
+  type: "user" | "operator" | "admin"
+  phone: string
 }
 
-export function signToken(payload: AuthPayload): string {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: "30d" })
+export function generateToken(payload: AuthPayload): string {
+  return jwt.sign(payload, JWT_SECRET, { expiresIn: "7d" })
 }
 
-export function verifyToken(token: string): AuthPayload {
-  return jwt.verify(token, JWT_SECRET) as AuthPayload
-}
-
-export function verifyAuthHeader(authHeader: string | null): AuthPayload | null {
-  if (!authHeader) return null
-  const [scheme, token] = authHeader.split(" ")
-  if (scheme?.toLowerCase() !== "bearer" || !token) return null
+export function verifyToken(token: string): AuthPayload | null {
   try {
-    return verifyToken(token)
+    return jwt.verify(token, JWT_SECRET) as AuthPayload
   } catch {
     return null
   }
+}
+
+export function verifyAuthHeader(authHeader: string | null): AuthPayload | null {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return null
+  }
+
+  const token = authHeader.substring(7)
+  return verifyToken(token)
+}
+
+export function getAuthFromRequest(request: Request): AuthPayload | null {
+  const authHeader = request.headers.get("Authorization")
+  return verifyAuthHeader(authHeader)
 }

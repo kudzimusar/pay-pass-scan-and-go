@@ -7,8 +7,8 @@ import Providers from "./providers"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "PayPass - Digital Payment Platform",
-  description: "Zimbabwe's Premier Fintech Solution",
+  title: "PayPass - Your Digital Wallet",
+  description: "Secure digital payments and wallet management for Zimbabwe",
     generator: 'v0.app'
 }
 

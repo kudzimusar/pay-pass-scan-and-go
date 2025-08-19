@@ -3,7 +3,7 @@ import { neon } from "@neondatabase/serverless"
 import { getRedis } from "../_lib/redis"
 
 export async function GET() {
-  const status: any = { ok: true, express: false }
+  const status: any = { ok: true, framework: "Next.js" }
   try {
     const url = process.env.DATABASE_URL
     if (url) {
