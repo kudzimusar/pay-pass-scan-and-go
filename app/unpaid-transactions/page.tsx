@@ -4,217 +4,163 @@ import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Input } from "@/components/ui/input"
-import { ArrowLeft, Users, Search, AlertCircle, Bus, ShoppingCart, Zap, Clock, DollarSign } from "lucide-react"
+import { ArrowLeft, CreditCard, Users, Calendar, Building, Receipt, AlertCircle, Clock, Share } from "lucide-react"
 
 interface Transaction {
   id: string
-  userId: string
-  type: "bus_ticket" | "grocery" | "utility"
+  type: string
   amount: number
   description: string
-  status: "pending" | "completed" | "failed"
+  status: string
   isPaid: boolean
   createdAt: string
-}
-
-interface User {
-  id: string
-  fullName: string
-  phone: string
-  email: string
+  category?: string
+  merchantName?: string
+  receiptNumber?: string
+  dueDate?: string
 }
 
 export default function UnpaidTransactionsPage() {
   const router = useRouter()
-  const [user, setUser] = useState<any>(null)
+  const [currentUser, setCurrentUser] = useState<any>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
-  const [selectedTransaction, setSelectedTransaction] = useState<Transaction | null>(null)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [searchResults, setSearchResults] = useState<User[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [isSearching, setIsSearching] = useState(false)
-  const [isSending, setIsSending] = useState(false)
   const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
 
   useEffect(() => {
-    // Get user from localStorage
     const userData = localStorage.getItem("user_data")
     if (!userData) {
-      router.push("/demo-login")
+      router.push("/")
       return
     }
 
     try {
-      const parsedUser = JSON.parse(userData)
-      setUser(parsedUser)
-      fetchUnpaidTransactions(parsedUser.id)
+      const user = JSON.parse(userData)
+      setCurrentUser(user)
+      fetchUnpaidTransactions(user.id)
     } catch (error) {
       console.error("Error parsing user data:", error)
-      router.push("/demo-login")
+      router.push("/")
     }
   }, [router])
 
   const fetchUnpaidTransactions = async (userId: string) => {
     try {
-      setIsLoading(true)
       const response = await fetch(`/api/transactions/unpaid?userId=${userId}`)
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
       const data = await response.json()
 
       if (data.success) {
-        setTransactions(data.transactions || [])
+        setTransactions(data.transactions)
       } else {
-        setError(data.error || "Failed to fetch transactions")
+        setError("Failed to load transactions")
       }
     } catch (error) {
-      console.error("Error fetching unpaid transactions:", error)
-      setError("Failed to load unpaid transactions")
+      console.error("Fetch transactions error:", error)
+      setError("Failed to load transactions")
     } finally {
       setIsLoading(false)
-    }
-  }
-
-  const searchUsers = async (query: string) => {
-    if (!query.trim() || query.length < 2) {
-      setSearchResults([])
-      return
-    }
-
-    try {
-      setIsSearching(true)
-      const response = await fetch(`/api/users/search?q=${encodeURIComponent(query)}&excludeUserId=${user.id}`)
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
-
-      if (data.success) {
-        setSearchResults(data.users || [])
-      } else {
-        setSearchResults([])
-      }
-    } catch (error) {
-      console.error("Error searching users:", error)
-      setSearchResults([])
-    } finally {
-      setIsSearching(false)
-    }
-  }
-
-  const sendLinkedRequest = async (receiverId: string) => {
-    if (!selectedTransaction || !user) return
-
-    try {
-      setIsSending(true)
-      setError("")
-
-      const response = await fetch("/api/requests/linked", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          senderId: user.id,
-          receiverId,
-          linkedTransactionId: selectedTransaction.id,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      const data = await response.json()
-
-      if (data.success) {
-        setSuccess("Payment request sent successfully!")
-        setSelectedTransaction(null)
-        setSearchQuery("")
-        setSearchResults([])
-        setTimeout(() => {
-          router.push("/dashboard")
-        }, 2000)
-      } else {
-        setError(data.error || "Failed to send request")
-      }
-    } catch (error) {
-      console.error("Error sending linked request:", error)
-      setError("Failed to send payment request")
-    } finally {
-      setIsSending(false)
     }
   }
 
   const getTransactionIcon = (type: string) => {
     switch (type) {
       case "bus_ticket":
-        return <Bus className="w-6 h-6 text-blue-600" />
+        return "🚌"
       case "grocery":
-        return <ShoppingCart className="w-6 h-6 text-green-600" />
-      case "utility":
-        return <Zap className="w-6 h-6 text-yellow-600" />
+        return "🛒"
+      case "electricity":
+        return "⚡"
+      case "water":
+        return "💧"
+      case "internet":
+        return "🌐"
       default:
-        return <DollarSign className="w-6 h-6 text-gray-600" />
+        return "💳"
     }
   }
 
   const getTransactionColor = (type: string) => {
     switch (type) {
       case "bus_ticket":
-        return "from-blue-500 to-blue-600"
+        return "blue"
       case "grocery":
-        return "from-green-500 to-green-600"
-      case "utility":
-        return "from-yellow-500 to-yellow-600"
+        return "green"
+      case "electricity":
+        return "yellow"
+      case "water":
+        return "cyan"
+      case "internet":
+        return "purple"
       default:
-        return "from-gray-500 to-gray-600"
+        return "gray"
     }
   }
 
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      searchUsers(searchQuery)
-    }, 300)
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    })
+  }
 
-    return () => clearTimeout(timeoutId)
-  }, [searchQuery])
+  const getDaysUntilDue = (dueDateString?: string) => {
+    if (!dueDateString) return null
+    const dueDate = new Date(dueDateString)
+    const now = new Date()
+    const diffTime = dueDate.getTime() - now.getTime()
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+    return diffDays
+  }
 
-  if (!user) {
+  const handleAskFriendToPay = (transaction: Transaction) => {
+    // Store transaction details in localStorage for the request money page
+    localStorage.setItem(
+      "linked_transaction",
+      JSON.stringify({
+        id: transaction.id,
+        amount: transaction.amount,
+        description: transaction.description,
+        category: transaction.category || transaction.type,
+        merchantName: transaction.merchantName,
+      }),
+    )
+
+    // Navigate to the ask friend to pay page
+    router.push(`/ask-friend-to-pay?transactionId=${transaction.id}`)
+  }
+
+  if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
     )
   }
 
+  if (!currentUser) {
+    return null
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-indigo-100">
+    <div className="min-h-screen bg-gray-50">
       <div className="w-full max-w-md mx-auto bg-white min-h-screen shadow-xl">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-indigo-600 px-6 py-8 text-white">
+        <div className="bg-gradient-to-r from-orange-600 to-red-600 px-6 py-8 text-white">
           <div className="flex items-center mb-4">
             <Link href="/dashboard">
               <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 p-2">
                 <ArrowLeft className="w-4 h-4" />
               </Button>
             </Link>
-            <h1 className="text-xl font-bold ml-2">Ask Friend to Pay</h1>
+            <h1 className="text-xl font-bold ml-2">Unpaid Transactions</h1>
           </div>
-          <div className="flex items-center space-x-2">
-            <Users className="w-6 h-6" />
-            <p className="text-purple-100">Select a bill and choose who should pay</p>
-          </div>
+          <p className="text-orange-100 text-sm">Bills and payments waiting for you</p>
         </div>
 
         <div className="px-6 py-6">
@@ -225,164 +171,153 @@ export default function UnpaidTransactionsPage() {
             </Alert>
           )}
 
-          {success && (
-            <Alert className="mb-4 border-green-200 bg-green-50">
-              <AlertCircle className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800">{success}</AlertDescription>
-            </Alert>
-          )}
+          {/* Summary Card */}
+          <Card className="mb-6 bg-gradient-to-r from-orange-50 to-red-50 border-orange-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold text-orange-900">Total Outstanding</h3>
+                  <p className="text-sm text-orange-700">{transactions.length} unpaid bills</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-orange-900">
+                    ${transactions.reduce((sum, txn) => sum + txn.amount, 0).toFixed(2)}
+                  </p>
+                  <p className="text-xs text-orange-600">Amount due</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
-          {!selectedTransaction ? (
-            <>
-              {/* Unpaid Transactions */}
-              <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Clock className="w-5 h-5 mr-2" />
-                    Unpaid Bills
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {isLoading ? (
-                    <div className="space-y-3">
-                      <div className="animate-pulse">
-                        <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                      </div>
-                    </div>
-                  ) : transactions.length > 0 ? (
-                    <div className="space-y-3">
-                      {transactions.map((transaction) => (
-                        <div
-                          key={transaction.id}
-                          className="border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors"
-                          onClick={() => setSelectedTransaction(transaction)}
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-3">
-                              {getTransactionIcon(transaction.type)}
-                              <div>
-                                <p className="font-medium text-gray-900">{transaction.description}</p>
-                                <p className="text-sm text-gray-600">
-                                  {new Date(transaction.createdAt).toLocaleDateString()}
-                                </p>
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-bold text-lg text-gray-900">${transaction.amount.toFixed(2)}</p>
-                              <Badge variant="outline" className="text-xs">
-                                {transaction.type.replace("_", " ").toUpperCase()}
-                              </Badge>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8">
-                      <Clock className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-                      <p className="text-gray-600">No unpaid bills found</p>
-                      <p className="text-sm text-gray-500 mt-1">All your transactions are up to date!</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </>
+          {/* Transactions List */}
+          {transactions.length === 0 ? (
+            <Card className="text-center py-12">
+              <CardContent>
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <CreditCard className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">All caught up!</h3>
+                <p className="text-gray-600 mb-4">You have no unpaid transactions</p>
+                <Link href="/dashboard">
+                  <Button>Back to Dashboard</Button>
+                </Link>
+              </CardContent>
+            </Card>
           ) : (
-            <>
-              {/* Selected Transaction */}
-              <Card className={`mb-6 bg-gradient-to-r ${getTransactionColor(selectedTransaction.type)} text-white`}>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      {getTransactionIcon(selectedTransaction.type)}
-                      <div>
-                        <p className="font-semibold">{selectedTransaction.description}</p>
-                        <p className="text-white/80 text-sm">
-                          {selectedTransaction.type.replace("_", " ").toUpperCase()}
-                        </p>
-                      </div>
-                    </div>
-                    <p className="text-2xl font-bold">${selectedTransaction.amount.toFixed(2)}</p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setSelectedTransaction(null)}
-                    className="text-white hover:bg-white/20"
+            <div className="space-y-4">
+              {transactions.map((transaction) => {
+                const color = getTransactionColor(transaction.type)
+                const daysUntilDue = getDaysUntilDue(transaction.dueDate)
+                const isOverdue = daysUntilDue !== null && daysUntilDue < 0
+                const isDueSoon = daysUntilDue !== null && daysUntilDue <= 3 && daysUntilDue >= 0
+
+                return (
+                  <Card
+                    key={transaction.id}
+                    className={`hover:shadow-md transition-shadow ${
+                      isOverdue ? "border-red-300 bg-red-50" : isDueSoon ? "border-yellow-300 bg-yellow-50" : ""
+                    }`}
                   >
-                    <ArrowLeft className="w-4 h-4 mr-1" />
-                    Choose Different Bill
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* Search Friends */}
-              <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <Search className="w-5 h-5 mr-2" />
-                    Who should pay?
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="relative mb-4">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                    <Input
-                      type="text"
-                      placeholder="Search by name, phone, or email..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-
-                  {isSearching && (
-                    <div className="text-center py-4">
-                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600 mx-auto"></div>
-                    </div>
-                  )}
-
-                  {searchResults.length > 0 && (
-                    <div className="space-y-2">
-                      {searchResults.map((contact) => (
-                        <div
-                          key={contact.id}
-                          className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 cursor-pointer"
-                          onClick={() => sendLinkedRequest(contact.id)}
-                        >
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center space-x-3">
+                          <div className={`text-2xl`}>{getTransactionIcon(transaction.type)}</div>
                           <div>
-                            <p className="font-medium text-gray-900">{contact.fullName}</p>
-                            <p className="text-sm text-gray-600">{contact.phone}</p>
+                            <h4 className="font-medium text-gray-900">{transaction.description}</h4>
+                            <div className="flex items-center space-x-2 mt-1">
+                              {transaction.merchantName && (
+                                <div className="flex items-center text-sm text-gray-600">
+                                  <Building className="w-3 h-3 mr-1" />
+                                  {transaction.merchantName}
+                                </div>
+                              )}
+                              {transaction.receiptNumber && (
+                                <div className="flex items-center text-sm text-gray-600">
+                                  <Receipt className="w-3 h-3 mr-1" />
+                                  {transaction.receiptNumber}
+                                </div>
+                              )}
+                            </div>
                           </div>
-                          <Button size="sm" disabled={isSending}>
-                            {isSending ? (
-                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                            ) : (
-                              "Send Request"
-                            )}
-                          </Button>
                         </div>
-                      ))}
-                    </div>
-                  )}
+                        <div className="text-right">
+                          <p className="font-bold text-lg text-gray-900">${transaction.amount.toFixed(2)}</p>
+                          <Badge
+                            variant="secondary"
+                            className={`text-xs ${
+                              color === "blue"
+                                ? "bg-blue-100 text-blue-800"
+                                : color === "green"
+                                  ? "bg-green-100 text-green-800"
+                                  : color === "yellow"
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : color === "cyan"
+                                      ? "bg-cyan-100 text-cyan-800"
+                                      : color === "purple"
+                                        ? "bg-purple-100 text-purple-800"
+                                        : "bg-gray-100 text-gray-800"
+                            }`}
+                          >
+                            {transaction.category || transaction.type}
+                          </Badge>
+                        </div>
+                      </div>
 
-                  {searchQuery.length >= 2 && !isSearching && searchResults.length === 0 && (
-                    <div className="text-center py-4">
-                      <p className="text-gray-600">No contacts found</p>
-                      <p className="text-sm text-gray-500">Try searching with a different name or phone number</p>
-                    </div>
-                  )}
+                      {/* Due Date Warning */}
+                      {daysUntilDue !== null && (
+                        <div
+                          className={`flex items-center text-sm mb-3 ${
+                            isOverdue ? "text-red-600" : isDueSoon ? "text-yellow-600" : "text-gray-600"
+                          }`}
+                        >
+                          <Calendar className="w-3 h-3 mr-1" />
+                          {isOverdue
+                            ? `Overdue by ${Math.abs(daysUntilDue)} days`
+                            : isDueSoon
+                              ? `Due in ${daysUntilDue} days`
+                              : `Due in ${daysUntilDue} days`}
+                        </div>
+                      )}
 
-                  {searchQuery.length < 2 && (
-                    <div className="text-center py-4">
-                      <p className="text-gray-600">Start typing to search for contacts</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </>
+                      <div className="flex items-center text-sm text-gray-500 mb-4">
+                        <Clock className="w-3 h-3 mr-1" />
+                        Created {formatDate(transaction.createdAt)}
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex space-x-2">
+                        <Button
+                          onClick={() => handleAskFriendToPay(transaction)}
+                          className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                          size="sm"
+                        >
+                          <Users className="w-4 h-4 mr-2" />
+                          Ask Friend to Pay
+                        </Button>
+                        <Button variant="outline" size="sm" className="flex-1 bg-transparent">
+                          <Share className="w-4 h-4 mr-2" />
+                          Share
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )
+              })}
+            </div>
           )}
+
+          {/* Quick Actions */}
+          <Card className="mt-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+            <CardContent className="p-4">
+              <h3 className="font-semibold text-blue-900 text-sm mb-2">Need Help?</h3>
+              <ul className="text-xs text-blue-800 space-y-1">
+                <li>• Ask friends to pay for your bills</li>
+                <li>• Share receipts and get reimbursed</li>
+                <li>• Set up payment reminders</li>
+                <li>• Contact support for payment issues</li>
+              </ul>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

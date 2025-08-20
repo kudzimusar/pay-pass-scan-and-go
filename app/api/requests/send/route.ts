@@ -1,85 +1,53 @@
 import { type NextRequest, NextResponse } from "next/server"
-import {
-  ensureSeeded,
-  createPaymentRequest,
-  getUserById,
-  createNotification,
-  getTransactionById,
-} from "../../_lib/storage"
+import { ensureSeeded, createPaymentRequest, getUserById, createNotification } from "../../_lib/storage"
 
 export async function POST(request: NextRequest) {
   try {
-    console.log("Send request API called")
-
-    // Ensure storage is seeded
     await ensureSeeded()
 
     const body = await request.json()
-    const { senderId, receiverId, amount, description, billType, linkedTransactionId } = body
+    const { senderId, recipientId, amount, description, billType } = body
 
-    console.log("Request data:", { senderId, receiverId, amount, description, billType, linkedTransactionId })
-
-    if (!senderId || !receiverId || !amount || !description || !billType) {
-      return NextResponse.json({ error: "All fields are required" }, { status: 400 })
+    if (!senderId || !recipientId || !amount || !description) {
+      return NextResponse.json({ success: false, error: "All fields are required" }, { status: 400 })
     }
 
     if (amount <= 0) {
-      return NextResponse.json({ error: "Amount must be greater than 0" }, { status: 400 })
+      return NextResponse.json({ success: false, error: "Amount must be greater than 0" }, { status: 400 })
     }
 
-    if (senderId === receiverId) {
-      return NextResponse.json({ error: "Cannot send request to yourself" }, { status: 400 })
+    if (senderId === recipientId) {
+      return NextResponse.json({ success: false, error: "Cannot send request to yourself" }, { status: 400 })
     }
 
-    // Verify users exist
+    // Verify both users exist
     const sender = await getUserById(senderId)
-    const receiver = await getUserById(receiverId)
+    const recipient = await getUserById(recipientId)
 
-    if (!sender || !receiver) {
-      return NextResponse.json({ error: "Invalid sender or receiver" }, { status: 400 })
-    }
-
-    // If linkedTransactionId is provided, verify it exists
-    if (linkedTransactionId) {
-      const linkedTransaction = await getTransactionById(linkedTransactionId)
-      if (!linkedTransaction) {
-        return NextResponse.json({ error: "Invalid linked transaction" }, { status: 400 })
-      }
-      if (linkedTransaction.userId !== senderId) {
-        return NextResponse.json({ error: "Linked transaction does not belong to sender" }, { status: 400 })
-      }
+    if (!sender || !recipient) {
+      return NextResponse.json({ success: false, error: "User not found" }, { status: 404 })
     }
 
     // Create payment request
     const paymentRequest = await createPaymentRequest({
       senderId,
-      receiverId,
+      recipientId,
       amount: Number.parseFloat(amount),
       description,
-      billType,
-      linkedTransactionId,
+      billType: billType || "general",
       status: "pending",
       expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
     })
 
-    console.log("Payment request created:", paymentRequest.id)
-
-    // Create notification for receiver
+    // Create notification for recipient
     await createNotification({
-      userId: receiverId,
-      type: "payment_request_received",
+      userId: recipientId,
+      type: "payment_request",
       title: "Payment Request",
       message: `${sender.fullName} requested $${amount} for ${description}`,
-      data: {
-        requestId: paymentRequest.id,
-        amount: Number.parseFloat(amount),
-        senderName: sender.fullName,
-        linkedTransactionId,
-      },
+      data: { requestId: paymentRequest.id, amount, senderName: sender.fullName },
       isRead: false,
     })
-
-    console.log("Notification created for receiver")
 
     return NextResponse.json({
       success: true,
@@ -88,6 +56,6 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error("Send request API error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ success: false, error: "Failed to send payment request" }, { status: 500 })
   }
 }

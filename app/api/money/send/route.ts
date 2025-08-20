@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
 import { ensureSeeded } from "../../_lib/storage"
-import { processTopUp } from "../../_lib/financial-core"
+import { processTransfer } from "../../_lib/financial-core"
 
 export async function POST(req: Request) {
   try {
-    console.log("=== WALLET TOPUP API START ===")
+    console.log("=== SEND MONEY API START ===")
     await ensureSeeded()
 
     const authHeader = req.headers.get("authorization")
@@ -19,39 +19,35 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: false, error: "Invalid JSON in request body" }, { status: 400 })
     }
 
-    const { userId, amount, method } = body
+    const { senderId, recipientId, amount, description } = body
 
     // Validation
-    if (!userId || !amount || !method) {
-      return NextResponse.json({ success: false, error: "Missing required fields" }, { status: 400 })
+    if (!senderId || !recipientId || !amount || !description) {
+      return NextResponse.json({ success: false, error: "All fields are required" }, { status: 400 })
     }
 
-    if (amount <= 0) {
-      return NextResponse.json({ success: false, error: "Amount must be greater than 0" }, { status: 400 })
+    if (senderId === recipientId) {
+      return NextResponse.json({ success: false, error: "Cannot send money to yourself" }, { status: 400 })
     }
 
-    if (amount > 1000) {
-      return NextResponse.json({ success: false, error: "Maximum top-up amount is $1,000" }, { status: 400 })
-    }
-
-    // Process top-up through Financial Core
-    const result = await processTopUp(userId, amount, method)
+    // Process transfer through Financial Core
+    const result = await processTransfer(senderId, recipientId, amount, description)
 
     if (!result.success) {
       return NextResponse.json({ success: false, error: result.error }, { status: 400 })
     }
 
-    console.log(`Top-up completed: ${result.transactionId}`)
-    console.log("=== WALLET TOPUP API END ===")
+    console.log(`Money transfer completed: ${result.transactionId}`)
+    console.log("=== SEND MONEY API END ===")
 
     return NextResponse.json({
       success: true,
-      message: "Top-up processed successfully",
+      message: `Successfully sent $${amount.toFixed(2)}`,
       newBalance: result.newBalance,
       transactionId: result.transactionId,
     })
   } catch (error) {
-    console.error("=== WALLET TOPUP API ERROR ===", error)
+    console.error("=== SEND MONEY API ERROR ===", error)
     return NextResponse.json({ success: false, error: "Internal server error" }, { status: 500 })
   }
 }

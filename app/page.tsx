@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Smartphone, CreditCard, QrCode, Users, ArrowRight, TestTube, AlertCircle } from "lucide-react"
+import { Smartphone, CreditCard, QrCode, Users, ArrowRight, AlertCircle } from "lucide-react"
 
 export default function HomePage() {
   const router = useRouter()
@@ -37,18 +37,43 @@ export default function HomePage() {
       console.log("Response status:", response.status)
       console.log("Response headers:", Object.fromEntries(response.headers.entries()))
 
+      // Check if response is ok first
+      if (!response.ok) {
+        // Try to get error text first, then fallback to JSON
+        let errorMessage = "Login failed"
+        try {
+          const errorText = await response.text()
+          console.log("Error response text:", errorText)
+
+          // Try to parse as JSON if it looks like JSON
+          if (errorText.trim().startsWith("{")) {
+            const errorData = JSON.parse(errorText)
+            errorMessage = errorData.error || errorMessage
+          } else {
+            errorMessage = `Server error (${response.status}): ${errorText}`
+          }
+        } catch (parseError) {
+          console.error("Error parsing error response:", parseError)
+          errorMessage = `Server error (${response.status})`
+        }
+
+        setError(errorMessage)
+        return
+      }
+
       // Check if response is JSON
       const contentType = response.headers.get("content-type")
       if (!contentType || !contentType.includes("application/json")) {
         const text = await response.text()
         console.error("Non-JSON response:", text)
-        throw new Error("Server returned non-JSON response")
+        setError("Server returned invalid response format")
+        return
       }
 
       const data = await response.json()
       console.log("Response data:", data)
 
-      if (response.ok && data.success) {
+      if (data.success) {
         localStorage.setItem("auth_token", data.token)
         localStorage.setItem("user_data", JSON.stringify(data.user))
         console.log("Login successful, redirecting to dashboard")
@@ -58,7 +83,15 @@ export default function HomePage() {
       }
     } catch (error) {
       console.error("Login error:", error)
-      setError("Unable to connect to server. Please try again.")
+
+      // More specific error handling
+      if (error instanceof TypeError && error.message.includes("fetch")) {
+        setError("Unable to connect to server. Please check your internet connection.")
+      } else if (error.message.includes("JSON")) {
+        setError("Server returned invalid response. Please try again.")
+      } else {
+        setError("An unexpected error occurred. Please try again.")
+      }
     } finally {
       setIsLoading(false)
     }
@@ -95,7 +128,7 @@ export default function HomePage() {
               <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
                 <Users className="w-6 h-6 text-purple-600" />
               </div>
-              <p className="text-sm font-medium">Request Money</p>
+              <p className="text-sm font-medium">Ask Friend to Pay</p>
             </div>
             <div className="text-center">
               <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
@@ -104,30 +137,6 @@ export default function HomePage() {
               <p className="text-sm font-medium">Send Money</p>
             </div>
           </div>
-
-          {/* Demo Access Card */}
-          <Card className="mb-6 bg-gradient-to-r from-purple-500 to-indigo-600 text-white border-0">
-            <CardContent className="p-4">
-              <div className="flex items-center space-x-3">
-                <div className="bg-white/20 p-2 rounded-full">
-                  <TestTube className="w-5 h-5" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold">Try the Demo</h3>
-                  <p className="text-sm text-purple-100">Test with sample accounts and payment requests</p>
-                </div>
-                <Link href="/demo-login">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="bg-white/20 text-white border-white/30 hover:bg-white/30"
-                  >
-                    Demo
-                  </Button>
-                </Link>
-              </div>
-            </CardContent>
-          </Card>
 
           {/* Login Form */}
           <Card>
@@ -188,9 +197,13 @@ export default function HomePage() {
                     Sign up
                   </Link>
                 </p>
-                <p className="text-xs text-gray-500">
-                  Demo PIN: <span className="font-mono">1234</span> for all test accounts
-                </p>
+                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
+                  <p className="text-xs text-blue-800 font-medium">Demo Accounts Available:</p>
+                  <p className="text-xs text-blue-600 mt-1">
+                    Use phone: <span className="font-mono">+263771234567</span> with PIN:{" "}
+                    <span className="font-mono">1234</span>
+                  </p>
+                </div>
               </div>
             </CardContent>
           </Card>

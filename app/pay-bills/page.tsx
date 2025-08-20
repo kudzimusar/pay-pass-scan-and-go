@@ -50,6 +50,7 @@ export default function PayBillsPage() {
   useEffect(() => {
     if (!user) {
       router.push("/")
+      return
     }
     // Load custom providers from localStorage
     const saved = localStorage.getItem("customProviders")
@@ -299,7 +300,7 @@ export default function PayBillsPage() {
               {category?.providers.map((provider, index) => (
                 <Link
                   key={index}
-                  href={`/payment-confirmation?provider=${encodeURIComponent(provider.name)}&category=${encodeURIComponent(category.name)}`}
+                  href={`/bill-payment?provider=${encodeURIComponent(provider.name)}&category=${encodeURIComponent(category.name)}&accountType=${encodeURIComponent(provider.accountType)}`}
                   className="block bg-white p-4 rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-md transition-all"
                 >
                   <div className="flex items-center space-x-3">

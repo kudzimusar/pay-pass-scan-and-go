@@ -16,7 +16,20 @@ import {
   User,
   TrendingDown,
   Calendar,
+  Receipt,
 } from "lucide-react"
+
+interface Transaction {
+  id: string
+  type: string
+  amount: number
+  description: string
+  status: string
+  createdAt: string
+  merchantName?: string
+  category?: string
+  receiptNumber?: string
+}
 
 export default function TransactionsPage() {
   const { user } = useAuth()
@@ -25,14 +38,69 @@ export default function TransactionsPage() {
   const [selectedFilter, setSelectedFilter] = useState("all")
   const [selectedMonth, setSelectedMonth] = useState(new Date().getMonth())
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [monthlyExpenses, setMonthlyExpenses] = useState(0)
 
   useEffect(() => {
     if (!user) {
       router.push("/")
+      return
     }
-  }, [user, router])
 
-  if (!user) {
+    fetchTransactions()
+    fetchMonthlyExpenses()
+  }, [user, router, selectedMonth, selectedYear])
+
+  const fetchTransactions = async () => {
+    try {
+      const response = await fetch(`/api/transactions?userId=${user.id}&month=${selectedMonth}&year=${selectedYear}`)
+      const data = await response.json()
+
+      if (data.success) {
+        setTransactions(data.transactions || [])
+      }
+    } catch (error) {
+      console.error("Error fetching transactions:", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const fetchMonthlyExpenses = async () => {
+    try {
+      const response = await fetch(`/api/expenses/monthly?userId=${user.id}`)
+      const data = await response.json()
+
+      if (data.success) {
+        setMonthlyExpenses(data.totalExpenses || 0)
+      }
+    } catch (error) {
+      console.error("Error fetching monthly expenses:", error)
+    }
+  }
+
+  const handleTransactionClick = (transaction: Transaction) => {
+    // Store transaction details for receipt page
+    localStorage.setItem(
+      "receipt_data",
+      JSON.stringify({
+        transactionId: transaction.id,
+        provider: transaction.merchantName || "Unknown",
+        category: transaction.category || transaction.type,
+        amount: transaction.amount,
+        date: transaction.createdAt,
+        billNumber: transaction.receiptNumber || `TXN-${transaction.id.substring(0, 8)}`,
+        status: transaction.status,
+        description: transaction.description,
+      }),
+    )
+
+    // Navigate to receipt page
+    router.push("/proof-of-payment")
+  }
+
+  if (isLoading) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="animate-pulse text-gray-500">Loading...</div>
@@ -40,405 +108,21 @@ export default function TransactionsPage() {
     )
   }
 
+  if (!user) {
+    return null
+  }
+
   // Ensure balance is a number with fallback
   const userBalance = typeof user.balance === "number" ? user.balance : 0
 
-  const allTransactions = [
-    // August 2025 transactions
-    {
-      id: "1",
-      type: "payment",
-      description: "Bus Fare - Route 1A",
-      amount: -2.5,
-      date: "2025-08-15T10:30:00Z",
-      status: "completed",
-      merchant: "City Transport",
-    },
-    {
-      id: "2",
-      type: "topup",
-      description: "Wallet Top-up",
-      amount: 50.0,
-      date: "2025-08-14T15:45:00Z",
-      status: "completed",
-      merchant: "EcoCash",
-    },
-    {
-      id: "3",
-      type: "payment",
-      description: "Grocery Store",
-      amount: -15.75,
-      date: "2025-08-14T12:20:00Z",
-      status: "completed",
-      merchant: "OK Supermarket",
-    },
-    {
-      id: "4",
-      type: "receive",
-      description: "Money from John Smith",
-      amount: 25.0,
-      date: "2025-08-13T09:15:00Z",
-      status: "completed",
-      merchant: "P2P Transfer",
-    },
-    {
-      id: "5",
-      type: "payment",
-      description: "ZESA Electricity Bill",
-      amount: -45.2,
-      date: "2025-08-12T16:30:00Z",
-      status: "completed",
-      merchant: "ZESA Holdings",
-    },
-    {
-      id: "6",
-      type: "payment",
-      description: "Mobile Airtime",
-      amount: -10.0,
-      date: "2025-08-11T11:20:00Z",
-      status: "completed",
-      merchant: "Econet",
-    },
-    {
-      id: "7",
-      type: "payment",
-      description: "Coffee Shop",
-      amount: -4.5,
-      date: "2025-08-10T08:15:00Z",
-      status: "completed",
-      merchant: "Vida e Caffè",
-    },
-    {
-      id: "8",
-      type: "payment",
-      description: "Fuel Purchase",
-      amount: -40.0,
-      date: "2025-08-09T07:30:00Z",
-      status: "completed",
-      merchant: "Zuva Petroleum",
-    },
-    {
-      id: "9",
-      type: "payment",
-      description: "University Fees",
-      amount: -150.0,
-      date: "2025-08-08T14:00:00Z",
-      status: "completed",
-      merchant: "University of Zimbabwe",
-    },
-    {
-      id: "10",
-      type: "payment",
-      description: "Water Bill",
-      amount: -25.0,
-      date: "2025-08-07T11:30:00Z",
-      status: "completed",
-      merchant: "Harare Water",
-    },
-    {
-      id: "11",
-      type: "payment",
-      description: "Internet Bill",
-      amount: -35.0,
-      date: "2025-08-06T16:45:00Z",
-      status: "completed",
-      merchant: "Liquid Telecom",
-    },
-    {
-      id: "12",
-      type: "payment",
-      description: "Restaurant Dinner",
-      amount: -28.75,
-      date: "2025-08-05T19:20:00Z",
-      status: "completed",
-      merchant: "The Smokehouse",
-    },
-    {
-      id: "13",
-      type: "receive",
-      description: "Salary Payment",
-      amount: 800.0,
-      date: "2025-08-01T09:00:00Z",
-      status: "completed",
-      merchant: "Employer Direct Deposit",
-    },
-
-    // July 2025 transactions
-    {
-      id: "14",
-      type: "payment",
-      description: "Rent Payment",
-      amount: -300.0,
-      date: "2025-07-31T10:00:00Z",
-      status: "completed",
-      merchant: "Property Management",
-    },
-    {
-      id: "15",
-      type: "payment",
-      description: "Grocery Shopping",
-      amount: -85.5,
-      date: "2025-07-30T16:30:00Z",
-      status: "completed",
-      merchant: "Pick n Pay",
-    },
-    {
-      id: "16",
-      type: "payment",
-      description: "Medical Consultation",
-      amount: -60.0,
-      date: "2025-07-28T14:15:00Z",
-      status: "completed",
-      merchant: "City Medical Centre",
-    },
-    {
-      id: "17",
-      type: "payment",
-      description: "Pharmacy",
-      amount: -22.3,
-      date: "2025-07-28T14:45:00Z",
-      status: "completed",
-      merchant: "Alpha Pharm",
-    },
-    {
-      id: "18",
-      type: "payment",
-      description: "Movie Tickets",
-      amount: -18.0,
-      date: "2025-07-26T18:00:00Z",
-      status: "completed",
-      merchant: "Ster-Kinekor",
-    },
-    {
-      id: "19",
-      type: "payment",
-      description: "ZESA Electricity Bill",
-      amount: -52.8,
-      date: "2025-07-25T12:00:00Z",
-      status: "completed",
-      merchant: "ZESA Holdings",
-    },
-    {
-      id: "20",
-      type: "topup",
-      description: "Bank Transfer",
-      amount: 200.0,
-      date: "2025-07-24T11:30:00Z",
-      status: "completed",
-      merchant: "CBZ Bank",
-    },
-    {
-      id: "21",
-      type: "payment",
-      description: "Clothing Store",
-      amount: -75.0,
-      date: "2025-07-22T15:20:00Z",
-      status: "completed",
-      merchant: "Edgars",
-    },
-    {
-      id: "22",
-      type: "payment",
-      description: "Bus Fare - Multiple Trips",
-      amount: -12.5,
-      date: "2025-07-20T17:30:00Z",
-      status: "completed",
-      merchant: "City Transport",
-    },
-    {
-      id: "23",
-      type: "payment",
-      description: "Mobile Data Bundle",
-      amount: -15.0,
-      date: "2025-07-18T09:45:00Z",
-      status: "completed",
-      merchant: "NetOne",
-    },
-    {
-      id: "24",
-      type: "receive",
-      description: "Freelance Payment",
-      amount: 120.0,
-      date: "2025-07-15T13:20:00Z",
-      status: "completed",
-      merchant: "Client Payment",
-    },
-    {
-      id: "25",
-      type: "payment",
-      description: "Gym Membership",
-      amount: -45.0,
-      date: "2025-07-10T08:00:00Z",
-      status: "completed",
-      merchant: "Planet Fitness",
-    },
-    {
-      id: "26",
-      type: "receive",
-      description: "Salary Payment",
-      amount: 800.0,
-      date: "2025-07-01T09:00:00Z",
-      status: "completed",
-      merchant: "Employer Direct Deposit",
-    },
-
-    // June 2025 transactions
-    {
-      id: "27",
-      type: "payment",
-      description: "Rent Payment",
-      amount: -300.0,
-      date: "2025-06-30T10:00:00Z",
-      status: "completed",
-      merchant: "Property Management",
-    },
-    {
-      id: "28",
-      type: "payment",
-      description: "Car Service",
-      amount: -120.0,
-      date: "2025-06-28T14:30:00Z",
-      status: "completed",
-      merchant: "Auto Repair Shop",
-    },
-    {
-      id: "29",
-      type: "payment",
-      description: "Insurance Premium",
-      amount: -80.0,
-      date: "2025-06-25T11:00:00Z",
-      status: "completed",
-      merchant: "Old Mutual",
-    },
-    {
-      id: "30",
-      type: "payment",
-      description: "Grocery Shopping",
-      amount: -95.75,
-      date: "2025-06-24T16:45:00Z",
-      status: "completed",
-      merchant: "TM Supermarket",
-    },
-    {
-      id: "31",
-      type: "payment",
-      description: "Birthday Gift",
-      amount: -35.0,
-      date: "2025-06-20T12:30:00Z",
-      status: "completed",
-      merchant: "Gift Shop",
-    },
-    {
-      id: "32",
-      type: "payment",
-      description: "ZESA Electricity Bill",
-      amount: -48.6,
-      date: "2025-06-15T13:15:00Z",
-      status: "completed",
-      merchant: "ZESA Holdings",
-    },
-    {
-      id: "33",
-      type: "topup",
-      description: "Mobile Money Transfer",
-      amount: 150.0,
-      date: "2025-06-12T10:20:00Z",
-      status: "completed",
-      merchant: "EcoCash",
-    },
-    {
-      id: "34",
-      type: "payment",
-      description: "Restaurant Lunch",
-      amount: -22.5,
-      date: "2025-06-10T13:00:00Z",
-      status: "completed",
-      merchant: "Amanzi Restaurant",
-    },
-    {
-      id: "35",
-      type: "payment",
-      description: "Book Store",
-      amount: -18.75,
-      date: "2025-06-08T15:30:00Z",
-      status: "completed",
-      merchant: "Kingstons Bookshop",
-    },
-    {
-      id: "36",
-      type: "receive",
-      description: "Salary Payment",
-      amount: 800.0,
-      date: "2025-06-01T09:00:00Z",
-      status: "completed",
-      merchant: "Employer Direct Deposit",
-    },
-
-    // May 2025 transactions
-    {
-      id: "37",
-      type: "payment",
-      description: "Rent Payment",
-      amount: -300.0,
-      date: "2025-05-31T10:00:00Z",
-      status: "completed",
-      merchant: "Property Management",
-    },
-    {
-      id: "38",
-      type: "payment",
-      description: "Mother's Day Gift",
-      amount: -45.0,
-      date: "2025-05-12T11:30:00Z",
-      status: "completed",
-      merchant: "Flower Shop",
-    },
-    {
-      id: "39",
-      type: "payment",
-      description: "ZESA Electricity Bill",
-      amount: -41.2,
-      date: "2025-05-10T14:00:00Z",
-      status: "completed",
-      merchant: "ZESA Holdings",
-    },
-    {
-      id: "40",
-      type: "receive",
-      description: "Salary Payment",
-      amount: 800.0,
-      date: "2025-05-01T09:00:00Z",
-      status: "completed",
-      merchant: "Employer Direct Deposit",
-    },
-  ]
-
-  // Calculate monthly expenses
-  const currentMonthTransactions = allTransactions.filter((transaction) => {
-    const transactionDate = new Date(transaction.date)
-    return (
-      transactionDate.getMonth() === selectedMonth &&
-      transactionDate.getFullYear() === selectedYear &&
-      transaction.amount < 0 // Only expenses (negative amounts)
-    )
-  })
-
-  const monthlyExpenses = currentMonthTransactions.reduce((total, transaction) => {
-    return total + Math.abs(transaction.amount)
-  }, 0)
-
-  const filteredTransactions = allTransactions.filter((transaction) => {
+  const filteredTransactions = transactions.filter((transaction) => {
     const matchesSearch =
       transaction.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.merchant.toLowerCase().includes(searchTerm.toLowerCase())
+      (transaction.merchantName && transaction.merchantName.toLowerCase().includes(searchTerm.toLowerCase()))
 
     const matchesFilter = selectedFilter === "all" || transaction.type === selectedFilter
 
-    // Filter by selected month/year
-    const transactionDate = new Date(transaction.date)
-    const matchesDate = transactionDate.getMonth() === selectedMonth && transactionDate.getFullYear() === selectedYear
-
-    return matchesSearch && matchesFilter && matchesDate
+    return matchesSearch && matchesFilter
   })
 
   const filters = [
@@ -473,6 +157,27 @@ export default function TransactionsPage() {
     if (diffDays === 2) return "Yesterday"
     if (diffDays <= 7) return `${diffDays - 1} days ago`
     return date.toLocaleDateString()
+  }
+
+  const getIcon = (type: string) => {
+    switch (type) {
+      case "payment":
+        return <ArrowUpRight className="w-5 h-5 text-red-600" />
+      case "topup":
+        return <Plus className="w-5 h-5 text-green-600" />
+      case "receive":
+        return <ArrowDownLeft className="w-5 h-5 text-blue-600" />
+      default:
+        return <ArrowUpRight className="w-5 h-5 text-gray-500" />
+    }
+  }
+
+  const getAmountColor = (type: string) => {
+    return type === "payment" || type === "send" ? "text-red-600" : "text-green-600"
+  }
+
+  const getAmountPrefix = (type: string) => {
+    return type === "payment" || type === "send" ? "-" : "+"
   }
 
   return (
@@ -581,7 +286,7 @@ export default function TransactionsPage() {
               <h3 className="font-medium text-gray-900">
                 {months[selectedMonth]} {selectedYear} Summary
               </h3>
-              <p className="text-sm text-gray-600">{currentMonthTransactions.length} expense transactions</p>
+              <p className="text-sm text-gray-600">{filteredTransactions.length} transactions</p>
             </div>
             <div className="text-right">
               <p className="text-2xl font-bold text-red-600">-${monthlyExpenses.toFixed(2)}</p>
@@ -605,7 +310,8 @@ export default function TransactionsPage() {
               {filteredTransactions.map((transaction) => (
                 <div
                   key={transaction.id}
-                  className="bg-white p-4 rounded-xl border border-gray-200 hover:shadow-md transition-shadow"
+                  onClick={() => handleTransactionClick(transaction)}
+                  className="bg-white p-4 rounded-xl border border-gray-200 hover:shadow-md transition-shadow cursor-pointer"
                 >
                   <div className="flex items-center space-x-3">
                     <div
@@ -619,24 +325,21 @@ export default function TransactionsPage() {
                               : "bg-gray-100"
                       }`}
                     >
-                      {transaction.type === "payment" ? (
-                        <ArrowUpRight className="w-5 h-5 text-red-600" />
-                      ) : transaction.type === "topup" ? (
-                        <Plus className="w-5 h-5 text-green-600" />
-                      ) : (
-                        <ArrowDownLeft className="w-5 h-5 text-blue-600" />
-                      )}
+                      {getIcon(transaction.type)}
                     </div>
                     <div className="flex-1">
                       <p className="font-medium text-gray-900">{transaction.description}</p>
-                      <p className="text-sm text-gray-500">{transaction.merchant}</p>
-                      <p className="text-xs text-gray-400">{formatDate(transaction.date)}</p>
+                      <p className="text-sm text-gray-500">{transaction.merchantName || "Unknown"}</p>
+                      <p className="text-xs text-gray-400">{formatDate(transaction.createdAt)}</p>
                     </div>
                     <div className="text-right">
-                      <p className={`font-semibold ${transaction.amount > 0 ? "text-green-600" : "text-red-600"}`}>
-                        {transaction.amount > 0 ? "+" : ""}${Math.abs(transaction.amount).toFixed(2)}
+                      <p className={`font-semibold ${getAmountColor(transaction.type)}`}>
+                        {getAmountPrefix(transaction.type)}${Math.abs(transaction.amount).toFixed(2)}
                       </p>
-                      <p className="text-xs text-gray-500 capitalize">{transaction.status}</p>
+                      <div className="flex items-center justify-end text-xs text-gray-500">
+                        <Receipt className="w-3 h-3 mr-1" />
+                        <span>View Receipt</span>
+                      </div>
                     </div>
                   </div>
                 </div>

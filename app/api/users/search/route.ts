@@ -3,9 +3,6 @@ import { ensureSeeded, searchUsers } from "../../_lib/storage"
 
 export async function GET(request: NextRequest) {
   try {
-    console.log("User search API called")
-
-    // Ensure storage is seeded
     await ensureSeeded()
 
     const { searchParams } = new URL(request.url)
@@ -13,16 +10,15 @@ export async function GET(request: NextRequest) {
     const excludeUserId = searchParams.get("excludeUserId")
 
     if (!query || query.trim().length < 2) {
-      return NextResponse.json({ error: "Query must be at least 2 characters" }, { status: 400 })
+      return NextResponse.json({
+        success: true,
+        users: [],
+      })
     }
-
-    console.log("Searching for:", query, "excluding:", excludeUserId)
 
     const users = await searchUsers(query.trim(), excludeUserId || undefined)
 
-    console.log("Found", users.length, "users")
-
-    // Remove sensitive data
+    // Remove sensitive information
     const safeUsers = users.map(({ pin, ...user }) => user)
 
     return NextResponse.json({
@@ -31,6 +27,6 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error("User search API error:", error)
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    return NextResponse.json({ success: false, error: "Failed to search users" }, { status: 500 })
   }
 }

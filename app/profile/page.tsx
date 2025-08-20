@@ -22,6 +22,8 @@ import {
   Phone,
   Mail,
   MapPin,
+  Calendar,
+  UserCheck,
 } from "lucide-react"
 
 export default function ProfilePage() {
@@ -40,7 +42,7 @@ export default function ProfilePage() {
       router.push("/")
     } else {
       setEditedUser({
-        name: user.name || "",
+        name: user.fullName || "",
         email: user.email || "",
         phone: user.phone || "",
       })
@@ -55,12 +57,36 @@ export default function ProfilePage() {
     )
   }
 
-  const userBalance = typeof user.balance === "number" ? user.balance : 0
-
   const handleSaveProfile = () => {
     // In a real app, this would update the user profile via API
     console.log("Saving profile:", editedUser)
     setIsEditing(false)
+  }
+
+  const formatDate = (dateString: string | Date) => {
+    const date = new Date(dateString)
+    return date.toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    })
+  }
+
+  const getAccountAge = () => {
+    const joinedDate = new Date(user.createdAt)
+    const now = new Date()
+    const diffTime = Math.abs(now.getTime() - joinedDate.getTime())
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+
+    if (diffDays < 30) {
+      return `${diffDays} days`
+    } else if (diffDays < 365) {
+      const months = Math.floor(diffDays / 30)
+      return `${months} month${months > 1 ? "s" : ""}`
+    } else {
+      const years = Math.floor(diffDays / 365)
+      return `${years} year${years > 1 ? "s" : ""}`
+    }
   }
 
   const menuItems = [
@@ -74,7 +100,7 @@ export default function ProfilePage() {
       icon: Bell,
       title: "Notifications",
       subtitle: "Push notifications and alerts",
-      href: "/settings",
+      href: "/notifications",
     },
     {
       icon: Shield,
@@ -134,9 +160,9 @@ export default function ProfilePage() {
                     placeholder="Your name"
                   />
                 ) : (
-                  <h2 className="text-xl font-bold text-white">{user.name}</h2>
+                  <h2 className="text-xl font-bold text-white">{user.fullName}</h2>
                 )}
-                <p className="text-blue-100 text-sm">PayPass Member</p>
+                <p className="text-blue-100 text-sm">@{user.paypassUsername || "paypass_user"}</p>
               </div>
             </div>
 
@@ -144,7 +170,9 @@ export default function ProfilePage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-blue-100 text-sm">Wallet Balance</p>
-                <p className="text-2xl font-bold text-white">{showBalance ? `$${userBalance.toFixed(2)}` : "••••••"}</p>
+                <p className="text-2xl font-bold text-white">
+                  {showBalance ? `$${user.walletBalance.toFixed(2)}` : "••••••"}
+                </p>
               </div>
               <button
                 onClick={() => setShowBalance(!showBalance)}
@@ -160,6 +188,24 @@ export default function ProfilePage() {
         <div className="px-6 py-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Account Information</h3>
           <div className="space-y-4">
+            {/* Full Name */}
+            <div className="flex items-center space-x-3 p-4 bg-white rounded-xl border border-gray-200">
+              <UserCheck className="w-5 h-5 text-gray-600" />
+              <div className="flex-1">
+                <p className="text-sm text-gray-600">Full Name</p>
+                <p className="font-medium text-gray-900">{user.fullName}</p>
+              </div>
+            </div>
+
+            {/* PayPass Username */}
+            <div className="flex items-center space-x-3 p-4 bg-white rounded-xl border border-gray-200">
+              <User className="w-5 h-5 text-gray-600" />
+              <div className="flex-1">
+                <p className="text-sm text-gray-600">PayPass Username</p>
+                <p className="font-medium text-gray-900">@{user.paypassUsername || "paypass_user"}</p>
+              </div>
+            </div>
+
             {/* Phone */}
             <div className="flex items-center space-x-3 p-4 bg-white rounded-xl border border-gray-200">
               <Phone className="w-5 h-5 text-gray-600" />
@@ -174,7 +220,7 @@ export default function ProfilePage() {
                     placeholder="Your phone number"
                   />
                 ) : (
-                  <p className="font-medium text-gray-900">{user.phone || "+263 XXX XXX XXX"}</p>
+                  <p className="font-medium text-gray-900">{user.phone}</p>
                 )}
               </div>
             </div>
@@ -193,17 +239,41 @@ export default function ProfilePage() {
                     placeholder="Your email address"
                   />
                 ) : (
-                  <p className="font-medium text-gray-900">{user.email || "user@example.com"}</p>
+                  <p className="font-medium text-gray-900">{user.email}</p>
                 )}
+              </div>
+            </div>
+
+            {/* Date of Birth */}
+            <div className="flex items-center space-x-3 p-4 bg-white rounded-xl border border-gray-200">
+              <Calendar className="w-5 h-5 text-gray-600" />
+              <div className="flex-1">
+                <p className="text-sm text-gray-600">Date of Birth</p>
+                <p className="font-medium text-gray-900">
+                  {user.dateOfBirth ? formatDate(user.dateOfBirth) : "Not provided"}
+                </p>
+              </div>
+            </div>
+
+            {/* Joined Date */}
+            <div className="flex items-center space-x-3 p-4 bg-white rounded-xl border border-gray-200">
+              <MapPin className="w-5 h-5 text-gray-600" />
+              <div className="flex-1">
+                <p className="text-sm text-gray-600">Member Since</p>
+                <p className="font-medium text-gray-900">{formatDate(user.createdAt)}</p>
+                <p className="text-xs text-gray-500">Active for {getAccountAge()}</p>
               </div>
             </div>
 
             {/* Account Type */}
             <div className="flex items-center space-x-3 p-4 bg-white rounded-xl border border-gray-200">
-              <MapPin className="w-5 h-5 text-gray-600" />
+              <Shield className="w-5 h-5 text-gray-600" />
               <div className="flex-1">
                 <p className="text-sm text-gray-600">Account Type</p>
                 <p className="font-medium text-gray-900">Personal Account</p>
+                <p className="text-xs text-gray-500">
+                  {user.biometricEnabled ? "Biometric enabled" : "PIN authentication"}
+                </p>
               </div>
             </div>
           </div>
