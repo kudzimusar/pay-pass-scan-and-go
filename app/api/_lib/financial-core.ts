@@ -1,4 +1,4 @@
-import { storage } from "./storage"
+import * as storage from "./storage"
 
 export interface FinancialOperation {
   userId: string

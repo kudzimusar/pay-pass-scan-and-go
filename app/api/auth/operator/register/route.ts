@@ -2,8 +2,15 @@ import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { normalizePhoneNumber, signToken } from "../../../_lib/auth"
 import { storage } from "../../../_lib/storage"
-import { insertOperatorSchema } from "../../../_lib/schema"
+import { z } from "zod"
 import { rateLimit } from "../../../_lib/redis"
+
+const insertOperatorSchema = z.object({
+  name: z.string().min(2),
+  phone: z.string().min(5),
+  email: z.string().email().optional(),
+  pin: z.string().min(4),
+})
 
 export async function POST(req: Request) {
   try {

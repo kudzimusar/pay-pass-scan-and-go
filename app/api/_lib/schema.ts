@@ -26,6 +26,12 @@ export const topupSchema = z.object({
   method: z.enum(["ecocash", "telecash", "bank_transfer"]),
 })
 
+export const operatorRouteSchema = z.object({
+  name: z.string().min(2),
+  fareUSD: z.number().min(0),
+  fareZWL: z.number().min(0),
+})
+
 // New schemas for Request-to-Pay feature
 export const sendPaymentRequestSchema = z.object({
   recipientId: z.string().min(1, "Recipient is required"),

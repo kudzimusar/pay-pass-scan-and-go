@@ -1,7 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { neon } from "@neondatabase/serverless"
 
-const sql = neon(process.env.DATABASE_URL!)
+const hasDb = Boolean(process.env.DATABASE_URL)
+const sql = hasDb ? neon(process.env.DATABASE_URL as string) : (async () => { throw new Error("DB not configured") })
 
 interface FareCalculationRequest {
   route_id: string
@@ -33,7 +34,8 @@ export async function POST(request: NextRequest) {
     }
 
     // Get route information
-    const routes = await sql`
+    if (!hasDb) return NextResponse.json({ error: "Database not configured" }, { status: 503 })
+    const routes = await (sql as any)`
       SELECT * FROM routes 
       WHERE route_id = ${route_id} AND is_active = true
     `
@@ -45,7 +47,7 @@ export async function POST(request: NextRequest) {
     const route = routes[0]
 
     // Get station information
-    const stations = await sql`
+    const stations = await (sql as any)`
       SELECT * FROM stations 
       WHERE station_id = ${station_id} AND route_id = ${route_id}
     `
@@ -68,7 +70,7 @@ export async function POST(request: NextRequest) {
     const dayOfWeek = new Date(currentDate).toLocaleDateString("en-US", { weekday: "short" }).toUpperCase()
 
     // Get applicable pricing rules
-    const pricingRules = (await sql`
+    const pricingRules = (await (sql as any)`
       SELECT * FROM pricing_rules
       WHERE route_id = ${route_id}
       AND status = 'ACTIVE'
@@ -165,7 +167,8 @@ export async function checkPeakHours(route_id: string, time?: string, date?: str
   const currentDate = date || new Date().toISOString().slice(0, 10)
   const dayOfWeek = new Date(currentDate).toLocaleDateString("en-US", { weekday: "short" }).toUpperCase()
 
-  const peakRules = await sql`
+  if (!hasDb) return { is_peak: false, active_rules: [], current_time: currentTime, day_of_week: dayOfWeek }
+  const peakRules = await (sql as any)`
     SELECT * FROM pricing_rules
     WHERE route_id = ${route_id}
     AND status = 'ACTIVE'

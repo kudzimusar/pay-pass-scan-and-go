@@ -3,7 +3,6 @@ import { z } from "zod"
 import bcrypt from "bcryptjs"
 import { cookieOptions, normalizePhoneNumber, signToken } from "../../_lib/auth"
 import { storage } from "../../_lib/storage"
-import type { UserRecord } from "../../_lib/storage"
 
 const schema = z.object({
   fullName: z.string().min(2, "Full name is required"),

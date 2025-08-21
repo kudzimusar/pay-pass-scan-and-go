@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { neon } from "@neondatabase/serverless"
-
-const sql = neon(process.env.DATABASE_URL!)
+const hasDb = Boolean(process.env.DATABASE_URL)
+const sql = hasDb ? neon(process.env.DATABASE_URL as string) : (async () => { throw new Error("DB not configured") })
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,6 +10,9 @@ export async function GET(request: NextRequest) {
     const includeStations = searchParams.get("include_stations") === "true"
     const includePricing = searchParams.get("include_pricing") === "true"
 
+    if (!hasDb) {
+      return NextResponse.json({ error: "Database not configured" }, { status: 503 })
+    }
     if (routeId) {
       // Get specific route with optional related data
       const route = await sql`
