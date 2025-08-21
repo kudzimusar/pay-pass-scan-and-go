@@ -17,16 +17,35 @@ export default function OperatorPage() {
 
   async function login() {
     setMsg(null)
-    const res = await fetch("/api/auth/operator/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ phone, pin }),
-    })
-    const data = await res.json()
-    if (!res.ok) return setMsg(data?.error || "Login failed")
-    localStorage.setItem("pp_op_token", data.token)
-    setToken(data.token)
-    setMsg("Operator login successful.")
+    try {
+      const res = await fetch("/api/auth/operator/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phone, pin }),
+      })
+      if (!res.ok) {
+        const text = await res.text()
+        try {
+          const maybe = text.trim().startsWith("{") ? JSON.parse(text) : null
+          setMsg(maybe?.error || text || "Login failed")
+        } catch {
+          setMsg(text || "Login failed")
+        }
+        return
+      }
+      const ct = res.headers.get("content-type") || ""
+      if (!ct.includes("application/json")) {
+        const text = await res.text()
+        setMsg(text || "Invalid server response")
+        return
+      }
+      const data = await res.json()
+      localStorage.setItem("pp_op_token", data.token)
+      setToken(data.token)
+      setMsg("Operator login successful.")
+    } catch (e: any) {
+      setMsg(e?.message || "Login failed")
+    }
   }
 
   useEffect(() => {
@@ -37,14 +56,20 @@ export default function OperatorPage() {
   useEffect(() => {
     if (!token) return
     Promise.all([
-      fetch("/api/operator/routes", { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
-      fetch("/api/operator/transactions", { headers: { Authorization: `Bearer ${token}` } }).then((r) => r.json()),
+      fetch("/api/operator/routes", { headers: { Authorization: `Bearer ${token}` } }).then(async (r) => {
+        if (!r.ok) throw new Error(await r.text())
+        return r.json()
+      }),
+      fetch("/api/operator/transactions", { headers: { Authorization: `Bearer ${token}` } }).then(async (r) => {
+        if (!r.ok) throw new Error(await r.text())
+        return r.json()
+      }),
     ])
       .then(([r, t]) => {
         setRoutes(Array.isArray(r) ? r : [])
         setTxns(Array.isArray(t) ? t : [])
       })
-      .catch(() => setMsg("Failed to load operator data"))
+      .catch((e) => setMsg(e?.message || "Failed to load operator data"))
   }, [token])
 
   return (
