@@ -106,6 +106,11 @@ export default function DashboardPage() {
         const text = await response.text()
         throw new Error(text || `HTTP ${response.status}`)
       }
+      const contentType = response.headers.get("content-type") || ""
+      if (!contentType.includes("application/json")) {
+        const text = await response.text()
+        throw new Error(text || "Invalid response format from notifications API")
+      }
       const data = await response.json()
 
       if (data.success) {
