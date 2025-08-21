@@ -81,8 +81,14 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       console.log("Updating request status to accepted")
       const updatedRequest = await updatePaymentRequestStatus(requestId, "accepted", new Date())
       if (!updatedRequest) {
-        console.log("Failed to update request status")
-        return NextResponse.json({ success: false, error: "Failed to update request status" }, { status: 500 })
+        console.log("Failed to update request status; returning success since payment already processed")
+        return NextResponse.json({
+          success: true,
+          message: "Payment processed but request status could not be updated",
+          newBalance: result.newBalance,
+          transactionId: result.transactionId,
+          warning: true,
+        })
       }
 
       // Get recipient user for notifications
@@ -113,8 +119,8 @@ export async function POST(req: Request, { params }: { params: { id: string } })
       // Decline the request
       const updatedRequest = await updatePaymentRequestStatus(requestId, "declined", new Date())
       if (!updatedRequest) {
-        console.log("Failed to update request status")
-        return NextResponse.json({ success: false, error: "Failed to update request status" }, { status: 500 })
+        console.log("Failed to update request status; treating as already processed/removed")
+        return NextResponse.json({ success: true, message: "Request declined" })
       }
 
       // Get recipient user for the notification

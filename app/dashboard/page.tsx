@@ -154,12 +154,16 @@ export default function DashboardPage() {
         }),
       })
 
+      let data: any = null
       if (!response.ok) {
         const text = await response.text()
-        setError(text || `Failed to ${action} request: HTTP ${response.status}`)
+        try {
+          data = text.trim().startsWith("{") ? JSON.parse(text) : null
+        } catch {}
+        setError(data?.error || text || `Failed to ${action} request: HTTP ${response.status}`)
         return
       }
-      const data = await response.json()
+      data = await response.json()
 
       if (data.success) {
         // Refresh pending requests and user data
