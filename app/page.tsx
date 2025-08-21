@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -9,14 +9,83 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Smartphone, CreditCard, QrCode, Users, ArrowRight, AlertCircle } from "lucide-react"
+import { useAuth } from "@/components/auth-provider"
+import { Smartphone, CreditCard, QrCode, Users, ArrowRight, AlertCircle, Eye, EyeOff } from "lucide-react"
+
+// Multiple phone number normalization strategies
+function normalizePhoneNumber(phone: string): string[] {
+  // Remove all non-digit characters
+  const cleaned = phone.replace(/\D/g, "")
+  const formats: string[] = []
+
+  console.log("Normalizing phone:", phone, "-> cleaned:", cleaned)
+
+  // Strategy 1: If it already starts with 263, use as is
+  if (cleaned.startsWith("263")) {
+    formats.push("+" + cleaned)
+  }
+
+  // Strategy 2: If it starts with 0, replace with +263
+  if (cleaned.startsWith("0") && cleaned.length >= 10) {
+    formats.push("+263" + cleaned.substring(1))
+  }
+
+  // Strategy 3: If it's 9 digits starting with 7, add +263
+  if (cleaned.length === 9 && cleaned.startsWith("7")) {
+    formats.push("+263" + cleaned)
+  }
+
+  // Strategy 4: If it's 10 digits starting with 77, remove first digit and add +263
+  if (cleaned.length === 10 && cleaned.startsWith("77")) {
+    formats.push("+263" + cleaned.substring(1))
+  }
+
+  // Strategy 5: Try original input as is
+  if (phone.startsWith("+")) {
+    formats.push(phone)
+  }
+
+  // Strategy 6: Add +263 to any remaining format
+  if (!formats.some((f) => f.includes(cleaned))) {
+    formats.push("+263" + cleaned)
+  }
+
+  // Remove duplicates
+  return [...new Set(formats)]
+}
 
 export default function HomePage() {
   const router = useRouter()
+  const { user, login, isLoading: authLoading } = useAuth()
   const [phone, setPhone] = useState("")
   const [pin, setPin] = useState("")
+  const [showPin, setShowPin] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (!authLoading && user) {
+      console.log("User already logged in, redirecting to dashboard")
+      router.push("/dashboard")
+    }
+  }, [user, authLoading, router])
+
+  // Don't render if still checking auth or user is logged in
+  if (authLoading || user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+        <div className="w-full max-w-md mx-auto bg-white min-h-screen shadow-xl">
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,72 +95,56 @@ export default function HomePage() {
     try {
       console.log("Attempting login with:", { phone, pin: pin.length + " chars" })
 
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ phone, pin }),
-      })
+      // Get all possible phone number formats
+      const phoneFormats = normalizePhoneNumber(phone)
+      console.log("Trying phone formats:", phoneFormats)
 
-      console.log("Response status:", response.status)
-      console.log("Response headers:", Object.fromEntries(response.headers.entries()))
+      let loginSuccessful = false
+      let lastError = ""
 
-      // Check if response is ok first
-      if (!response.ok) {
-        // Try to get error text first, then fallback to JSON
-        let errorMessage = "Login failed"
+      // Try each phone format until one works
+      for (const phoneFormat of phoneFormats) {
         try {
-          const errorText = await response.text()
-          console.log("Error response text:", errorText)
+          console.log("Trying phone format:", phoneFormat)
 
-          // Try to parse as JSON if it looks like JSON
-          if (errorText.trim().startsWith("{")) {
-            const errorData = JSON.parse(errorText)
-            errorMessage = errorData.error || errorMessage
+          const response = await fetch("/api/auth/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ phone: phoneFormat, pin }),
+          })
+
+          console.log("Response status for", phoneFormat, ":", response.status)
+
+          if (response.ok) {
+            const data = await response.json()
+            console.log("Login response data:", data)
+
+            if (data.success && data.user && data.token) {
+              console.log("Login successful with format:", phoneFormat)
+              login(data.token, data.user)
+              router.push("/dashboard")
+              loginSuccessful = true
+              break
+            }
           } else {
-            errorMessage = `Server error (${response.status}): ${errorText}`
+            const errorData = await response.json()
+            lastError = errorData.error || "Login failed"
+            console.log("Login failed for", phoneFormat, ":", lastError)
           }
-        } catch (parseError) {
-          console.error("Error parsing error response:", parseError)
-          errorMessage = `Server error (${response.status})`
+        } catch (formatError) {
+          console.log("Error trying format", phoneFormat, ":", formatError)
+          lastError = "Connection error"
         }
-
-        setError(errorMessage)
-        return
       }
 
-      // Check if response is JSON
-      const contentType = response.headers.get("content-type")
-      if (!contentType || !contentType.includes("application/json")) {
-        const text = await response.text()
-        console.error("Non-JSON response:", text)
-        setError("Server returned invalid response format")
-        return
-      }
-
-      const data = await response.json()
-      console.log("Response data:", data)
-
-      if (data.success) {
-        localStorage.setItem("auth_token", data.token)
-        localStorage.setItem("user_data", JSON.stringify(data.user))
-        console.log("Login successful, redirecting to dashboard")
-        router.push("/dashboard")
-      } else {
-        setError(data.error || "Login failed")
+      if (!loginSuccessful) {
+        setError(lastError || "Invalid phone number or PIN. Please check your credentials.")
       }
     } catch (error) {
       console.error("Login error:", error)
-
-      // More specific error handling
-      if (error instanceof TypeError && error.message.includes("fetch")) {
-        setError("Unable to connect to server. Please check your internet connection.")
-      } else if (error.message.includes("JSON")) {
-        setError("Server returned invalid response. Please try again.")
-      } else {
-        setError("An unexpected error occurred. Please try again.")
-      }
+      setError("Unable to connect to server. Please check your internet connection.")
     } finally {
       setIsLoading(false)
     }
@@ -158,24 +211,40 @@ export default function HomePage() {
                   <Input
                     id="phone"
                     type="tel"
-                    placeholder="+263771234567"
+                    placeholder="772160634"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     required
                   />
+                  <p className="text-xs text-gray-500">
+                    Enter your phone number (e.g., 772160634, 0772160634, or +263772160634)
+                  </p>
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="pin">PIN</Label>
-                  <Input
-                    id="pin"
-                    type="password"
-                    placeholder="Enter your PIN"
-                    value={pin}
-                    onChange={(e) => setPin(e.target.value)}
-                    maxLength={6}
-                    required
-                  />
+                  <div className="relative">
+                    <Input
+                      id="pin"
+                      type={showPin ? "text" : "password"}
+                      placeholder="Enter your PIN"
+                      value={pin}
+                      onChange={(e) => setPin(e.target.value)}
+                      maxLength={6}
+                      required
+                    />
+                    <button
+                      type="button"
+                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                      onClick={() => setShowPin(!showPin)}
+                    >
+                      {showPin ? (
+                        <EyeOff className="h-4 w-4 text-gray-400" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-gray-400" />
+                      )}
+                    </button>
+                  </div>
                 </div>
 
                 <Button type="submit" className="w-full" disabled={isLoading}>
@@ -199,10 +268,18 @@ export default function HomePage() {
                 </p>
                 <div className="mt-4 p-3 bg-blue-50 rounded-lg">
                   <p className="text-xs text-blue-800 font-medium">Demo Accounts Available:</p>
-                  <p className="text-xs text-blue-600 mt-1">
-                    Use phone: <span className="font-mono">+263771234567</span> with PIN:{" "}
-                    <span className="font-mono">1234</span>
-                  </p>
+                  <div className="text-xs text-blue-600 mt-1 space-y-1">
+                    <p>
+                      Phone: <span className="font-mono">772160634</span> PIN: <span className="font-mono">1234</span>
+                    </p>
+                    <p>
+                      Phone: <span className="font-mono">0772160634</span> PIN: <span className="font-mono">1234</span>
+                    </p>
+                    <p>
+                      Phone: <span className="font-mono">+263772160634</span> PIN:{" "}
+                      <span className="font-mono">1234</span>
+                    </p>
+                  </div>
                 </div>
               </div>
             </CardContent>

@@ -57,20 +57,40 @@ export default function ProofOfPaymentPage() {
     alert("Receipt download functionality would be implemented here")
   }
 
-  const handleShare = () => {
-    // In a real app, this would open a share dialog
-    if (navigator.share) {
-      navigator
-        .share({
+  const handleShare = async () => {
+    try {
+      // Check if Web Share API is supported
+      if (navigator.share) {
+        await navigator.share({
           title: `PayPass Receipt - ${receiptData?.provider}`,
           text: `Receipt for ${receiptData?.provider} payment of $${receiptData?.amount.toFixed(2)}`,
           url: window.location.href,
         })
-        .catch((err) => {
-          console.error("Error sharing:", err)
-        })
-    } else {
-      alert("Share functionality would be implemented here")
+      } else {
+        // Fallback for browsers that don't support Web Share API
+        if (navigator.clipboard) {
+          const shareText = `PayPass Receipt - ${receiptData?.provider}\nAmount: $${receiptData?.amount.toFixed(2)}\nTransaction ID: ${receiptData?.transactionId}\nDate: ${new Date(receiptData?.date || "").toLocaleString()}`
+          await navigator.clipboard.writeText(shareText)
+          alert("Receipt details copied to clipboard!")
+        } else {
+          alert("Sharing not supported on this device. You can take a screenshot instead.")
+        }
+      }
+    } catch (error) {
+      console.error("Error sharing:", error)
+      // Fallback: copy to clipboard or show alternative
+      try {
+        if (navigator.clipboard && receiptData) {
+          const shareText = `PayPass Receipt - ${receiptData.provider}\nAmount: $${receiptData.amount.toFixed(2)}\nTransaction ID: ${receiptData.transactionId}\nDate: ${new Date(receiptData.date).toLocaleString()}`
+          await navigator.clipboard.writeText(shareText)
+          alert("Receipt details copied to clipboard!")
+        } else {
+          alert("Unable to share. You can take a screenshot of this receipt instead.")
+        }
+      } catch (clipboardError) {
+        console.error("Clipboard error:", clipboardError)
+        alert("Unable to share or copy. You can take a screenshot of this receipt instead.")
+      }
     }
   }
 

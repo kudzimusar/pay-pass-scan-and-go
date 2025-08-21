@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { ArrowLeft, CreditCard, CheckCircle, AlertCircle, Receipt, Calendar, Clock } from "lucide-react"
-import { useAuth } from "@/context/auth"
+import { useAuth } from "@/components/auth-provider"
 
 export default function BillPaymentPage() {
   const router = useRouter()

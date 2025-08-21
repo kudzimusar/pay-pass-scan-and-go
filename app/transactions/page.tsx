@@ -32,7 +32,7 @@ interface Transaction {
 }
 
 export default function TransactionsPage() {
-  const { user } = useAuth()
+  const { user, refreshUserData } = useAuth()
   const router = useRouter()
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedFilter, setSelectedFilter] = useState("all")
@@ -41,6 +41,7 @@ export default function TransactionsPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [monthlyExpenses, setMonthlyExpenses] = useState(0)
+  const [expensesError, setExpensesError] = useState("")
 
   useEffect(() => {
     if (!user) {
@@ -50,13 +51,19 @@ export default function TransactionsPage() {
 
     fetchTransactions()
     fetchMonthlyExpenses()
-  }, [user, router, selectedMonth, selectedYear])
+    // Refresh user data to ensure we have the latest balance
+    refreshUserData()
+  }, [user, router, selectedMonth, selectedYear, refreshUserData])
 
   const fetchTransactions = async () => {
     try {
       const response = await fetch(`/api/transactions?userId=${user.id}&month=${selectedMonth}&year=${selectedYear}`)
-      const data = await response.json()
 
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+
+      const data = await response.json()
       if (data.success) {
         setTransactions(data.transactions || [])
       }
@@ -69,14 +76,38 @@ export default function TransactionsPage() {
 
   const fetchMonthlyExpenses = async () => {
     try {
+      console.log("Fetching monthly expenses for user:", user.id)
       const response = await fetch(`/api/expenses/monthly?userId=${user.id}`)
+
+      console.log("Monthly expenses response status:", response.status)
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+
+      // Check if response is JSON
+      const contentType = response.headers.get("content-type")
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text()
+        console.error("Non-JSON response from monthly expenses API:", text)
+        throw new Error("Server returned invalid response format")
+      }
+
       const data = await response.json()
+      console.log("Monthly expenses data:", data)
 
       if (data.success) {
         setMonthlyExpenses(data.totalExpenses || 0)
+        setExpensesError("")
+      } else {
+        console.error("Monthly expenses API returned error:", data.error)
+        setExpensesError("Error loading monthly expenses")
+        setMonthlyExpenses(0)
       }
     } catch (error) {
       console.error("Error fetching monthly expenses:", error)
+      setExpensesError("Error loading monthly expenses. Please try again later.")
+      setMonthlyExpenses(0)
     }
   }
 
@@ -112,8 +143,8 @@ export default function TransactionsPage() {
     return null
   }
 
-  // Ensure balance is a number with fallback
-  const userBalance = typeof user.balance === "number" ? user.balance : 0
+  // Use the balance from AuthProvider (which is the single source of truth)
+  const userBalance = user.walletBalance || 0
 
   const filteredTransactions = transactions.filter((transaction) => {
     const matchesSearch =
@@ -210,7 +241,11 @@ export default function TransactionsPage() {
                   <TrendingDown className="w-4 h-4" />
                   Monthly Expenses
                 </p>
-                <p className="text-xl font-bold">${monthlyExpenses.toFixed(2)}</p>
+                {expensesError ? (
+                  <p className="text-xs text-red-200">{expensesError}</p>
+                ) : (
+                  <p className="text-xl font-bold">${monthlyExpenses.toFixed(2)}</p>
+                )}
               </div>
             </div>
           </div>
@@ -289,8 +324,14 @@ export default function TransactionsPage() {
               <p className="text-sm text-gray-600">{filteredTransactions.length} transactions</p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-red-600">-${monthlyExpenses.toFixed(2)}</p>
-              <p className="text-xs text-gray-500">Total spent</p>
+              {expensesError ? (
+                <p className="text-sm text-red-600">Error loading</p>
+              ) : (
+                <>
+                  <p className="text-2xl font-bold text-red-600">-${monthlyExpenses.toFixed(2)}</p>
+                  <p className="text-xs text-gray-500">Total spent</p>
+                </>
+              )}
             </div>
           </div>
         </div>
