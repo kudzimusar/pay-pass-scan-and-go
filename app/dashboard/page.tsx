@@ -85,6 +85,10 @@ export default function DashboardPage() {
   const fetchPendingRequests = async (userId: string) => {
     try {
       const response = await fetch(`/api/requests/pending?userId=${userId}`)
+      if (!response.ok) {
+        const text = await response.text()
+        throw new Error(text || `HTTP ${response.status}`)
+      }
       const data = await response.json()
 
       if (data.success) {
@@ -98,6 +102,10 @@ export default function DashboardPage() {
   const fetchNotifications = async (userId: string) => {
     try {
       const response = await fetch(`/api/notifications?userId=${userId}`)
+      if (!response.ok) {
+        const text = await response.text()
+        throw new Error(text || `HTTP ${response.status}`)
+      }
       const data = await response.json()
 
       if (data.success) {
@@ -113,6 +121,10 @@ export default function DashboardPage() {
   const calculateMonthlyExpenses = async (userId: string) => {
     try {
       const response = await fetch(`/api/expenses/monthly?userId=${userId}`)
+      if (!response.ok) {
+        const text = await response.text()
+        throw new Error(text || `HTTP ${response.status}`)
+      }
       const data = await response.json()
 
       if (data.success) {
@@ -142,6 +154,11 @@ export default function DashboardPage() {
         }),
       })
 
+      if (!response.ok) {
+        const text = await response.text()
+        setError(text || `Failed to ${action} request: HTTP ${response.status}`)
+        return
+      }
       const data = await response.json()
 
       if (data.success) {

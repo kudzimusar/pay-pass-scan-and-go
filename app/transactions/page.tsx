@@ -55,6 +55,10 @@ export default function TransactionsPage() {
   const fetchTransactions = async () => {
     try {
       const response = await fetch(`/api/transactions?userId=${user.id}&month=${selectedMonth}&year=${selectedYear}`)
+      if (!response.ok) {
+        const text = await response.text()
+        throw new Error(text || `HTTP ${response.status}`)
+      }
       const data = await response.json()
 
       if (data.success) {
@@ -70,6 +74,10 @@ export default function TransactionsPage() {
   const fetchMonthlyExpenses = async () => {
     try {
       const response = await fetch(`/api/expenses/monthly?userId=${user.id}`)
+      if (!response.ok) {
+        const text = await response.text()
+        throw new Error(text || `HTTP ${response.status}`)
+      }
       const data = await response.json()
 
       if (data.success) {
@@ -112,8 +120,9 @@ export default function TransactionsPage() {
     return null
   }
 
-  // Ensure balance is a number with fallback
-  const userBalance = typeof user.balance === "number" ? user.balance : 0
+  // Ensure balance is a number with fallback; align with walletBalance used across app
+  const rawBalance = (user as any).walletBalance ?? (user as any).balance
+  const userBalance = typeof rawBalance === "number" ? rawBalance : 0
 
   const filteredTransactions = transactions.filter((transaction) => {
     const matchesSearch =

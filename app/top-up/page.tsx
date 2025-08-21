@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useAuth } from "@/context/AuthContext" // Assuming AuthContext is defined somewhere
+import { useAuth } from "@/components/auth-provider"
 
 const TopUpPage = () => {
   const { user, refreshUserData } = useAuth()

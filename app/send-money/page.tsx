@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useAuth } from "@/context/AuthContext" // Assuming AuthContext is defined somewhere
+import { useAuth } from "@/components/auth-provider"
 
 const SendMoneyPage = () => {
   const { user, refreshUserData } = useAuth()
@@ -12,30 +12,60 @@ const SendMoneyPage = () => {
   const [showSuccess, setShowSuccess] = useState(false)
   const [error, setError] = useState("")
 
-  const handleSendMoney = async () => {
-    // Logic to send money here
-    const response = await fetch("/api/send-money", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ amount, note, selectedUser }),
-    })
+  const handleSendMoney = async (e?: React.FormEvent) => {
+    e?.preventDefault()
+    setError("")
+    if (!user) {
+      setError("You must be logged in")
+      return
+    }
+    if (!selectedUser || !amount) {
+      setError("Please select a recipient and enter amount")
+      return
+    }
 
-    const data = await response.json()
+    try {
+      const token = localStorage.getItem("auth_token") || ""
+      const response = await fetch("/api/money/send", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          senderId: user.id,
+          recipientId: selectedUser,
+          amount: Number.parseFloat(amount),
+          description: note || "Wallet transfer",
+        }),
+      })
 
-    if (data.success) {
-      // Refresh user data to get updated balance
-      await refreshUserData()
+      if (!response.ok) {
+        const text = await response.text()
+        const maybe = text.trim().startsWith("{") ? JSON.parse(text) : null
+        throw new Error(maybe?.error || text || `HTTP ${response.status}`)
+      }
 
-      setTransactionId(data.transactionId)
-      setShowSuccess(true)
-      setAmount("")
-      setNote("")
-      setSelectedUser(null)
-      setError("")
-    } else {
-      setError(data.error || "Failed to send money")
+      const contentType = response.headers.get("content-type") || ""
+      if (!contentType.includes("application/json")) {
+        const text = await response.text()
+        throw new Error(text || "Server returned invalid response format")
+      }
+
+      const data = await response.json()
+      if (data.success) {
+        await refreshUserData()
+        setTransactionId(data.transactionId)
+        setShowSuccess(true)
+        setAmount("")
+        setNote("")
+        setSelectedUser(null)
+        setError("")
+      } else {
+        setError(data.error || "Failed to send money")
+      }
+    } catch (err: any) {
+      setError(err?.message || "Failed to send money")
     }
   }
 
@@ -48,7 +78,7 @@ const SendMoneyPage = () => {
       <form onSubmit={handleSendMoney}>
         <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Amount" required />
         <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Note" />
-        <select value={selectedUser} onChange={(e) => setSelectedUser(e.target.value)} required>
+        <select value={selectedUser as any} onChange={(e) => setSelectedUser(e.target.value as any)} required>
           <option value="">Select User</option>
           {/* Options for users here */}
         </select>

@@ -57,20 +57,26 @@ export default function ProofOfPaymentPage() {
     alert("Receipt download functionality would be implemented here")
   }
 
-  const handleShare = () => {
-    // In a real app, this would open a share dialog
-    if (navigator.share) {
-      navigator
-        .share({
-          title: `PayPass Receipt - ${receiptData?.provider}`,
-          text: `Receipt for ${receiptData?.provider} payment of $${receiptData?.amount.toFixed(2)}`,
+  const handleShare = async () => {
+    try {
+      if (!receiptData) return
+      if (typeof navigator !== "undefined" && (navigator as any).share) {
+        await (navigator as any).share({
+          title: `PayPass Receipt - ${receiptData.provider}`,
+          text: `Receipt for ${receiptData.provider} payment of $${receiptData.amount.toFixed(2)}`,
           url: window.location.href,
         })
-        .catch((err) => {
-          console.error("Error sharing:", err)
-        })
-    } else {
-      alert("Share functionality would be implemented here")
+        return
+      }
+      // Fallback: copy to clipboard
+      const summary = `PayPass Receipt\nProvider: ${receiptData.provider}\nAmount: $${receiptData.amount.toFixed(
+        2,
+      )}\nBill: ${receiptData.billNumber}\nDate: ${new Date(receiptData.date).toLocaleString()}`
+      await navigator.clipboard.writeText(summary)
+      alert("Receipt details copied to clipboard")
+    } catch (err: any) {
+      console.error("Error sharing:", err)
+      alert("Unable to share on this device")
     }
   }
 

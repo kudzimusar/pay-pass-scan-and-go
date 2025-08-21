@@ -32,7 +32,9 @@ export default function SignupPage() {
       setMsg("Signed up! Go to your dashboard.")
       router.push("/dashboard")
     } catch (e: any) {
-      setMsg(e?.message || "Signup failed")
+      // Normalize common non-JSON parse errors
+      const m = e?.message || "Signup failed"
+      setMsg(m.includes("Unexpected token") || m.includes("JSON") ? "Signup failed. Please try again." : m)
     } finally {
       setLoading(false)
     }

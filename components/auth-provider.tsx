@@ -18,6 +18,7 @@ interface AuthContextType {
   logout: () => void
   refreshUserData: () => Promise<void>
   isLoading: boolean
+  signup?: (fullName: string, phone: string, pin: string, biometricEnabled?: boolean) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -71,6 +72,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback((token: string, userData: User) => {
     console.log("Logging in user:", userData)
     localStorage.setItem("auth_token", token)
+    localStorage.setItem("user_data", JSON.stringify(userData))
     setUser(userData)
     setIsLoading(false)
   }, [])
@@ -78,9 +80,50 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = useCallback(() => {
     console.log("Logging out user")
     localStorage.removeItem("auth_token")
+    localStorage.removeItem("user_data")
     setUser(null)
     setIsLoading(false)
   }, [])
+
+  const signup = useCallback(
+    async (fullName: string, phone: string, pin: string, biometricEnabled?: boolean) => {
+      const payload = { fullName, phone, pin, biometricEnabled: !!biometricEnabled }
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      })
+
+      if (!res.ok) {
+        // Read as text first to avoid JSON parse errors on non-JSON responses
+        const text = await res.text()
+        try {
+          const maybeJson = text.trim().startsWith("{") ? JSON.parse(text) : null
+          throw new Error(maybeJson?.error || `Signup failed (${res.status})`)
+        } catch (e) {
+          // If JSON parsing of error body fails, use raw text
+          throw new Error(text || `Signup failed (${res.status})`)
+        }
+      }
+
+      const contentType = res.headers.get("content-type") || ""
+      if (!contentType.includes("application/json")) {
+        const text = await res.text()
+        throw new Error(text || "Server returned invalid response format")
+      }
+
+      const data = await res.json()
+      if (!data?.token || !data?.user) {
+        throw new Error(data?.error || "Invalid signup response")
+      }
+
+      // Persist and set auth
+      localStorage.setItem("auth_token", data.token)
+      localStorage.setItem("user_data", JSON.stringify(data.user))
+      setUser(data.user)
+    },
+    [],
+  )
 
   // Initial auth check
   useEffect(() => {
@@ -120,6 +163,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     logout,
     refreshUserData,
     isLoading,
+    signup,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
