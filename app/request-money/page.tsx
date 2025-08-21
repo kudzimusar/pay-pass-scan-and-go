@@ -80,6 +80,15 @@ export default function RequestMoneyPage() {
     try {
       // Load mock contacts
       const mockResponse = await fetch("/api/contacts/mock")
+      if (!mockResponse.ok) {
+        const text = await mockResponse.text()
+        throw new Error(text || `HTTP ${mockResponse.status}`)
+      }
+      const mockCt = mockResponse.headers.get("content-type") || ""
+      if (!mockCt.includes("application/json")) {
+        const text = await mockResponse.text()
+        throw new Error(text || "Invalid contacts response format")
+      }
       const mockData = await mockResponse.json()
 
       if (mockData.success) {
@@ -87,7 +96,16 @@ export default function RequestMoneyPage() {
       }
 
       // Load system users (excluding current user)
-      const usersResponse = await fetch(`/api/users/search?q=&exclude=${currentUserId}`)
+      const usersResponse = await fetch(`/api/users/search?q=${encodeURIComponent(" ")}&excludeUserId=${currentUserId}`)
+      if (!usersResponse.ok) {
+        const text = await usersResponse.text()
+        throw new Error(text || `HTTP ${usersResponse.status}`)
+      }
+      const userCt = usersResponse.headers.get("content-type") || ""
+      if (!userCt.includes("application/json")) {
+        const text = await usersResponse.text()
+        throw new Error(text || "Invalid users response format")
+      }
       const usersData = await usersResponse.json()
 
       if (usersData.success) {
@@ -103,9 +121,9 @@ export default function RequestMoneyPage() {
         setAllContacts(combinedContacts)
         setSearchResults(combinedContacts)
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error loading contacts:", error)
-      setError("Failed to load contacts")
+      setError(error?.message || "Failed to load contacts")
     }
   }
 
