@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
-import { ensureSeeded } from "../_lib/storage"
-import { FinancialCore } from "../_lib/financial-core"
+import { ensureSeeded } from "../../_lib/storage"
+import { FinancialCore } from "../../_lib/financial-core"
 
 export async function GET(req: Request) {
   try {

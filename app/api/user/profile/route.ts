@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
-import { ensureSeeded, getUserById } from "../_lib/storage"
-import { verifyToken } from "../_lib/auth"
+import { ensureSeeded, getUserById } from "../../_lib/storage"
+import { verifyToken } from "../../_lib/auth"
 
 export async function GET(req: Request) {
   try {
