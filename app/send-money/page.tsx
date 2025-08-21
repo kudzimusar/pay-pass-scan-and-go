@@ -1,16 +1,54 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useAuth } from "@/components/auth-provider"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Users, Send } from "lucide-react"
 
 const SendMoneyPage = () => {
   const { user, refreshUserData } = useAuth()
   const [amount, setAmount] = useState("")
   const [note, setNote] = useState("")
-  const [selectedUser, setSelectedUser] = useState(null)
+  const [selectedUser, setSelectedUser] = useState<any>(null)
   const [transactionId, setTransactionId] = useState("")
   const [showSuccess, setShowSuccess] = useState(false)
   const [error, setError] = useState("")
+  const [contacts, setContacts] = useState<Array<{ id: string; fullName: string; phone: string; email?: string }>>([])
+  const [loadingContacts, setLoadingContacts] = useState(false)
+
+  useEffect(() => {
+    const load = async () => {
+      if (!user) return
+      setLoadingContacts(true)
+      try {
+        const currentUserId = user.id
+        const [mockRes, usersRes] = await Promise.all([
+          fetch("/api/contacts/mock"),
+          fetch(`/api/users/search?q=${encodeURIComponent(" ")}&excludeUserId=${currentUserId}`),
+        ])
+        const ensureJson = async (res: Response) => {
+          if (!res.ok) throw new Error(await res.text())
+          const ct = res.headers.get("content-type") || ""
+          if (!ct.includes("application/json")) throw new Error(await res.text())
+          return res.json()
+        }
+        const mockData = await ensureJson(mockRes)
+        const usersData = await ensureJson(usersRes)
+        const mockAsUsers = (mockData.contacts || []).map((c: any) => ({ id: c.id, fullName: c.name, phone: c.phone, email: c.email }))
+        const systemUsers = usersData.users || []
+        setContacts([...systemUsers, ...mockAsUsers].filter((c: any) => c.id !== currentUserId))
+      } catch (e: any) {
+        setError(e?.message || "Failed to load contacts")
+      } finally {
+        setLoadingContacts(false)
+      }
+    }
+    load()
+  }, [user])
 
   const handleSendMoney = async (e?: React.FormEvent) => {
     e?.preventDefault()
@@ -71,19 +109,68 @@ const SendMoneyPage = () => {
 
   // Render logic here
   return (
-    <div>
-      {showSuccess && <div>Transaction successful with ID: {transactionId}</div>}
-      {error && <div>Error: {error}</div>}
-      {/* Form for sending money */}
-      <form onSubmit={handleSendMoney}>
-        <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Amount" required />
-        <input type="text" value={note} onChange={(e) => setNote(e.target.value)} placeholder="Note" />
-        <select value={selectedUser as any} onChange={(e) => setSelectedUser(e.target.value as any)} required>
-          <option value="">Select User</option>
-          {/* Options for users here */}
-        </select>
-        <button type="submit">Send Money</button>
-      </form>
+    <div className="min-h-screen bg-gray-50">
+      <div className="w-full max-w-md mx-auto bg-white min-h-screen shadow">
+        <div className="px-6 py-6">
+          {error && (
+            <Alert className="mb-4 border-red-200 bg-red-50">
+              <AlertDescription className="text-red-800">{error}</AlertDescription>
+            </Alert>
+          )}
+
+          {showSuccess && (
+            <Alert className="mb-4 border-green-200 bg-green-50">
+              <AlertDescription className="text-green-800">Transaction successful: {transactionId}</AlertDescription>
+            </Alert>
+          )}
+
+          <Card className="mb-4">
+            <CardContent className="p-4 space-y-3">
+              <div>
+                <label className="block text-sm mb-1">Amount ($)</label>
+                <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" />
+              </div>
+              <div>
+                <label className="block text-sm mb-1">Note</label>
+                <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional" />
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="mb-4">
+            <CardContent className="p-4">
+              <div className="mb-2 font-medium flex items-center"><Users className="w-4 h-4 mr-2" /> Select Contact</div>
+              {loadingContacts ? (
+                <div className="text-sm text-gray-600">Loading contacts...</div>
+              ) : contacts.length ? (
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {contacts.map((c) => (
+                    <div
+                      key={c.id}
+                      onClick={() => setSelectedUser(c.id)}
+                      className={`p-3 border rounded cursor-pointer ${selectedUser === c.id ? "bg-blue-50 border-blue-300" : "hover:bg-gray-50"}`}
+                    >
+                      <div className="text-sm font-medium">{c.fullName}</div>
+                      <div className="text-xs text-gray-600">{c.phone}</div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-sm text-gray-600">No contacts. Add some in Manage Contacts.</div>
+              )}
+              <div className="mt-3">
+                <Link href="/manage-contacts">
+                  <Button variant="outline" className="bg-transparent">Manage Contacts</Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Button onClick={(e) => handleSendMoney(e)} className="w-full">
+            <Send className="w-4 h-4 mr-2" /> Send Money
+          </Button>
+        </div>
+      </div>
     </div>
   )
 }
