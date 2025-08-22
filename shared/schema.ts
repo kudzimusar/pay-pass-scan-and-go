@@ -108,17 +108,17 @@ export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-}).extend({
-  phone: z.string().min(9, "Phone number must be at least 9 digits").max(13, "Phone number is too long"),
-});
+}).refine((data) => typeof data.phone === "string" && data.phone.replace(/\D/g, "").length >= 9 && data.phone.replace(/\D/g, "").length <= 13, {
+  message: "Invalid phone length",
+})
 
 export const insertOperatorSchema = createInsertSchema(operators).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-}).extend({
-  phone: z.string().min(9, "Phone number must be at least 9 digits").max(13, "Phone number is too long"),
-});
+}).refine((data) => typeof data.phone === "string" && data.phone.replace(/\D/g, "").length >= 9 && data.phone.replace(/\D/g, "").length <= 13, {
+  message: "Invalid phone length",
+})
 
 export const insertWalletSchema = createInsertSchema(wallets).omit({
   id: true,

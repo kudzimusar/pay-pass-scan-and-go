@@ -54,7 +54,7 @@ export default function TransactionsPage() {
 
   const fetchTransactions = async () => {
     try {
-      const response = await fetch(`/api/transactions?userId=${user.id}&month=${selectedMonth}&year=${selectedYear}`)
+      const response = await fetch(`/api/transactions?userId=${user?.id || ""}&month=${selectedMonth}&year=${selectedYear}`)
       if (!response.ok) {
         const text = await response.text()
         throw new Error(text || `HTTP ${response.status}`)
@@ -73,7 +73,7 @@ export default function TransactionsPage() {
 
   const fetchMonthlyExpenses = async () => {
     try {
-      const response = await fetch(`/api/expenses/monthly?userId=${user.id}`)
+      const response = await fetch(`/api/expenses/monthly?userId=${user?.id || ""}`)
       if (!response.ok) {
         const text = await response.text()
         throw new Error(text || `HTTP ${response.status}`)
