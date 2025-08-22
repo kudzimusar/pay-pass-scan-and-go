@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth-context";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Store, LogIn } from "lucide-react";
 
 const merchantLoginSchema = z.object({
@@ -37,6 +37,7 @@ export default function MerchantLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { login } = useAuth();
+  const [, setLocation] = useLocation();
 
   const form = useForm<MerchantLoginForm>({
     resolver: zodResolver(merchantLoginSchema),
@@ -74,6 +75,9 @@ export default function MerchantLogin() {
         title: "Login successful",
         description: "Welcome to your merchant dashboard",
       });
+
+      // Redirect to merchant dashboard
+      setLocation("/merchant");
     } catch (error) {
       console.error("Merchant login error:", error);
       toast({

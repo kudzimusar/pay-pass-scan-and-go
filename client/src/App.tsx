@@ -24,6 +24,7 @@ import OperatorLogin from "@/pages/operator-login";
 import AdminDashboard from "@/pages/admin-dashboard";
 import AdminLogin from "@/pages/admin-login";
 import MerchantLogin from "@/pages/merchant-login";
+import MerchantDashboard from "@/pages/merchant-dashboard";
 import PartnerLogin from "@/pages/partner-login";
 import NotFound from "@/pages/not-found";
 
@@ -47,6 +48,7 @@ function Router() {
       <Route path="/admin" component={AdminDashboard} />
       <Route path="/admin-login" component={AdminLogin} />
       <Route path="/merchant-login" component={MerchantLogin} />
+      <Route path="/merchant" component={MerchantDashboard} />
       <Route path="/partner-login" component={PartnerLogin} />
       <Route component={NotFound} />
     </Switch>

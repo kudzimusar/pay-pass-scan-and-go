@@ -21,8 +21,8 @@ PayPass is a unified payment platform that serves multiple stakeholder types wit
 ### 3. Retailers/Merchants/Utilities
 - **Purpose**: Businesses, utilities, and service providers for payment collection
 - **Access Route**: `/merchant-login`
-- **Dashboard**: `/merchant` (to be implemented)
-- **Features**: Payment collection, business analytics, customer management
+- **Dashboard**: `/merchant`
+- **Features**: Payment collection, business analytics, customer management, QR code generation
 
 ### 4. Mobile Money/Bank Partners
 - **Purpose**: Mobile money providers, banks, and fintech partners for integration monitoring
@@ -172,3 +172,49 @@ All authentication pages are fully responsive and optimized for mobile devices.
 
 ### Support
 For technical support or questions about the authentication system, please refer to the main project documentation or contact the development team.
+
+## Merchant Dashboard Features
+
+The merchant dashboard provides comprehensive tools for businesses, utilities, and service providers:
+
+### Overview Tab
+- **Key Metrics**: Today's revenue, total revenue, transaction count, active customers
+- **Payment Methods Breakdown**: QR payments, card payments, mobile money usage
+- **Recent Transactions**: Latest payment activities with status indicators
+- **Quick Actions**: Generate QR codes, download reports, add products
+
+### Payments Tab
+- **Transaction Management**: Complete list of all transactions with search and filtering
+- **Payment Details**: Customer information, amounts, payment methods, status
+- **Export Functionality**: Download transaction reports in various formats
+- **Status Tracking**: Monitor pending, completed, and failed payments
+
+### Customers Tab
+- **Customer Analytics**: Total customers, active customers, average customer value
+- **Top Customers**: List of highest-spending customers with visit counts
+- **Customer Profiles**: Individual customer details and transaction history
+- **Customer Status**: Track active and inactive customer segments
+
+### Analytics Tab
+- **Revenue Analytics**: Visual charts showing revenue trends over time
+- **Payment Method Trends**: Distribution of payment methods used
+- **Customer Growth**: Customer acquisition and retention metrics
+- **Business Insights**: Data-driven insights for business optimization
+
+### QR Generator Tab
+- **Dynamic QR Codes**: Generate payment QR codes for any amount
+- **Custom Descriptions**: Add payment descriptions for better tracking
+- **Download Options**: Download QR codes as images for printing
+- **QR Data Export**: Copy QR code data for integration purposes
+
+### Settings Tab
+- **Business Profile**: Update business name, type, contact information
+- **Account Management**: Manage merchant account settings
+- **Security Settings**: Update PIN and security preferences
+- **Integration Settings**: Configure payment integrations
+
+### Key Benefits
+- **Real-time Monitoring**: Live updates of payment activities
+- **Customer Insights**: Detailed customer behavior analytics
+- **Payment Flexibility**: Support for multiple payment methods
+- **Business Growth**: Tools to optimize revenue and customer retention
