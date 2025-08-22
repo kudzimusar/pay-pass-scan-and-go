@@ -28,7 +28,9 @@ export default function SignupPage() {
     setMsg(null)
     setLoading(true)
     try {
-      await signup(name, phone, pin, biometricEnabled)
+      if (signup) {
+        await signup(name, phone, pin, biometricEnabled)
+      }
       setMsg("Signed up! Go to your dashboard.")
       router.push("/dashboard")
     } catch (e: any) {

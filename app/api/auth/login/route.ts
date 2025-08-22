@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import jwt from "jsonwebtoken"
-import { storage } from "../_lib/storage"
+import { storage } from "../../_lib/storage"
 
 // Normalize phone number to international format
 function normalizePhoneNumber(phone: string): string {

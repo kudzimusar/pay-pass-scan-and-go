@@ -147,6 +147,8 @@ export interface StorageInterface {
   createRoute(routeData: Omit<Route, "id" | "createdAt" | "updatedAt">): Promise<Route>
   getOperatorRoutes(operatorId: string): Promise<Route[]>
   getRouteById(id: string): Promise<Route | null>
+  getRouteByQrCode(qrCode: string): Promise<Route | null>
+  getOperator(operatorId: string): Promise<Operator | null>
   createPaymentRequest(requestData: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt">): Promise<PaymentRequest>
   getPaymentRequestById(id: string): Promise<PaymentRequest | null>
   getUserSentPaymentRequests(userId: string): Promise<PaymentRequest[]>
@@ -645,10 +647,20 @@ export class MemoryStorage implements StorageInterface {
   }
 
   async getUserTransactions(userId: string, limit?: number): Promise<Transaction[]> {
-    const userTxns = this.transactions
+    const userTxn = this.transactions
       .filter((txn) => txn.userId === userId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-    return limit ? userTxns.slice(0, limit) : userTxns
+    return limit ? userTxn.slice(0, limit) : userTxn
+  }
+
+  async getTransactionById(id: string): Promise<Transaction | null> {
+    return this.transactions.find((txn) => txn.id === id) || null
+  }
+
+  async getUnpaidTransactions(userId: string): Promise<Transaction[]> {
+    return this.transactions
+      .filter((txn) => txn.userId === userId && txn.status === "pending")
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
   }
 
   async getOperatorTransactions(operatorId: string, limit?: number): Promise<Transaction[]> {
@@ -676,6 +688,15 @@ export class MemoryStorage implements StorageInterface {
 
   async getRouteById(id: string): Promise<Route | null> {
     return this.routes.find((route) => route.id === id) || null
+  }
+
+  async getRouteByQrCode(qrCode: string): Promise<Route | null> {
+    // For now, we'll use a simple mapping - in a real app, QR codes would be stored in the route
+    return this.routes.find((route) => route.id === qrCode) || null
+  }
+
+  async getOperator(operatorId: string): Promise<Operator | null> {
+    return this.operators.find((operator) => operator.id === operatorId) || null
   }
 
   // Payment Request methods
@@ -756,18 +777,7 @@ export class MemoryStorage implements StorageInterface {
     return this.notifications.filter((notif) => notif.userId === userId && !notif.isRead).length
   }
 
-  // Legacy methods for compatibility
-  async getAdminByPhone(phone: string): Promise<any> {
-    return this.admins.find((admin) => admin.phone === phone) || null
-  }
 
-  async getMerchantByPhone(phone: string): Promise<any> {
-    return this.merchants.find((merchant) => merchant.phone === phone) || null
-  }
-
-  async getPartnerByPhone(phone: string): Promise<any> {
-    return this.partners.find((partner) => partner.phone === phone) || null
-  }
 }
 
 // Create and export the storage instance

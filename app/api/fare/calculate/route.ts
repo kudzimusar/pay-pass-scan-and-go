@@ -162,7 +162,7 @@ export async function GET(request: NextRequest) {
 }
 
 // Utility function to check if current time falls within peak hours
-export async function checkPeakHours(route_id: string, time?: string, date?: string) {
+async function checkPeakHours(route_id: string, time?: string, date?: string) {
   const currentTime = time || new Date().toTimeString().slice(0, 5)
   const currentDate = date || new Date().toISOString().slice(0, 10)
   const dayOfWeek = new Date(currentDate).toLocaleDateString("en-US", { weekday: "short" }).toUpperCase()

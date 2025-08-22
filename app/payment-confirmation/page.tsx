@@ -9,7 +9,7 @@ const PaymentConfirmationPage = () => {
   const [showSuccess, setShowSuccess] = useState(false)
   const [error, setError] = useState("")
 
-  const handleConfirmPayment = async (data) => {
+  const handleConfirmPayment = async (data: any) => {
     if (data.success) {
       // Refresh user data to get updated balance
       await refreshUserData()

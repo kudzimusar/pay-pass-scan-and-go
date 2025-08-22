@@ -171,7 +171,7 @@ export async function GET(request: NextRequest) {
       FROM route_transactions rt
       JOIN routes r ON rt.route_id = r.route_id
       JOIN stations s ON rt.station_id = s.station_id
-      WHERE ${sql.unsafe(whereClause, [param])}
+      WHERE ${(sql as any).unsafe(whereClause, [param])}
     `
 
     if (tickets.length === 0) {
@@ -248,7 +248,7 @@ export async function PUT(request: NextRequest) {
       RETURNING *
     `
 
-    const result = await sql.unsafe(query, values)
+    const result = await (sql as any).unsafe(query, values)
 
     if (result.length === 0) {
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 })

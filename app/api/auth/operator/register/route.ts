@@ -6,10 +6,14 @@ import { z } from "zod"
 import { rateLimit } from "../../../_lib/redis"
 
 const insertOperatorSchema = z.object({
-  name: z.string().min(2),
+  companyName: z.string().min(2),
   phone: z.string().min(5),
   email: z.string().email().optional(),
   pin: z.string().min(4),
+  licenseNumber: z.string().optional(),
+  vehicleCount: z.number().optional(),
+  totalEarnings: z.number().optional(),
+  isActive: z.boolean().optional(),
 })
 
 export async function POST(req: Request) {
@@ -23,7 +27,16 @@ export async function POST(req: Request) {
     const exists = await storage.getOperatorByPhone(phone)
     if (exists) return NextResponse.json({ error: "Operator with this phone already exists" }, { status: 400 })
     const hashedPin = await bcrypt.hash(data.pin, 10)
-    const op = await storage.createOperator({ name: data.name, phone, pin: hashedPin, email: data.email })
+    const op = await storage.createOperator({ 
+      companyName: data.companyName, 
+      phone, 
+      pin: hashedPin, 
+      email: data.email || "",
+      licenseNumber: data.licenseNumber || "OP" + Date.now(),
+      vehicleCount: data.vehicleCount || 0,
+      totalEarnings: data.totalEarnings || 0,
+      isActive: data.isActive ?? true
+    })
     const token = signToken({ type: "operator", operatorId: op.id, phone: op.phone })
     const { pin: _p, ...safe } = op
     return NextResponse.json({ operator: safe, token })

@@ -3,6 +3,7 @@ import { z } from "zod"
 import bcrypt from "bcryptjs"
 import { cookieOptions, normalizePhoneNumber, signToken } from "../../_lib/auth"
 import { storage } from "../../_lib/storage"
+import type { User } from "../../_lib/storage"
 
 const schema = z.object({
   fullName: z.string().min(2, "Full name is required"),
@@ -12,7 +13,7 @@ const schema = z.object({
   biometricEnabled: z.boolean().optional(),
 })
 
-function toSafeUser(u: UserRecord) {
+function toSafeUser(u: User) {
   const { pin, ...safe } = u
   return safe
 }
@@ -37,9 +38,10 @@ export async function POST(req: Request) {
     const user = await storage.createUser({
       fullName,
       phone: normalized,
-      email,
-      biometricEnabled,
-      pinHash,
+      email: email || "",
+      biometricEnabled: biometricEnabled || false,
+      pin: pinHash,
+      walletBalance: 0,
     })
 
     const token = await signToken({ type: "user", userId: user.id, phone: user.phone })
