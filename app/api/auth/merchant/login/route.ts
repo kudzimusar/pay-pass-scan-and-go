@@ -18,6 +18,7 @@ function getClientIp(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    await storage.ensureSeeded()
     const body = await req.json()
     const parsed = schema.safeParse(body)
     if (!parsed.success) {
