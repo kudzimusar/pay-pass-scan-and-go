@@ -27,8 +27,8 @@ PayPass is a unified payment platform that serves multiple stakeholder types wit
 ### 4. Mobile Money/Bank Partners
 - **Purpose**: Mobile money providers, banks, and fintech partners for integration monitoring
 - **Access Route**: `/partner-login`
-- **Dashboard**: `/partner` (to be implemented)
-- **Features**: Integration monitoring, transaction analytics, API management
+- **Dashboard**: `/partner`
+- **Features**: Integration monitoring, transaction analytics, API management, webhook configuration
 
 ### 5. Platform Administrators
 - **Purpose**: System administrators for platform oversight and management
@@ -218,3 +218,53 @@ The merchant dashboard provides comprehensive tools for businesses, utilities, a
 - **Customer Insights**: Detailed customer behavior analytics
 - **Payment Flexibility**: Support for multiple payment methods
 - **Business Growth**: Tools to optimize revenue and customer retention
+
+## Partner Dashboard Features
+
+The partner dashboard provides comprehensive tools for mobile money providers, banks, and fintech partners:
+
+### Overview Tab
+- **Key Metrics**: Total transactions, success rate, average response time, uptime
+- **System Health**: Real-time monitoring of API gateway, database, and services
+- **Recent Activity**: Latest transaction activities with status indicators
+- **Integration Key**: Secure access to API authentication credentials
+
+### Transactions Tab
+- **Transaction Log**: Complete list of all processed transactions
+- **Advanced Search**: Search transactions by ID, amount, method, or status
+- **Status Tracking**: Monitor completed, pending, processing, and failed transactions
+- **Performance Metrics**: Response times and processing durations
+- **Export Functionality**: Download transaction reports for analysis
+
+### API Monitoring Tab
+- **Endpoint Health**: Real-time status of all API endpoints
+- **Performance Metrics**: Response times and success rates for each endpoint
+- **Active Endpoints**: Count of healthy vs problematic endpoints
+- **Endpoint Details**: URL, method, description, and last test time
+- **Testing Tools**: Built-in endpoint testing functionality
+
+### Analytics Tab
+- **Transaction Analytics**: Visual charts showing transaction volume trends
+- **API Performance**: Response time trends and performance metrics
+- **Error Rate Trends**: Monitoring of API failures and error patterns
+- **Business Insights**: Data-driven insights for optimization
+
+### Integrations Tab
+- **API Documentation**: Complete integration guide and examples
+- **Base URL Management**: API endpoint configuration
+- **Authentication Setup**: Integration key management
+- **Webhook Configuration**: Set up webhook URLs and event subscriptions
+- **Code Examples**: Ready-to-use code snippets for integration
+
+### Settings Tab
+- **Partner Profile**: Update company name, type, contact information
+- **Security Settings**: PIN management and security preferences
+- **Account Management**: Partner account configuration
+- **Integration Settings**: API and webhook configuration
+
+### Key Benefits
+- **Real-time Monitoring**: Live updates of API health and transaction status
+- **Performance Analytics**: Detailed metrics for optimization
+- **Integration Support**: Complete documentation and tools
+- **Webhook Management**: Automated event notifications
+- **Security**: Secure API key management and authentication

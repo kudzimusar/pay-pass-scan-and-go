@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/auth-context";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Handshake, LogIn } from "lucide-react";
 
 const partnerLoginSchema = z.object({
@@ -37,6 +37,7 @@ export default function PartnerLogin() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const { login } = useAuth();
+  const [, setLocation] = useLocation();
 
   const form = useForm<PartnerLoginForm>({
     resolver: zodResolver(partnerLoginSchema),
@@ -74,6 +75,9 @@ export default function PartnerLogin() {
         title: "Login successful",
         description: "Welcome to your partner dashboard",
       });
+
+      // Redirect to partner dashboard
+      setLocation("/partner");
     } catch (error) {
       console.error("Partner login error:", error);
       toast({
