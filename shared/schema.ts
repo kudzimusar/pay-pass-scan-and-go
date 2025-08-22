@@ -138,16 +138,16 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({
 
 // Types
 export type User = typeof users.$inferSelect;
-export type InsertUser = z.infer<typeof insertUserSchema>;
+export type InsertUser = typeof users.$inferInsert;
 
 export type Operator = typeof operators.$inferSelect;
-export type InsertOperator = z.infer<typeof insertOperatorSchema>;
+export type InsertOperator = typeof operators.$inferInsert;
 
 export type Wallet = typeof wallets.$inferSelect;
-export type InsertWallet = z.infer<typeof insertWalletSchema>;
+export type InsertWallet = typeof wallets.$inferInsert;
 
 export type Route = typeof routes.$inferSelect;
-export type InsertRoute = z.infer<typeof insertRouteSchema>;
+export type InsertRoute = typeof routes.$inferInsert;
 
 export type Transaction = typeof transactions.$inferSelect;
-export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
+export type InsertTransaction = typeof transactions.$inferInsert;
