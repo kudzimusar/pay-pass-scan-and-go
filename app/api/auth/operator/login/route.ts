@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
 import { cookieOptions, normalizePhoneNumber, signToken } from "../../../_lib/auth"
-import { storage } from "../../..//_lib/storage"
+import { storage } from "../../../_lib/storage"
 import { rateLimit } from "../../../_lib/redis"
 
 const schema = z.object({
