@@ -9,6 +9,10 @@ export interface User {
   walletBalance: number
   createdAt: Date
   updatedAt: Date
+  // Profile additions
+  dateOfBirth?: Date
+  joinedDate: Date
+  paypassUsername: string
 }
 
 export interface Operator {
@@ -25,16 +29,69 @@ export interface Operator {
   updatedAt: Date
 }
 
+export interface Admin {
+  id: string
+  fullName: string
+  phone: string
+  email: string
+  pin: string
+  role: "super_admin" | "platform_admin" | "support_admin"
+  permissions: string[]
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface Merchant {
+  id: string
+  businessName: string
+  phone: string
+  email: string
+  pin: string
+  businessType: "retailer" | "utility" | "service_provider"
+  licenseNumber: string
+  totalEarnings: number
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface Partner {
+  id: string
+  companyName: string
+  phone: string
+  email: string
+  pin: string
+  partnerType: "mobile_money" | "bank" | "fintech"
+  integrationKey: string
+  totalTransactions: number
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
 export interface Transaction {
   id: string
   userId: string
-  type: "payment" | "topup" | "transfer"
+  type: "payment" | "topup" | "top_up" | "transfer" | "bus_ticket" | "grocery" | "utility"
+| "electricity" | "water" | "internet" | "bill_payment" | "payment_request" | "qr_payment" | "transfer_received"
+
   amount: number
   description: string
   operatorId?: string
   status: "pending" | "completed" | "failed"
+  isPaid: boolean
   createdAt: Date
   updatedAt: Date
+  // New fields for better transaction management
+  category?: string
+  merchantName?: string
+  receiptNumber?: string
+  dueDate?: Date
+  // Prevent duplicates
+  transactionHash: string
+  // Additional metadata
+  metadata?: Record<string, any>
 }
 
 export interface Route {
@@ -54,11 +111,12 @@ export interface Route {
 export interface PaymentRequest {
   id: string
   senderId: string
-  receiverId: string
+  recipientId: string
   amount: number
   description: string
   billType: string
   status: "pending" | "accepted" | "declined" | "expired"
+  linkedTransactionId?: string
   expiresAt: Date
   respondedAt?: Date
   createdAt: Date

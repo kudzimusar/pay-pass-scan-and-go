@@ -42,11 +42,11 @@ export async function GET() {
         merchants: sampleMerchants.length,
         admins: sampleAdmins.length,
         partners: samplePartners.length,
-        sampleUsers: users.map(u => ({ id: u.id, fullName: u.fullName, phone: u.phone, pinHash: u.pin.substring(0, 20) + "..." })),
-        sampleOperators: sampleOperators.map(o => ({ id: o.id, companyName: o.companyName, phone: o.phone })),
-        sampleMerchants: sampleMerchants.map(m => ({ id: m.id, businessName: m.businessName, phone: m.phone })),
-        sampleAdmins: sampleAdmins.map(a => ({ id: a.id, fullName: a.fullName, phone: a.phone })),
-        samplePartners: samplePartners.map(p => ({ id: p.id, businessName: p.businessName, phone: p.phone })),
+        sampleUsers: users.map((u: any) => ({ id: u.id, fullName: u.fullName, phone: u.phone, pinHash: u.pin.substring(0, 20) + "..." })),
+        sampleOperators: sampleOperators.map((o: any) => ({ id: o.id, companyName: o.companyName, phone: o.phone })),
+        sampleMerchants: sampleMerchants.map((m: any) => ({ id: m.id, businessName: m.businessName, phone: m.phone })),
+        sampleAdmins: sampleAdmins.map((a: any) => ({ id: a.id, fullName: a.fullName, phone: a.phone })),
+        samplePartners: samplePartners.map((p: any) => ({ id: p.id, businessName: p.businessName, phone: p.phone })),
       }
     })
   } catch (error) {

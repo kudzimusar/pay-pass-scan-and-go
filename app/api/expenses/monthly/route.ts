@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     const currentYear = now.getFullYear()
 
     const monthlyExpenses = transactions
-      .filter((txn) => {
+      .filter((txn: any) => {
         const txnDate = new Date(txn.createdAt)
         return (
           txnDate.getMonth() === currentMonth &&
@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
           txn.status === "completed"
         )
       })
-      .reduce((total, txn) => total + txn.amount, 0)
+      .reduce((total: number, txn: any) => total + txn.amount, 0)
 
     console.log("Calculated monthly expenses:", monthlyExpenses)
 

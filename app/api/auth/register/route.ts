@@ -42,6 +42,8 @@ export async function POST(req: Request) {
       biometricEnabled: biometricEnabled || false,
       pin: pinHash,
       walletBalance: 0,
+      joinedDate: new Date(),
+      paypassUsername: `@${fullName.toLowerCase().replace(/\s+/g, '_')}`,
     })
 
     const token = await signToken({ type: "user", userId: user.id, phone: user.phone })

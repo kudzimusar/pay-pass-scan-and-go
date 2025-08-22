@@ -11,6 +11,10 @@ export interface User {
   walletBalance: number
   createdAt: Date
   updatedAt: Date
+  // Profile additions
+  dateOfBirth?: Date
+  joinedDate: Date
+  paypassUsername: string
 }
 
 export interface Operator {
@@ -71,13 +75,25 @@ export interface Partner {
 export interface Transaction {
   id: string
   userId: string
-  type: "payment" | "topup" | "transfer"
+  type: "payment" | "topup" | "top_up" | "transfer" | "bus_ticket" | "grocery" | "utility"
+| "electricity" | "water" | "internet" | "bill_payment" | "payment_request" | "qr_payment" | "transfer_received"
+
   amount: number
   description: string
   operatorId?: string
   status: "pending" | "completed" | "failed"
+  isPaid: boolean
   createdAt: Date
   updatedAt: Date
+  // New fields for better transaction management
+  category?: string
+  merchantName?: string
+  receiptNumber?: string
+  dueDate?: Date
+  // Prevent duplicates
+  transactionHash: string
+  // Additional metadata
+  metadata?: Record<string, any>
 }
 
 export interface Route {
@@ -97,11 +113,12 @@ export interface Route {
 export interface PaymentRequest {
   id: string
   senderId: string
-  receiverId: string
+  recipientId: string
   amount: number
   description: string
   billType: string
   status: "pending" | "accepted" | "declined" | "expired"
+  linkedTransactionId?: string
   expiresAt: Date
   respondedAt?: Date
   createdAt: Date
@@ -181,6 +198,8 @@ const mockUsers: Omit<User, "pin">[] = [
     walletBalance: 50.0,
     createdAt: new Date("2024-01-15"),
     updatedAt: new Date("2024-01-15"),
+    joinedDate: new Date("2024-01-15"),
+    paypassUsername: "@john_doe",
   },
   {
     id: "user_2",
@@ -191,6 +210,8 @@ const mockUsers: Omit<User, "pin">[] = [
     walletBalance: 125.75,
     createdAt: new Date("2024-01-10"),
     updatedAt: new Date("2024-01-10"),
+    joinedDate: new Date("2024-01-10"),
+    paypassUsername: "@sarah_wilson",
   },
   {
     id: "user_3",
@@ -201,6 +222,8 @@ const mockUsers: Omit<User, "pin">[] = [
     walletBalance: 89.25,
     createdAt: new Date("2024-01-12"),
     updatedAt: new Date("2024-01-12"),
+    joinedDate: new Date("2024-01-12"),
+    paypassUsername: "@mike_johnson",
   },
   {
     id: "user_4",
@@ -211,6 +234,8 @@ const mockUsers: Omit<User, "pin">[] = [
     walletBalance: 203.5,
     createdAt: new Date("2024-01-08"),
     updatedAt: new Date("2024-01-08"),
+    joinedDate: new Date("2024-01-08"),
+    paypassUsername: "@emma_davis",
   },
   {
     id: "user_5",
@@ -221,6 +246,8 @@ const mockUsers: Omit<User, "pin">[] = [
     walletBalance: 67.8,
     createdAt: new Date("2024-01-14"),
     updatedAt: new Date("2024-01-14"),
+    joinedDate: new Date("2024-01-14"),
+    paypassUsername: "@david_brown",
   },
 ]
 
@@ -228,7 +255,7 @@ const mockPaymentRequests: PaymentRequest[] = [
   {
     id: "req_1",
     senderId: "user_2",
-    receiverId: "user_1",
+    recipientId: "user_1",
     amount: 15.5,
     description: "Groceries split",
     billType: "groceries",
@@ -240,7 +267,7 @@ const mockPaymentRequests: PaymentRequest[] = [
   {
     id: "req_2",
     senderId: "user_3",
-    receiverId: "user_1",
+    recipientId: "user_1",
     amount: 8.0,
     description: "Bus ticket",
     billType: "transport",
@@ -252,7 +279,7 @@ const mockPaymentRequests: PaymentRequest[] = [
   {
     id: "req_3",
     senderId: "user_1",
-    receiverId: "user_4",
+    recipientId: "user_4",
     amount: 22.0,
     description: "Dinner bill",
     billType: "food",
@@ -725,7 +752,7 @@ export class MemoryStorage implements StorageInterface {
 
   async getUserReceivedPaymentRequests(userId: string): Promise<PaymentRequest[]> {
     return this.paymentRequests
-      .filter((req) => req.receiverId === userId)
+      .filter((req) => req.recipientId === userId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
   }
 

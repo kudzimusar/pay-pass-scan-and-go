@@ -20,7 +20,7 @@ export async function GET(req: Request) {
     // Filter by month and year if provided
     let filteredTransactions = transactions
     if (month !== undefined && year !== undefined) {
-      filteredTransactions = transactions.filter((txn) => {
+      filteredTransactions = transactions.filter((txn: any) => {
         const txnDate = new Date(txn.createdAt)
         return txnDate.getMonth() === month && txnDate.getFullYear() === year
       })

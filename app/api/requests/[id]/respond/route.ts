@@ -52,7 +52,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     console.log("Payment request found:", request)
 
-    if (request.receiverId !== userId) {
+    if (request.recipientId !== userId) {
       console.log("Unauthorized access attempt")
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
     }

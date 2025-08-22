@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
 
     // Enrich requests with sender information
     const enrichedRequests = await Promise.all(
-      requests.map(async (request) => {
+      requests.map(async (request: any) => {
         const sender = await getUserById(request.senderId)
         return {
           ...request,

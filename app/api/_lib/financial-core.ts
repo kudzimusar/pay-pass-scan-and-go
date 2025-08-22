@@ -77,6 +77,7 @@ export class FinancialCore {
         merchantName: operation.metadata?.merchantName,
         receiptNumber: this.generateReceiptNumber(),
         metadata: operation.metadata,
+        transactionHash: this.generateReceiptNumber(),
       })
 
       console.log("Transaction created:", transaction.id)
@@ -98,6 +99,7 @@ export class FinancialCore {
             isPaid: true,
             category: "transfer_received",
             metadata: { senderId: operation.userId, originalTransactionId: transaction.id },
+            transactionHash: this.generateReceiptNumber(),
           })
 
           console.log(`Recipient balance updated: ${recipient.walletBalance} → ${recipientNewBalance}`)
@@ -161,7 +163,7 @@ export class FinancialCore {
       const currentMonth = now.getMonth()
       const currentYear = now.getFullYear()
 
-      const monthlyTransactions = transactions.filter((txn) => {
+      const monthlyTransactions = transactions.filter((txn: any) => {
         const txnDate = new Date(txn.createdAt)
         return (
           txnDate.getMonth() === currentMonth &&
@@ -170,7 +172,7 @@ export class FinancialCore {
         )
       })
 
-      return monthlyTransactions.reduce((total, txn) => total + txn.amount, 0)
+      return monthlyTransactions.reduce((total: number, txn: any) => total + txn.amount, 0)
     } catch (error) {
       console.error("Error calculating monthly expenses:", error)
       return 0
