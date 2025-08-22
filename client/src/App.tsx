@@ -7,6 +7,7 @@ import { AuthProvider } from "@/context/auth-context";
 import { useAuthState } from "@/hooks/use-auth";
 
 // Pages
+import Landing from "@/pages/landing";
 import Login from "@/pages/login";
 import Signup from "@/pages/signup";
 import Dashboard from "@/pages/dashboard";
@@ -21,12 +22,16 @@ import Settings from "@/pages/settings";
 import OperatorDashboard from "@/pages/operator-dashboard";
 import OperatorLogin from "@/pages/operator-login";
 import AdminDashboard from "@/pages/admin-dashboard";
+import AdminLogin from "@/pages/admin-login";
+import MerchantLogin from "@/pages/merchant-login";
+import PartnerLogin from "@/pages/partner-login";
 import NotFound from "@/pages/not-found";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={Login} />
+      <Route path="/" component={Landing} />
+      <Route path="/login" component={Login} />
       <Route path="/signup" component={Signup} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/qr-scanner" component={QRScanner} />
@@ -40,6 +45,9 @@ function Router() {
       <Route path="/operator" component={OperatorDashboard} />
       <Route path="/operator-login" component={OperatorLogin} />
       <Route path="/admin" component={AdminDashboard} />
+      <Route path="/admin-login" component={AdminLogin} />
+      <Route path="/merchant-login" component={MerchantLogin} />
+      <Route path="/partner-login" component={PartnerLogin} />
       <Route component={NotFound} />
     </Switch>
   );
