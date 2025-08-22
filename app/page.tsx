@@ -1,212 +1,214 @@
 "use client"
 
-import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { QrCode, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Smartphone, CreditCard, QrCode, Users, ArrowRight, AlertCircle } from "lucide-react"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { useToast } from "@/hooks/use-toast"
+import { useAuth } from "@/components/auth-provider"
 
-export default function HomePage() {
+const loginSchema = z.object({
+  phone: z.string().min(9, "Phone number must be at least 9 digits").max(15, "Phone number is too long"),
+  pin: z.string().min(4, "PIN must be at least 4 digits"),
+})
+
+type LoginForm = z.infer<typeof loginSchema>
+
+export default function LoginPage() {
   const router = useRouter()
-  const [phone, setPhone] = useState("")
-  const [pin, setPin] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState("")
+  const [showPin, setShowPin] = useState(false)
+  const { toast } = useToast()
+  const { login } = useAuth()
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const form = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      phone: "",
+      pin: "",
+    },
+  })
+
+  async function onSubmit(values: LoginForm) {
     setIsLoading(true)
-    setError("")
-
     try {
-      console.log("Attempting login with:", { phone, pin: pin.length + " chars" })
+      console.log("Attempting login with phone:", values.phone)
+
+      // Format phone number for Zimbabwe
+      let phone = values.phone.replace(/\D/g, "") // Remove all non-digits
+
+      // Handle different input formats
+      if (phone.startsWith("263")) {
+        // Already has country code
+        phone = `+${phone}`
+      } else if (phone.startsWith("0")) {
+        // Local format starting with 0 (e.g., 0772160634)
+        phone = `+263${phone.substring(1)}`
+      } else if (phone.length === 9) {
+        // Local format without leading 0 (e.g., 772160634)
+        phone = `+263${phone}`
+      } else {
+        // Default: assume it needs country code
+        phone = `+263${phone}`
+      }
+
+      console.log("Formatted phone:", phone)
 
       const response = await fetch("/api/auth/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ phone, pin }),
+        body: JSON.stringify({
+          phone: phone,
+          pin: values.pin,
+        }),
       })
 
-      console.log("Response status:", response.status)
-      console.log("Response headers:", Object.fromEntries(response.headers.entries()))
+      console.log("Login response status:", response.status)
 
-      // Check if response is ok first
       if (!response.ok) {
-        // Try to get error text first, then fallback to JSON
-        let errorMessage = "Login failed"
-        try {
-          const errorText = await response.text()
-          console.log("Error response text:", errorText)
-
-          // Try to parse as JSON if it looks like JSON
-          if (errorText.trim().startsWith("{")) {
-            const errorData = JSON.parse(errorText)
-            errorMessage = errorData.error || errorMessage
-          } else {
-            errorMessage = `Server error (${response.status}): ${errorText}`
-          }
-        } catch (parseError) {
-          console.error("Error parsing error response:", parseError)
-          errorMessage = `Server error (${response.status})`
-        }
-
-        setError(errorMessage)
-        return
-      }
-
-      // Check if response is JSON
-      const contentType = response.headers.get("content-type")
-      if (!contentType || !contentType.includes("application/json")) {
-        const text = await response.text()
-        console.error("Non-JSON response:", text)
-        setError("Server returned invalid response format")
-        return
+        const errorData = await response.json()
+        console.error("Login failed:", errorData)
+        throw new Error(errorData.error || "Login failed")
       }
 
       const data = await response.json()
-      console.log("Response data:", data)
+      console.log("Login successful:", data)
 
-      if (data.success) {
-        localStorage.setItem("auth_token", data.token)
-        localStorage.setItem("user_data", JSON.stringify(data.user))
-        console.log("Login successful, redirecting to dashboard")
+      if (data.success && data.user && data.token) {
+        login(data.token, data.user)
+
+        toast({
+          title: "Welcome back!",
+          description: "You have been logged in successfully.",
+        })
+
         router.push("/dashboard")
       } else {
-        setError(data.error || "Login failed")
+        throw new Error("Invalid login response")
       }
     } catch (error) {
       console.error("Login error:", error)
-
-      // More specific error handling
-      if (error instanceof TypeError && error.message.includes("fetch")) {
-        setError("Unable to connect to server. Please check your internet connection.")
-      } else if (error.message.includes("JSON")) {
-        setError("Server returned invalid response. Please try again.")
-      } else {
-        setError("An unexpected error occurred. Please try again.")
-      }
+      toast({
+        title: "Login failed",
+        description: error instanceof Error ? error.message : "Please check your credentials and try again.",
+        variant: "destructive",
+      })
     } finally {
       setIsLoading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="w-full max-w-md mx-auto bg-white min-h-screen shadow-xl">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 via-teal-600 to-emerald-600 px-6 py-12 text-white text-center">
-          <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Smartphone className="w-8 h-8" />
-          </div>
-          <h1 className="text-3xl font-bold mb-2">PayPass</h1>
-          <p className="text-blue-100">Your Digital Payment Solution</p>
-        </div>
+    <div className="flex flex-col h-screen">
+      {/* Header with Logo */}
+      <div className="bg-gradient-to-br from-blue-600 to-blue-800 pt-16 pb-8 px-6 text-center text-white">
+        <QrCode className="h-12 w-12 mx-auto mb-4" />
+        <h1 className="text-2xl font-bold">PayPass</h1>
+        <p className="text-blue-100 text-sm">Scan and Go</p>
+      </div>
 
-        {/* Features */}
-        <div className="px-6 py-6">
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            <div className="text-center">
-              <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                <QrCode className="w-6 h-6 text-blue-600" />
-              </div>
-              <p className="text-sm font-medium">Scan & Pay</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                <CreditCard className="w-6 h-6 text-green-600" />
-              </div>
-              <p className="text-sm font-medium">Digital Wallet</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                <Users className="w-6 h-6 text-purple-600" />
-              </div>
-              <p className="text-sm font-medium">Ask Friend to Pay</p>
-            </div>
-            <div className="text-center">
-              <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-2">
-                <ArrowRight className="w-6 h-6 text-orange-600" />
-              </div>
-              <p className="text-sm font-medium">Send Money</p>
-            </div>
+      {/* Login Form */}
+      <div className="flex-1 px-6 py-8 bg-gray-50">
+        <div className="space-y-6">
+          <div className="text-center mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-2">Welcome Back</h2>
+            <p className="text-gray-600 text-sm">Enter your phone number and PIN to continue</p>
           </div>
 
-          {/* Login Form */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Welcome Back</CardTitle>
-              <CardDescription>Sign in to your PayPass account</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {error && (
-                <Alert className="mb-4 border-red-200 bg-red-50">
-                  <AlertCircle className="h-4 w-4 text-red-600" />
-                  <AlertDescription className="text-red-800">{error}</AlertDescription>
-                </Alert>
-              )}
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-700">Phone Number</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <span className="text-gray-500 text-sm">+263</span>
+                        </div>
+                        <Input type="tel" placeholder="77 123 4567" className="pl-12" {...field} />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-              <form onSubmit={handleLogin} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="+263771234567"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    required
-                  />
-                </div>
+              <FormField
+                control={form.control}
+                name="pin"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-sm font-medium text-gray-700">PIN</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Input type={showPin ? "text" : "password"} placeholder="Enter your PIN" {...field} />
+                        <button
+                          type="button"
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                          onClick={() => setShowPin(!showPin)}
+                        >
+                          {showPin ? (
+                            <EyeOff className="h-4 w-4 text-gray-400" />
+                          ) : (
+                            <Eye className="h-4 w-4 text-gray-400" />
+                          )}
+                        </button>
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                <div className="space-y-2">
-                  <Label htmlFor="pin">PIN</Label>
-                  <Input
-                    id="pin"
-                    type="password"
-                    placeholder="Enter your PIN"
-                    value={pin}
-                    onChange={(e) => setPin(e.target.value)}
-                    maxLength={6}
-                    required
-                  />
-                </div>
+              <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700" disabled={isLoading}>
+                {isLoading ? "Signing In..." : "Sign In"}
+              </Button>
+            </form>
+          </Form>
 
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Signing in...
-                    </>
-                  ) : (
-                    "Sign In"
-                  )}
-                </Button>
-              </form>
+          <div className="text-center">
+            <button className="text-blue-600 text-sm font-medium">Forgot PIN?</button>
+          </div>
 
-              <div className="mt-6 text-center space-y-2">
-                <p className="text-sm text-gray-600">
-                  Don't have an account?{" "}
-                  <Link href="/signup" className="text-blue-600 hover:underline">
-                    Sign up
-                  </Link>
-                </p>
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                  <p className="text-xs text-blue-800 font-medium">Demo Accounts Available:</p>
-                  <p className="text-xs text-blue-600 mt-1">
-                    Use phone: <span className="font-mono">+263771234567</span> with PIN:{" "}
-                    <span className="font-mono">1234</span>
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="text-center pt-4">
+            <p className="text-gray-600 text-sm">New to PayPass?</p>
+            <button
+              onClick={() => router.push("/signup")}
+              className="text-blue-600 font-medium text-sm hover:underline"
+            >
+              Create Account
+            </button>
+          </div>
+
+          <div className="text-center pt-4 border-t border-gray-200">
+            <p className="text-gray-600 text-sm mb-2">Business Owner?</p>
+            <button
+              onClick={() => router.push("/operator")}
+              className="text-green-600 font-medium text-sm hover:underline"
+            >
+              Operator Login
+            </button>
+          </div>
+
+          {/* Demo Credentials */}
+          <div className="bg-blue-50 p-4 rounded-lg mt-6">
+            <h3 className="font-medium text-blue-800 mb-2">Demo Credentials</h3>
+            <p className="text-sm text-blue-700 mb-2">Use these credentials to test the app:</p>
+            <div className="text-sm text-blue-600">
+              <p>Phone: +263771234567</p>
+              <p>PIN: 1234</p>
+            </div>
+          </div>
         </div>
       </div>
     </div>

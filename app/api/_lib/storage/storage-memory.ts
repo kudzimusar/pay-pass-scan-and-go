@@ -494,3 +494,6 @@ export class MemoryStorage implements StorageInterface {
     return null
   }
 }
+
+// Create and export the storage instance
+export const storage = new MemoryStorage()

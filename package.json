@@ -32,6 +32,7 @@
     "@radix-ui/react-checkbox": "latest",
     "@radix-ui/react-collapsible": "latest",
     "@radix-ui/react-context-menu": "latest",
+    "@radix-ui/react-dialog": "latest",
     "@radix-ui/react-dropdown-menu": "latest",
     "@radix-ui/react-hover-card": "latest",
     "@radix-ui/react-label": "latest",
@@ -53,7 +54,7 @@
     "@radix-ui/react-tooltip": "latest",
     "@replit/vite-plugin-cartographer": "latest",
     "@replit/vite-plugin-runtime-error-modal": "latest",
-    
+    "@shared/schema": "latest",
     "@tailwindcss/typography": "latest",
     "@tanstack/react-query": "latest",
     "@tidbcloud/serverless": "latest",
