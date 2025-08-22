@@ -157,6 +157,17 @@ export class NeonStorage implements StorageInterface {
     return result[0] ? this.mapRouteFromDb(result[0]) : null
   }
 
+  async getRouteByQrCode(qrCode: string): Promise<Route | null> {
+    // For now, we'll use a simple mapping - in a real app, QR codes would be stored in the route
+    const result = await sql`SELECT * FROM routes WHERE id = ${qrCode}`
+    return result[0] ? this.mapRouteFromDb(result[0]) : null
+  }
+
+  async getOperator(operatorId: string): Promise<Operator | null> {
+    const result = await sql`SELECT * FROM operators WHERE id = ${operatorId}`
+    return result[0] ? this.mapOperatorFromDb(result[0]) : null
+  }
+
   // Payment Request methods
   async createPaymentRequest(
     requestData: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt">,

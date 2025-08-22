@@ -104,6 +104,8 @@ export interface StorageInterface {
   createRoute(routeData: Omit<Route, "id" | "createdAt" | "updatedAt">): Promise<Route>
   getOperatorRoutes(operatorId: string): Promise<Route[]>
   getRouteById(id: string): Promise<Route | null>
+  getRouteByQrCode(qrCode: string): Promise<Route | null>
+  getOperator(operatorId: string): Promise<Operator | null>
 
   // Payment Request methods
   createPaymentRequest(requestData: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt">): Promise<PaymentRequest>
@@ -133,14 +135,3 @@ import { MemoryStorage } from "./storage-memory"
 
 // Create and export a single storage instance
 export const storage = new MemoryStorage()
-
-// Re-export types for convenience
-export type {
-  User,
-  Operator,
-  Transaction,
-  Route,
-  PaymentRequest,
-  NotificationRecord,
-  StorageInterface,
-} from "./storage-memory"

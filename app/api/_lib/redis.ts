@@ -1,7 +1,7 @@
 // Server-only Upstash Redis helper using REST API via fetch.
 // Reads URL/TOKEN strictly from environment variables; never hardcodes.
-const REDIS_URL = process.env.KV_REST_API_URL || process.env.KV_REST_API_URL || ""
-const REDIS_TOKEN = process.env.KV_REST_API_TOKEN || process.env.KV_REST_API_TOKEN || ""
+const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL || process.env.KV_REST_API_URL || ""
+const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN || process.env.KV_REST_API_TOKEN || ""
 
 const isConfigured = Boolean(REDIS_URL && REDIS_TOKEN)
 

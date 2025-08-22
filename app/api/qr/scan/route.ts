@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     const payload = {
       route,
       operator: operator
-        ? { id: operator.id, name: operator.name, phone: operator.phone, email: operator.email }
+        ? { id: operator.id, companyName: operator.companyName, phone: operator.phone, email: operator.email }
         : null,
     }
     if (redis.enabled && cacheKey) {

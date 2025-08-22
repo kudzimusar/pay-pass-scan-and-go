@@ -27,6 +27,47 @@ export interface Operator {
   updatedAt: Date
 }
 
+export interface Admin {
+  id: string
+  fullName: string
+  phone: string
+  email: string
+  pin: string
+  role: "super_admin" | "platform_admin" | "support_admin"
+  permissions: string[]
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface Merchant {
+  id: string
+  businessName: string
+  phone: string
+  email: string
+  pin: string
+  businessType: "retailer" | "utility" | "service_provider"
+  licenseNumber: string
+  totalEarnings: number
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface Partner {
+  id: string
+  companyName: string
+  phone: string
+  email: string
+  pin: string
+  partnerType: "mobile_money" | "bank" | "fintech"
+  integrationKey: string
+  totalTransactions: number
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
 export interface Transaction {
   id: string
   userId: string
@@ -91,12 +132,23 @@ export interface StorageInterface {
   createOperator(operatorData: Omit<Operator, "id" | "createdAt" | "updatedAt">): Promise<Operator>
   getOperatorById(id: string): Promise<Operator | null>
   getOperatorByPhone(phone: string): Promise<Operator | null>
+  createAdmin(adminData: Omit<Admin, "id" | "createdAt" | "updatedAt">): Promise<Admin>
+  getAdminById(id: string): Promise<Admin | null>
+  getAdminByPhone(phone: string): Promise<Admin | null>
+  createMerchant(merchantData: Omit<Merchant, "id" | "createdAt" | "updatedAt">): Promise<Merchant>
+  getMerchantById(id: string): Promise<Merchant | null>
+  getMerchantByPhone(phone: string): Promise<Merchant | null>
+  createPartner(partnerData: Omit<Partner, "id" | "createdAt" | "updatedAt">): Promise<Partner>
+  getPartnerById(id: string): Promise<Partner | null>
+  getPartnerByPhone(phone: string): Promise<Partner | null>
   createTransaction(txnData: Omit<Transaction, "id" | "createdAt" | "updatedAt">): Promise<Transaction>
   getUserTransactions(userId: string, limit?: number): Promise<Transaction[]>
   getOperatorTransactions(operatorId: string, limit?: number): Promise<Transaction[]>
   createRoute(routeData: Omit<Route, "id" | "createdAt" | "updatedAt">): Promise<Route>
   getOperatorRoutes(operatorId: string): Promise<Route[]>
   getRouteById(id: string): Promise<Route | null>
+  getRouteByQrCode(qrCode: string): Promise<Route | null>
+  getOperator(operatorId: string): Promise<Operator | null>
   createPaymentRequest(requestData: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt">): Promise<PaymentRequest>
   getPaymentRequestById(id: string): Promise<PaymentRequest | null>
   getUserSentPaymentRequests(userId: string): Promise<PaymentRequest[]>
@@ -211,6 +263,162 @@ const mockPaymentRequests: PaymentRequest[] = [
   },
 ]
 
+// Demo data for new user types
+const mockAdmins: Omit<Admin, "pin">[] = [
+  {
+    id: "admin_1",
+    fullName: "System Administrator",
+    phone: "+263700000001",
+    email: "admin@paypass.co.zw",
+    role: "super_admin",
+    permissions: ["all"],
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+  {
+    id: "admin_2",
+    fullName: "Platform Manager",
+    phone: "+263700000002",
+    email: "manager@paypass.co.zw",
+    role: "platform_admin",
+    permissions: ["users", "operators", "transactions", "reports"],
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+]
+
+const mockMerchants: Omit<Merchant, "pin">[] = [
+  {
+    id: "merchant_1",
+    businessName: "Pick n Pay Harare",
+    phone: "+263711111111",
+    email: "harare@pnp.co.zw",
+    businessType: "retailer",
+    licenseNumber: "RET001",
+    totalEarnings: 12500.75,
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+  {
+    id: "merchant_2",
+    businessName: "ZESA Harare",
+    phone: "+263722222222",
+    email: "harare@zesa.co.zw",
+    businessType: "utility",
+    licenseNumber: "UTL001",
+    totalEarnings: 8900.50,
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+  {
+    id: "merchant_3",
+    businessName: "City of Harare",
+    phone: "+263733333333",
+    email: "payments@hararecity.co.zw",
+    businessType: "service_provider",
+    licenseNumber: "GOV001",
+    totalEarnings: 15600.25,
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+]
+
+const mockPartners: Omit<Partner, "pin">[] = [
+  {
+    id: "partner_1",
+    companyName: "EcoCash",
+    phone: "+263744444444",
+    email: "integration@ecocash.co.zw",
+    partnerType: "mobile_money",
+    integrationKey: "ecocash_prod_2024",
+    totalTransactions: 45000,
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+  {
+    id: "partner_2",
+    companyName: "CBZ Bank",
+    phone: "+263755555555",
+    email: "payments@cbz.co.zw",
+    partnerType: "bank",
+    integrationKey: "cbz_bank_prod_2024",
+    totalTransactions: 32000,
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+  {
+    id: "partner_3",
+    companyName: "OneMoney",
+    phone: "+263766666666",
+    email: "api@onemoney.co.zw",
+    partnerType: "mobile_money",
+    integrationKey: "onemoney_prod_2024",
+    totalTransactions: 28000,
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+]
+
+// Demo operator data
+const mockOperators: Omit<Operator, "pin">[] = [
+  {
+    id: "op_1",
+    companyName: "City Bus Lines",
+    phone: "+263712345678",
+    email: "info@citybus.co.zw",
+    licenseNumber: "OP001",
+    vehicleCount: 25,
+    totalEarnings: 12500.75,
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+  {
+    id: "op_2",
+    companyName: "ZUPCO Transport",
+    phone: "+263775432109",
+    email: "admin@zupco.co.zw",
+    licenseNumber: "OP002",
+    vehicleCount: 45,
+    totalEarnings: 18900.50,
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+  {
+    id: "op_3",
+    companyName: "Harare Kombis",
+    phone: "+263787654321",
+    email: "contact@hararekombis.co.zw",
+    licenseNumber: "OP003",
+    vehicleCount: 12,
+    totalEarnings: 8900.25,
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+  {
+    id: "op_4",
+    companyName: "Metro Peach",
+    phone: "+263796543210",
+    email: "support@metropeach.co.zw",
+    licenseNumber: "OP004",
+    vehicleCount: 18,
+    totalEarnings: 15600.00,
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+]
+
 const mockNotifications: NotificationRecord[] = [
   {
     id: "notif_1",
@@ -247,6 +455,9 @@ const mockNotifications: NotificationRecord[] = [
 export class MemoryStorage implements StorageInterface {
   private users: User[] = []
   private operators: Operator[] = []
+  private admins: Admin[] = []
+  private merchants: Merchant[] = []
+  private partners: Partner[] = []
   private transactions: Transaction[] = []
   private routes: Route[] = []
   private paymentRequests: PaymentRequest[] = []
@@ -270,6 +481,12 @@ export class MemoryStorage implements StorageInterface {
       // Seed other data
       this.paymentRequests = [...mockPaymentRequests]
       this.notifications = [...mockNotifications]
+
+      // Seed new user types
+      this.admins = mockAdmins.map((admin) => ({ ...admin, pin: hashedPin }))
+      this.merchants = mockMerchants.map((merchant) => ({ ...merchant, pin: hashedPin }))
+      this.partners = mockPartners.map((partner) => ({ ...partner, pin: hashedPin }))
+      this.operators = mockOperators.map((operator) => ({ ...operator, pin: hashedPin }))
 
       isSeeded = true
       console.log("Memory storage seeded successfully with", this.users.length, "users")
@@ -357,6 +574,66 @@ export class MemoryStorage implements StorageInterface {
     return this.operators.find((op) => op.phone === phone) || null
   }
 
+  // Admin methods
+  async createAdmin(adminData: Omit<Admin, "id" | "createdAt" | "updatedAt">): Promise<Admin> {
+    const admin: Admin = {
+      id: `admin_${Date.now()}`,
+      ...adminData,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    this.admins.push(admin)
+    return admin
+  }
+
+  async getAdminById(id: string): Promise<Admin | null> {
+    return this.admins.find((admin) => admin.id === id) || null
+  }
+
+  async getAdminByPhone(phone: string): Promise<Admin | null> {
+    return this.admins.find((admin) => admin.phone === phone) || null
+  }
+
+  // Merchant methods
+  async createMerchant(merchantData: Omit<Merchant, "id" | "createdAt" | "updatedAt">): Promise<Merchant> {
+    const merchant: Merchant = {
+      id: `merchant_${Date.now()}`,
+      ...merchantData,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    this.merchants.push(merchant)
+    return merchant
+  }
+
+  async getMerchantById(id: string): Promise<Merchant | null> {
+    return this.merchants.find((merchant) => merchant.id === id) || null
+  }
+
+  async getMerchantByPhone(phone: string): Promise<Merchant | null> {
+    return this.merchants.find((merchant) => merchant.phone === phone) || null
+  }
+
+  // Partner methods
+  async createPartner(partnerData: Omit<Partner, "id" | "createdAt" | "updatedAt">): Promise<Partner> {
+    const partner: Partner = {
+      id: `partner_${Date.now()}`,
+      ...partnerData,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    this.partners.push(partner)
+    return partner
+  }
+
+  async getPartnerById(id: string): Promise<Partner | null> {
+    return this.partners.find((partner) => partner.id === id) || null
+  }
+
+  async getPartnerByPhone(phone: string): Promise<Partner | null> {
+    return this.partners.find((partner) => partner.phone === phone) || null
+  }
+
   // Transaction methods
   async createTransaction(txnData: Omit<Transaction, "id" | "createdAt" | "updatedAt">): Promise<Transaction> {
     const transaction: Transaction = {
@@ -370,10 +647,20 @@ export class MemoryStorage implements StorageInterface {
   }
 
   async getUserTransactions(userId: string, limit?: number): Promise<Transaction[]> {
-    const userTxns = this.transactions
+    const userTxn = this.transactions
       .filter((txn) => txn.userId === userId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-    return limit ? userTxns.slice(0, limit) : userTxns
+    return limit ? userTxn.slice(0, limit) : userTxn
+  }
+
+  async getTransactionById(id: string): Promise<Transaction | null> {
+    return this.transactions.find((txn) => txn.id === id) || null
+  }
+
+  async getUnpaidTransactions(userId: string): Promise<Transaction[]> {
+    return this.transactions
+      .filter((txn) => txn.userId === userId && txn.status === "pending")
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
   }
 
   async getOperatorTransactions(operatorId: string, limit?: number): Promise<Transaction[]> {
@@ -401,6 +688,15 @@ export class MemoryStorage implements StorageInterface {
 
   async getRouteById(id: string): Promise<Route | null> {
     return this.routes.find((route) => route.id === id) || null
+  }
+
+  async getRouteByQrCode(qrCode: string): Promise<Route | null> {
+    // For now, we'll use a simple mapping - in a real app, QR codes would be stored in the route
+    return this.routes.find((route) => route.id === qrCode) || null
+  }
+
+  async getOperator(operatorId: string): Promise<Operator | null> {
+    return this.operators.find((operator) => operator.id === operatorId) || null
   }
 
   // Payment Request methods
@@ -481,18 +777,7 @@ export class MemoryStorage implements StorageInterface {
     return this.notifications.filter((notif) => notif.userId === userId && !notif.isRead).length
   }
 
-  // Legacy methods for compatibility
-  async getAdminByPhone(phone: string): Promise<any> {
-    return null
-  }
 
-  async getMerchantByPhone(phone: string): Promise<any> {
-    return null
-  }
-
-  async getPartnerByPhone(phone: string): Promise<any> {
-    return null
-  }
 }
 
 // Create and export the storage instance

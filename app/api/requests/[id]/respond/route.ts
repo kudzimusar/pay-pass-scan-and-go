@@ -8,11 +8,12 @@ import {
 } from "../../../_lib/storage"
 import { processRequestPayment } from "../../../_lib/financial-core"
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     console.log("=== PAYMENT REQUEST RESPONSE API ===")
     await ensureSeeded()
-    const requestId = params.id
+    const { id } = await params
+    const requestId = id
 
     if (!requestId) {
       console.log("Missing request ID")
@@ -51,7 +52,7 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
     console.log("Payment request found:", request)
 
-    if (request.recipientId !== userId) {
+    if (request.receiverId !== userId) {
       console.log("Unauthorized access attempt")
       return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
     }

@@ -158,9 +158,29 @@ export default function Login() {
 
           <div className="text-center pt-4 border-t border-gray-200">
             <p className="text-gray-600 text-sm mb-2">Business Owner?</p>
-            <Link href="/operator" className="text-paypass-green font-medium text-sm">
-              Operator Login
-            </Link>
+            <div className="space-y-2">
+              <Link href="/operator-login" className="text-paypass-green font-medium text-sm block">
+                Bus/Taxi Operator Login
+              </Link>
+              <Link href="/merchant-login" className="text-paypass-green font-medium text-sm block">
+                Retailer/Merchant Login
+              </Link>
+              <Link href="/partner-login" className="text-paypass-green font-medium text-sm block">
+                Partner Login
+              </Link>
+              <Link href="/admin-login" className="text-purple-600 font-medium text-sm block">
+                Admin Login
+              </Link>
+            </div>
+          </div>
+
+          <div className="text-center pt-4 border-t border-gray-200">
+            <p className="text-gray-600 text-sm mb-2">Demo User Accounts:</p>
+            <div className="text-xs text-gray-500 space-y-1">
+              <div>John Doe: +263771234567 PIN: 1234</div>
+              <div>Sarah Wilson: +263772345678 PIN: 1234</div>
+              <div>Mike Johnson: +263773456789 PIN: 1234</div>
+            </div>
           </div>
         </div>
       </div>

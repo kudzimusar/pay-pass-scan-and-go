@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { z } from "zod"
 import { cookieOptions, normalizePhoneNumber, signToken } from "../../../_lib/auth"
-import { storage } from "../../..//_lib/storage"
+import { storage } from "../../../_lib/storage"
 import { rateLimit } from "../../../_lib/redis"
 
 const schema = z.object({
@@ -18,6 +18,7 @@ function getClientIp(req: Request) {
 
 export async function POST(req: Request) {
   try {
+    await storage.ensureSeeded()
     const body = await req.json()
     const parsed = schema.safeParse(body)
     if (!parsed.success) {

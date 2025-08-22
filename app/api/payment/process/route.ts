@@ -29,8 +29,8 @@ export async function POST(req: Request) {
     // Process payment through Financial Core
     const result =
       type === "bill_payment" || type?.includes("bill")
-        ? await processBillPayment(userId, amount, merchant, description, type)
-        : await processPayment(userId, amount, merchant, description, type)
+        ? await processBillPayment(userId, amount, description, { merchant, type })
+        : await processPayment(userId, amount, description, { merchant, type })
 
     if (!result.success) {
       return NextResponse.json({ success: false, error: result.error }, { status: 400 })

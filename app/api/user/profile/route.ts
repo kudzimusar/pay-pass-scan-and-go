@@ -38,7 +38,7 @@ export async function GET(req: Request) {
         email: user.email,
         phone: user.phone,
         walletBalance: user.walletBalance,
-        role: user.role,
+        role: "user",
       },
     })
   } catch (error) {

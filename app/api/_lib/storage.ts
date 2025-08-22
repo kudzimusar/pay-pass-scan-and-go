@@ -44,6 +44,14 @@ export async function getUserTransactions(userId: string, limit?: number) {
   return storage.getUserTransactions(userId, limit)
 }
 
+export async function getTransactionById(id: string) {
+  return storage.getTransactionById(id)
+}
+
+export async function getUnpaidTransactions(userId: string) {
+  return storage.getUnpaidTransactions(userId)
+}
+
 export async function createPaymentRequest(requestData: any) {
   return storage.createPaymentRequest(requestData)
 }

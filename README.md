@@ -1,158 +1,196 @@
-# PayPass Builder
+# PayPass Scan & Go
 
-A comprehensive digital payment platform built with Next.js, featuring multi-stakeholder support for users, operators, merchants, admins, and partners.
+A comprehensive payment platform supporting multiple user types with QR-based transactions, mobile money integration, and real-time analytics.
 
-## 🚀 Tech Stack
-
-- **Framework**: Next.js 15 with App Router
-- **Database**: Neon PostgreSQL with Drizzle ORM
-- **Caching**: Upstash Redis
-- **Authentication**: JWT with bcryptjs
-- **UI**: Tailwind CSS + shadcn/ui
-- **State Management**: TanStack Query
-- **Validation**: Zod schemas
-
-## 🛠 Features
-
-### Core Payment System
-- **Scan & Go**: Universal QR code scanner for buses, taxis, and retail
-- **Multi-Currency**: USD and ZWL wallet support
-- **Request-to-Pay**: Send and receive payment requests
-- **Real-time Notifications**: Instant payment confirmations
-
-### Stakeholder Dashboards
-- **Users**: Mobile-first wallet and payment interface
-- **Operators**: Bus route and fare management
-- **Merchants**: Point-of-sale and inventory tracking
-- **Admins**: System oversight and analytics
-- **Partners**: API integration and revenue sharing
-
-### Advanced Features
-- **Dynamic Routing**: Distance-based fare calculation
-- **Conductor App**: Route verification and ticket validation
-- **Enhanced QR Scanning**: Multi-format QR code support
-- **Payment Confirmation**: Multi-step payment verification
-
-## 🏃‍♂️ Quick Start
+## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+
-- Neon PostgreSQL account
-- Upstash Redis account
+- Node.js 18+ 
+- npm or yarn
+- (Optional) Upstash Redis for rate limiting
+- (Optional) Neon Database for persistent storage
 
 ### Installation
 
-\`\`\`bash
-# Clone the repository
+1. **Clone and install dependencies**
+```bash
 git clone <repository-url>
 cd paypass-builder
-
-# Install dependencies
 npm install
+```
 
-# Environment setup
-cp .env.example .env.local
-# Add your DATABASE_URL and Redis credentials
+2. **Environment Setup**
+```bash
+cp .env.example .env
+# Edit .env with your configuration
+```
 
-# Database initialization
-npm run neon:init
-
-# Start development server
-npm run dev
-\`\`\`
-
-Visit [http://localhost:3000](http://localhost:3000) to access the application.
-
-## 📱 Demo Credentials
-
-Access demo accounts at `/demo-credentials`:
-
-- **User**: +263772222222 (PIN: 1234)
-- **Operator**: +263771111111 (PIN: 1234)  
-- **Merchant**: +263773333333 (PIN: 1234)
-- **Admin**: +263774444444 (PIN: 1234)
-- **Partner**: +263775555555 (PIN: 1234)
-
-## 🔧 Development
-
-\`\`\`bash
-# Development server
+3. **Development**
+```bash
+# Start both client (Vite) and API (Next.js) servers
 npm run dev
 
-# Build for production
+# Or run separately:
+npm run client:dev  # Vite dev server on :5173
+npm run api:dev     # Next.js API on :3000
+```
+
+4. **Production Build**
+```bash
 npm run build
+npm start
+```
 
-# Start production server
-npm run start
+## 🔧 Environment Variables
 
-# Database operations
-npm run db:push      # Push schema changes
-npm run db:migrate   # Run migrations
-npm run db:studio    # Open Drizzle Studio
+### Required
+- `JWT_SECRET` - Secret key for JWT tokens
 
-# Initialize Neon database
-npm run neon:init
-\`\`\`
+### Optional (for enhanced features)
+- `UPSTASH_REDIS_REST_URL` - Redis URL for rate limiting
+- `UPSTASH_REDIS_REST_TOKEN` - Redis token
+- `DATABASE_URL` - Neon/PostgreSQL connection string
 
-## 🏗 Architecture
+## 👥 User Types & Access
 
-### API Routes
-- `/api/auth/*` - Authentication endpoints
-- `/api/user/*` - User operations
-- `/api/operator/*` - Operator management
-- `/api/qr/*` - QR code scanning
-- `/api/payment/*` - Payment processing
-- `/api/requests/*` - Request-to-Pay system
+| User Type | Login Route | Dashboard | Purpose |
+|-----------|-------------|-----------|---------|
+| Regular Users | `/login` | `/dashboard` | Payments, transfers, bill payments |
+| Bus/Taxi Operators | `/operator-login` | `/operator` | Fare collection, route management |
+| Merchants/Retailers | `/merchant-login` | `/merchant` | Payment collection, business analytics |
+| Mobile Money/Bank Partners | `/partner-login` | `/partner` | Integration monitoring, API management |
+| Platform Admins | `/admin-login` | `/admin` | System oversight, user management |
 
-### Database Schema
-- **users** - Customer accounts
-- **operators** - Transport operators  
-- **merchants** - Business accounts
-- **admins** - System administrators
-- **partners** - Integration partners
-- **routes** - Transport routes
-- **transactions** - Payment history
-- **payment_requests** - Request-to-Pay system
-- **notifications** - Real-time alerts
+## 🧪 Testing
 
-### Storage Strategy
-- **Production**: Neon PostgreSQL for scalability
-- **Development**: In-memory storage for rapid iteration
-- **Automatic fallback** based on DATABASE_URL presence
+### Demo Credentials
+
+**Regular Users:**
+- Phone: `+263711111111` | PIN: `1234`
+- Phone: `+263722222222` | PIN: `1234`
+
+**Operators:**
+- Phone: `+263733333333` | PIN: `1234`
+- Phone: `+263744444444` | PIN: `1234`
+
+**Merchants:**
+- Phone: `+263755555555` | PIN: `1234`
+- Phone: `+263766666666` | PIN: `1234`
+
+**Partners:**
+- Phone: `+263777777777` | PIN: `1234`
+- Phone: `+263788888888` | PIN: `1234`
+
+**Admins:**
+- Phone: `+263799999999` | PIN: `1234`
+- Phone: `+263700000000` | PIN: `1234`
+
+### Health Checks
+
+- **API Health**: `GET /api/health`
+- **Redis Status**: `GET /api/redis/verify`
+- **Database**: `GET /api/conductor/verify`
+
+## 🏗️ Architecture
+
+### Frontend (Vite + React)
+- **Location**: `client/`
+- **Router**: Wouter
+- **UI**: Tailwind CSS + Shadcn UI
+- **State**: React Context + Custom Hooks
+- **Build**: Vite
+
+### Backend (Next.js API Routes)
+- **Location**: `app/api/`
+- **Auth**: JWT + bcrypt
+- **Storage**: In-memory (dev) / Neon PostgreSQL (prod)
+- **Rate Limiting**: Upstash Redis
+- **Validation**: Zod
+
+### Integrations
+- **Mobile Money**: EcoCash, TeleCash, OneMoney
+- **Banks**: CBZ Bank, other Zimbabwean banks
+- **QR Codes**: JSON-based payment data
+- **Analytics**: Recharts for dashboards
+
+## 🔒 Security Features
+
+- JWT-based authentication
+- Rate limiting on auth endpoints
+- Password hashing with bcrypt
+- Secure HTTP-only cookies
+- Phone number normalization
+- Input validation with Zod
+
+## 📊 Features
+
+### User Dashboard
+- QR payments
+- Money transfers
+- Bill payments
+- Transaction history
+- Profile management
+
+### Operator Dashboard
+- QR generation
+- Fare collection
+- Route management
+- Revenue tracking
+
+### Merchant Dashboard
+- Payment collection
+- Business analytics
+- Customer management
+- QR generator
+- Settings
+
+### Partner Dashboard
+- Integration monitoring
+- Transaction analytics
+- API management
+- Performance metrics
+
+### Admin Dashboard
+- System monitoring
+- User management
+- Platform analytics
+- Configuration
 
 ## 🚀 Deployment
 
 ### Vercel (Recommended)
-\`\`\`bash
-# Deploy to Vercel
-vercel --prod
-
-# Environment variables needed:
-# - DATABASE_URL (Neon)
-# - UPSTASH_REDIS_REST_URL 
-# - UPSTASH_REDIS_REST_TOKEN
-# - JWT_SECRET
-\`\`\`
+1. Connect your repository
+2. Set environment variables
+3. Deploy automatically
 
 ### Manual Deployment
-\`\`\`bash
+```bash
 npm run build
-npm run start
-\`\`\`
+npm start
+```
 
-## 📊 Monitoring
+## 📝 Development
 
-- Health check: `/api/health`
-- Redis verification: `/redis-verify` 
-- Database status included in health endpoint
+### Adding New User Types
+1. Update `app/api/_lib/storage/storage-memory.ts`
+2. Create API routes in `app/api/auth/[type]/`
+3. Add frontend pages in `client/src/pages/`
+4. Update routing in `client/src/App.tsx`
+
+### Database Migrations
+```bash
+npm run db:migrate
+npm run db:push
+npm run db:studio
+```
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
 ## 📄 License
 

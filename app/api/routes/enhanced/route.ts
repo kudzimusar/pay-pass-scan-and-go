@@ -185,7 +185,7 @@ export async function PUT(request: NextRequest) {
       WHERE route_id = $${values.length}
     `
 
-    const result = await sql.unsafe(query, values)
+    const result = await (sql as any).unsafe(query, values)
 
     if (result.length === 0) {
       return NextResponse.json({ error: "Route not found" }, { status: 404 })

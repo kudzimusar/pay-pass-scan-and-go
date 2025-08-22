@@ -108,17 +108,17 @@ export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-}).extend({
-  phone: z.string().min(9, "Phone number must be at least 9 digits").max(13, "Phone number is too long"),
-});
+}).refine((data) => typeof data.phone === "string" && data.phone.replace(/\D/g, "").length >= 9 && data.phone.replace(/\D/g, "").length <= 13, {
+  message: "Invalid phone length",
+})
 
 export const insertOperatorSchema = createInsertSchema(operators).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
-}).extend({
-  phone: z.string().min(9, "Phone number must be at least 9 digits").max(13, "Phone number is too long"),
-});
+}).refine((data) => typeof data.phone === "string" && data.phone.replace(/\D/g, "").length >= 9 && data.phone.replace(/\D/g, "").length <= 13, {
+  message: "Invalid phone length",
+})
 
 export const insertWalletSchema = createInsertSchema(wallets).omit({
   id: true,
@@ -138,16 +138,16 @@ export const insertTransactionSchema = createInsertSchema(transactions).omit({
 
 // Types
 export type User = typeof users.$inferSelect;
-export type InsertUser = z.infer<typeof insertUserSchema>;
+export type InsertUser = typeof users.$inferInsert;
 
 export type Operator = typeof operators.$inferSelect;
-export type InsertOperator = z.infer<typeof insertOperatorSchema>;
+export type InsertOperator = typeof operators.$inferInsert;
 
 export type Wallet = typeof wallets.$inferSelect;
-export type InsertWallet = z.infer<typeof insertWalletSchema>;
+export type InsertWallet = typeof wallets.$inferInsert;
 
 export type Route = typeof routes.$inferSelect;
-export type InsertRoute = z.infer<typeof insertRouteSchema>;
+export type InsertRoute = typeof routes.$inferInsert;
 
 export type Transaction = typeof transactions.$inferSelect;
-export type InsertTransaction = z.infer<typeof insertTransactionSchema>;
+export type InsertTransaction = typeof transactions.$inferInsert;

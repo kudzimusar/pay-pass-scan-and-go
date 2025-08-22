@@ -72,7 +72,7 @@ export default function BillPaymentPage() {
           Authorization: `Bearer ${localStorage.getItem("auth_token") || ""}`,
         },
         body: JSON.stringify({
-          userId: user.id,
+          userId: user?.id || "",
           amount: amountNum,
           merchant: provider,
           description: `${category} - ${provider} (${accountNumber})`,
