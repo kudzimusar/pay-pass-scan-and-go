@@ -1,136 +1,80 @@
-import { storage as memoryStorage } from "./storage/storage-memory"
+import { storage } from "./storage/storage-memory"
 
-// Define all interfaces
-export interface User {
-  id: string
-  fullName: string
-  phone: string
-  email: string
-  pin: string
-  biometricEnabled: boolean
-  walletBalance: number
-  createdAt: Date
-  updatedAt: Date
-  // Profile additions
-  dateOfBirth?: Date
-  joinedDate: Date
-  paypassUsername: string
-}
+// Re-export everything from memory storage
+export * from "./storage/storage-memory"
 
-export interface PaymentRequest {
-  id: string
-  senderId: string
-  recipientId: string
-  amount: number
-  description: string
-  billType: string
-  status: "pending" | "accepted" | "declined" | "expired"
-  linkedTransactionId?: string
-  expiresAt: Date
-  respondedAt?: Date
-  createdAt: Date
-  updatedAt: Date
-  senderName?: string
-  senderPhone?: string
-  // Prevent duplicates
-  isProcessed: boolean
-  processedAt?: Date
-}
-
-export interface Transaction {
-  id: string
-  userId: string
-  type: "payment" | "topup" | "transfer" | "bus_ticket" | "grocery" | "utility" | "electricity" | "water" | "internet"
-  amount: number
-  description: string
-  operatorId?: string
-  status: "pending" | "completed" | "failed"
-  isPaid: boolean
-  createdAt: Date
-  updatedAt: Date
-  // New fields for better transaction management
-  category?: string
-  merchantName?: string
-  receiptNumber?: string
-  dueDate?: Date
-  // Prevent duplicates
-  transactionHash: string
-}
-
-export interface NotificationRecord {
-  id: string
-  userId: string
-  type: string
-  title: string
-  message: string
-  data?: any
-  isRead: boolean
-  createdAt: Date
-}
-
-export interface MonthlyExpense {
-  id: string
-  userId: string
-  amount: number
-  type: string
-  description: string
-  month: number
-  year: number
-  createdAt: Date
-}
-
-// Export the storage instance and functions
-export const storage = memoryStorage
-
-// Export convenience functions
+// Helper functions for backward compatibility
 export async function ensureSeeded() {
   return storage.ensureSeeded()
-}
-
-export async function getUserByPhone(phone: string) {
-  return storage.getUserByPhone(phone)
 }
 
 export async function getUserById(id: string) {
   return storage.getUserById(id)
 }
 
+export async function getUserByPhone(phone: string) {
+  return storage.getUserByPhone(phone)
+}
+
 export async function createUser(userData: any) {
   return storage.createUser(userData)
+}
+
+export async function updateUser(id: string, updates: any) {
+  return storage.updateUser(id, updates)
+}
+
+export async function getUserWalletBalance(userId: string) {
+  return storage.getUserWalletBalance(userId)
 }
 
 export async function updateUserWalletBalance(userId: string, newBalance: number) {
   return storage.updateUserWalletBalance(userId, newBalance)
 }
 
-export async function getUserTransactions(userId: string, limit?: number) {
-  return storage.getUserTransactions(userId, limit)
+export async function searchUsers(query: string, excludeUserId?: string) {
+  return storage.searchUsers(query, excludeUserId)
 }
 
 export async function createTransaction(txnData: any) {
   return storage.createTransaction(txnData)
 }
 
-export async function getUserNotifications(userId: string, limit?: number) {
-  return storage.getUserNotifications(userId, limit)
+export async function getUserTransactions(userId: string, limit?: number) {
+  return storage.getUserTransactions(userId, limit)
 }
 
-export async function createNotification(notificationData: any) {
-  return storage.createNotification(notificationData)
-}
-
-export async function getUserReceivedPaymentRequests(userId: string) {
-  return storage.getUserReceivedPaymentRequests(userId)
+export async function createPaymentRequest(requestData: any) {
+  return storage.createPaymentRequest(requestData)
 }
 
 export async function getPaymentRequestById(id: string) {
   return storage.getPaymentRequestById(id)
 }
 
-export async function updatePaymentRequestStatus(id: string, status: string, respondedAt?: Date) {
-  return storage.updatePaymentRequestStatus(id, status as any, respondedAt)
+export async function getPaymentRequestsByRecipient(userId: string) {
+  return storage.getUserReceivedPaymentRequests(userId)
 }
 
-export async function searchUsers(query: string, excludeUserId?: string) {
-  return storage.searchUsers(query, excludeUserId)
+export async function updatePaymentRequestStatus(id: string, status: any, respondedAt?: Date) {
+  return storage.updatePaymentRequestStatus(id, status, respondedAt)
 }
+
+export async function createNotification(notificationData: any) {
+  return storage.createNotification(notificationData)
+}
+
+export async function getNotificationsForUser(userId: string, limit?: number) {
+  return storage.getUserNotifications(userId, limit)
+}
+
+export async function markNotificationAsRead(id: string) {
+  return storage.markNotificationAsRead(id)
+}
+
+export async function getUnreadNotificationCount(userId: string) {
+  return storage.getUnreadNotificationCount(userId)
+}
+
+// Export the storage instance
+export { storage }
