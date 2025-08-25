@@ -35,6 +35,7 @@
 | **Operational Systems** | 25% | ❌ Incomplete | Basic QR system, missing performance and compliance |
 | **Technical Architecture** | 20% | ❌ Incomplete | Basic Next.js setup, missing microservices and cloud-native |
 | **PayPay Model Stack** | 15% | ❌ Incomplete | Missing Java Spring Boot, Android app, distributed database |
+| **Payments Microservice** | 10% | ❌ Incomplete | Missing SAGA Pattern, multi-currency engine, monitoring |
 | **Testing & Deployment** | 30% | ❌ Blocked | Build failures due to conflicts |
 
 ---
@@ -370,6 +371,22 @@
 - ❌ **Multilingual UI** and offline support
 - ❌ **USSD/SMS fallback** for basic phones
 
+### 11. Payments Microservice Architecture (CRITICAL)
+**Impact**: Cannot process payments reliably without enterprise-grade microservice architecture
+**Priority**: 🔴 CRITICAL
+**Missing Components:**
+- ❌ **SAGA Pattern implementation** for distributed transactions
+- ❌ **Multi-currency wallet engine** (ZWL/USD with FX conversion)
+- ❌ **Idempotent transaction processing** with unique transaction IDs
+- ❌ **Atomic operations** with payment and audit records written together
+- ❌ **Queued processing system** for API downtime handling
+- ❌ **Real-time pending status** for user feedback
+- ❌ **Prometheus/Grafana monitoring** with OpenTelemetry tracing
+- ❌ **PCI DSS-aligned storage** for payment credentials
+- ❌ **Secrets management** with vault/KMS
+- ❌ **Rate limiting and IP allow/block lists**
+- ❌ **Regular pen-test and code scanning** in CI/CD
+
 ---
 
 ## 📋 IMMEDIATE ACTION PLAN
@@ -454,6 +471,18 @@
    - Test full audit trails and incident response
    - Test multilingual UI and offline support
    - Test USSD/SMS fallback for basic phones
+
+7. **Payments Microservice Testing (CRITICAL)**
+   - Test SAGA Pattern for distributed transactions
+   - Test multi-currency wallet engine (ZWL/USD with FX)
+   - Test idempotent transaction processing
+   - Test atomic operations with audit records
+   - Test queued processing for API downtime
+   - Test real-time pending status updates
+   - Test Prometheus/Grafana monitoring
+   - Test PCI DSS compliance measures
+   - Test secrets management with vault/KMS
+   - Test rate limiting and security measures
 
 6. **Payment Testing**
    - Test QR code payments (with balance verification)
@@ -567,6 +596,15 @@
 - ✅ **Full audit trails and incident response system active**
 - ✅ **Multilingual UI and offline support functional**
 - ✅ **USSD/SMS fallback for basic phones operational**
+- ✅ **SAGA Pattern for distributed transactions operational**
+- ✅ **Multi-currency wallet engine (ZWL/USD with FX) operational**
+- ✅ **Idempotent transaction processing with unique IDs**
+- ✅ **Atomic operations with audit records**
+- ✅ **Queued processing for API downtime handling**
+- ✅ **Real-time pending status updates**
+- ✅ **Prometheus/Grafana monitoring with OpenTelemetry**
+- ✅ **PCI DSS compliance and secrets management**
+- ✅ **Rate limiting and security measures active**
 
 ### User Experience Metrics
 - ✅ Login process < 3 seconds
@@ -687,6 +725,19 @@ QR_ENGINE_API_URL=your-qr-engine-api-url
 AUDIT_TRAIL_API_URL=your-audit-trail-api-url
 LOCALIZATION_API_URL=your-localization-api-url
 USSD_SMS_API_URL=your-ussd-sms-api-url
+
+# Payments Microservice APIs
+PAYMENTS_SERVICE_URL=your-payments-service-url
+SAGA_PATTERN_ORCHESTRATOR_URL=your-saga-orchestrator-url
+MULTI_CURRENCY_WALLET_URL=your-multi-currency-wallet-url
+FX_CONVERSION_SERVICE_URL=your-fx-conversion-url
+IDEMPOTENT_TRANSACTION_URL=your-idempotent-transaction-url
+QUEUED_PROCESSING_URL=your-queued-processing-url
+PROMETHEUS_MONITORING_URL=your-prometheus-url
+GRAFANA_DASHBOARD_URL=your-grafana-url
+OPENTELEMETRY_TRACING_URL=your-opentelemetry-url
+VAULT_KMS_URL=your-vault-kms-url
+PCI_DSS_COMPLIANCE_URL=your-pci-dss-url
 ```
 
 ---
@@ -1229,6 +1280,18 @@ Users must fund their PayPass wallet **before** making any payments. Balance is 
 - **Fraud Detection**: Real-time fraud monitoring
 - **Settlement**: Payment settlement and reconciliation
 
+**Technical Design Specification:**
+- **API Layer**: REST/GraphQL endpoints secured by OAuth2/JWT
+- **Service Layer**: Java Spring Boot or Node.js NestJS with SAGA Pattern
+- **Integration Layer**: Mobile money APIs (EcoCash, TeleCash), Bank/payment gateway APIs, Remittance partners
+- **Data Layer**: Distributed SQL (TiDB/CockroachDB/AWS Aurora) with atomic operations
+- **Wallet Engine**: Multi-currency balance management (ZWL/USD) with FX conversion
+- **Security**: Multi-factor authentication, end-to-end encryption, PCI DSS compliance
+- **Notification Engine**: Real-time push/SMS/email alerts, webhook triggers
+- **Monitoring**: Prometheus/Grafana dashboards, OpenTelemetry tracing
+- **Fault Tolerance**: >99.9% uptime, hot failover, horizontal scaling, idempotent transactions
+- **Performance**: Queued processing for API downtime, real-time pending status
+
 #### 2. User Account Service
 - **User Management**: User registration and profile management
 - **Authentication**: Multi-factor authentication
@@ -1332,6 +1395,163 @@ Users must fund their PayPass wallet **before** making any payments. Balance is 
 - **JWT**: JSON Web Tokens for authentication
 - **OAuth 2.0**: Authorization framework
 - **SSL/TLS**: Secure communication protocols
+
+---
+
+## 💳 PAYMENTS MICROSERVICE ARCHITECTURE
+
+### Technical Design Specification Overview
+
+The Payments microservice is the **core financial engine** responsible for processing and recording all wallet debits/credits (rides, retail, P2P, bill pay, top-up, cross-border). It sits behind a secure API gateway in a cloud-native container (Kubernetes, AWS ECS, GCP GKE).
+
+### Core Responsibilities
+
+#### 1. **Payment Request Processing**
+- Accept payment requests (ride, shop, billing, wallet transfer)
+- Validate transaction pre-conditions (balance, auth, risk/fraud checks)
+- Orchestrate funds movement: debit wallet, credit recipient, log transaction
+- Process and store receipts (transaction logs, reference IDs)
+- Notify other services (notification, analytics, user events)
+
+#### 2. **Multi-Currency Management**
+- Ensure multi-currency compliance (USD, ZWL, FX conversion if required)
+- Reconcile settlements with mobile money/remittance APIs
+- Handle currency conversion with real-time FX rates
+- Maintain separate balance ledgers for each currency
+
+#### 3. **Transaction Orchestration**
+- Implement SAGA Pattern for distributed transactions across services
+- Ensure atomic operations using distributed transaction management
+- Handle rollback scenarios for failed transactions
+- Maintain transaction consistency across multiple services
+
+### Architecture Components
+
+#### 1. **API Layer**
+- **REST/GraphQL endpoints** secured by OAuth2/JWT
+- **Input validation, rate limiting, and logging**
+- **Exposes endpoints**:
+  - `/payments/ride` - Bus/taxi fare payments
+  - `/payments/utility` - Bill payments
+  - `/payments/send` - P2P transfers
+  - `/payments/topup` - Wallet funding
+  - `/payments/receipt` - Transaction receipts
+
+#### 2. **Service Layer**
+- **Transactional core** in Java (Spring Boot) or Node.js (NestJS)
+- **Implements payments business logic**
+- **Atomic operations** using SAGA Pattern
+- **Distributed transactions** across services
+
+#### 3. **Integration Layer**
+- **Connectors for**:
+  - Mobile money APIs: EcoCash, TeleCash (REST/legacy)
+  - Bank/payment gateway APIs for card/RTGS
+  - Remittance partners (webhooks, REST)
+- **Retry logic** for network faults
+- **Circuit breaker pattern** for API resilience
+
+#### 4. **Data Layer**
+- **Primary database**: Distributed SQL (TiDB/CockroachDB/AWS Aurora)
+- **Tables**: Users, Wallets, Transactions, Settlement Batches, Receipts
+- **Atomicity**: Payment and audit records always written together
+- **Idempotency keys** for safe retry operations
+
+#### 5. **Wallet Engine**
+- **Maintain user balances** in ZWL/USD
+- **Handles deposit, withdrawal, freeze/unfreeze**
+- **FX conversion** via external rates service
+- **Ensures isolation and consistency** under high concurrency
+
+#### 6. **Security & Compliance**
+- **Multi-factor user authentication** (MFA hook) for all sensitive operations
+- **End-to-end encryption** of payloads
+- **Audit trail**: Changes to transactions and balances always logged immutably
+- **Compliance hooks**: Real-time reporting to compliance service for flagged PEP/sanctions
+- **PCI DSS-aligned storage** for payment credentials and wallet details
+
+#### 7. **Notification Engine**
+- **Events to user notification service** for push/SMS/email alerts
+- **Webhook triggers** for merchant dashboards (payment received)
+- **Real-time status updates** for pending transactions
+
+#### 8. **Monitoring/Observability**
+- **Real-time metrics** (Prometheus, Grafana dashboards)
+- **Alerting** on failed/slow transactions, fraud triggers
+- **Distributed tracing** using OpenTelemetry
+- **Performance monitoring** and bottleneck identification
+
+### Fault Tolerance and Performance
+
+#### 1. **High Availability**
+- **Designed for >99.9% uptime**
+- **Hot failover** capabilities
+- **Horizontal scaling** based on demand
+- **Load balancing** across multiple instances
+
+#### 2. **Transaction Safety**
+- **All payment flows support retry** without double-spending
+- **Idempotent transaction IDs** for safe retry operations
+- **Queued processing** if downstream APIs are down
+- **Real-time pending status** for user feedback
+
+#### 3. **Performance Optimization**
+- **Caching layer** for frequently accessed data
+- **Database connection pooling** for optimal performance
+- **Asynchronous processing** for non-critical operations
+- **Batch processing** for bulk operations
+
+### Security Posture
+
+#### 1. **Secrets Management**
+- **No sensitive credentials in code**
+- **Secrets managed by vault/KMS**
+- **Encrypted configuration** for all sensitive data
+- **Regular rotation** of API keys and certificates
+
+#### 2. **Access Control**
+- **Rate limiting** to prevent abuse
+- **IP allow/block lists** for API access
+- **Role-based access control** (RBAC)
+- **API key management** with expiration
+
+#### 3. **Compliance & Auditing**
+- **PCI DSS compliance** for payment processing
+- **Regular pen-test** and vulnerability scanning
+- **Code scanning** as part of CI/CD
+- **Comprehensive audit logs** for all operations
+
+#### 4. **Fraud Prevention**
+- **Real-time fraud detection** algorithms
+- **Transaction monitoring** for suspicious patterns
+- **Risk scoring** for each transaction
+- **Automated blocking** of high-risk transactions
+
+### Implementation Priority
+
+#### **Phase 1: Foundation (Week 1-2)**
+- Set up basic microservice structure
+- Implement core payment processing logic
+- Add basic security measures
+- Set up monitoring and logging
+
+#### **Phase 2: Integration (Week 3-4)**
+- Integrate with mobile money APIs
+- Implement SAGA Pattern for distributed transactions
+- Add multi-currency support
+- Set up queued processing system
+
+#### **Phase 3: Advanced Features (Month 2)**
+- Implement advanced fraud detection
+- Add comprehensive monitoring and alerting
+- Enhance security with PCI DSS compliance
+- Optimize performance and scalability
+
+#### **Phase 4: Production Ready (Month 3)**
+- Complete security hardening
+- Full compliance implementation
+- Performance optimization
+- Production deployment and monitoring
 
 ---
 
