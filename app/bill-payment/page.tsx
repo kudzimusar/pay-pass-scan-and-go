@@ -72,7 +72,7 @@ export default function BillPaymentPage() {
           Authorization: `Bearer ${localStorage.getItem("auth_token") || ""}`,
         },
         body: JSON.stringify({
-          userId: user.id,
+          userId: user?.id || "",
           amount: amountNum,
           merchant: provider,
           description: `${category} - ${provider} (${accountNumber})`,
@@ -81,6 +81,16 @@ export default function BillPaymentPage() {
         }),
       })
 
+      if (!response.ok) {
+        const text = await response.text()
+        const maybe = text.trim().startsWith("{") ? JSON.parse(text) : null
+        throw new Error(maybe?.error || text || `HTTP ${response.status}`)
+      }
+      const ct = response.headers.get("content-type") || ""
+      if (!ct.includes("application/json")) {
+        const text = await response.text()
+        throw new Error(text || "Invalid server response")
+      }
       const data = await response.json()
 
       if (data.success) {

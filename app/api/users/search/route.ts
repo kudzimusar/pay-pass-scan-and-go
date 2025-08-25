@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const users = await searchUsers(query.trim(), excludeUserId || undefined)
 
     // Remove sensitive information
-    const safeUsers = users.map(({ pin, ...user }) => user)
+    const safeUsers = users.map(({ pin, ...user }: any) => user)
 
     return NextResponse.json({
       success: true,

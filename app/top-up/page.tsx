@@ -1,5 +1,9 @@
 "use client"
 
+<<<<<<< HEAD
+import { useState } from "react"
+import { useAuth } from "@/components/auth-provider"
+=======
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -10,6 +14,7 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useAuth } from "@/components/auth-provider"
 import { ArrowLeft, CreditCard, Smartphone, Building, CheckCircle, AlertCircle, Plus } from "lucide-react"
+>>>>>>> origin/main
 
 export default function TopUpPage() {
   const { user, refreshUserData } = useAuth()
@@ -50,6 +55,49 @@ export default function TopUpPage() {
   ]
 
   const handleTopUp = async () => {
+<<<<<<< HEAD
+    setError("")
+    setSuccess("")
+    const amt = Number.parseFloat(amount)
+    if (!user) {
+      setError("Please sign in first")
+      return
+    }
+    if (isNaN(amt) || amt <= 0) {
+      setError("Enter a valid amount")
+      return
+    }
+    try {
+      const token = localStorage.getItem("auth_token") || ""
+      const res = await fetch("/api/wallet/topup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ userId: user.id, amount: amt, method: "wallet_topup" }),
+      })
+      if (!res.ok) {
+        const text = await res.text()
+        const maybe = text.trim().startsWith("{") ? JSON.parse(text) : null
+        throw new Error(maybe?.error || text || `HTTP ${res.status}`)
+      }
+      const ct = res.headers.get("content-type") || ""
+      if (!ct.includes("application/json")) {
+        const text = await res.text()
+        throw new Error(text || "Invalid server response")
+      }
+      const data = await res.json()
+      if (data.success) {
+        await refreshUserData()
+        setSuccess(`Successfully added $${amt.toFixed(2)} to your wallet!`)
+        setAmount("")
+      } else {
+        setError(data.error || "Top-up failed. Please try again.")
+      }
+    } catch (e: any) {
+      setError(e?.message || "Top-up failed. Please try again.")
+=======
     if (!amount) {
       setError("Please enter an amount")
       return
@@ -100,6 +148,7 @@ export default function TopUpPage() {
       setError("Top-up failed. Please try again.")
     } finally {
       setIsLoading(false)
+>>>>>>> origin/main
     }
   }
 

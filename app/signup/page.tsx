@@ -45,6 +45,17 @@ export default function SignupPage() {
     setLoading(true)
 
     try {
+<<<<<<< HEAD
+      if (signup) {
+        await signup(name, phone, pin, biometricEnabled)
+      }
+      setMsg("Signed up! Go to your dashboard.")
+      router.push("/dashboard")
+    } catch (e: any) {
+      // Normalize common non-JSON parse errors
+      const m = e?.message || "Signup failed"
+      setMsg(m.includes("Unexpected token") || m.includes("JSON") ? "Signup failed. Please try again." : m)
+=======
       // Validation
       if (!name.trim()) {
         throw new Error("Full name is required")
@@ -74,6 +85,7 @@ export default function SignupPage() {
     } catch (e: any) {
       console.error("Signup error:", e)
       setError(e?.message || "Signup failed. Please try again.")
+>>>>>>> origin/main
     } finally {
       setLoading(false)
     }

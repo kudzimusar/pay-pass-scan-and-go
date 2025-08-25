@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server"
 import { ensureSeeded, markNotificationAsRead } from "../../../_lib/storage"
 
-export async function POST(req: Request, { params }: { params: { id: string } }) {
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await ensureSeeded()
-    const notificationId = params.id
+    const { id } = await params
+    const notificationId = id
 
     if (!notificationId) {
       return NextResponse.json({ success: false, error: "Notification ID is required" }, { status: 400 })

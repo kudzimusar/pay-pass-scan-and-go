@@ -1,11 +1,69 @@
+<<<<<<< HEAD
+import { NextResponse } from "next/server"
+import { z } from "zod"
+import bcrypt from "bcryptjs"
+import { cookieOptions, normalizePhoneNumber, signToken } from "../../_lib/auth"
+import { storage } from "../../_lib/storage"
+import type { User } from "../../_lib/storage"
+=======
 import { type NextRequest, NextResponse } from "next/server"
 import { storage } from "../_lib/storage"
 import { generateToken } from "../_lib/auth"
+>>>>>>> origin/main
 
 function normalizePhoneNumber(phone: string): string {
   // Remove all non-digit characters
   const digitsOnly = phone.replace(/\D/g, "")
 
+<<<<<<< HEAD
+function toSafeUser(u: User) {
+  const { pin, ...safe } = u
+  return safe
+}
+
+export async function POST(req: Request) {
+  try {
+    const json = await req.json()
+    const parsed = schema.safeParse(json)
+    if (!parsed.success) {
+      return NextResponse.json({ error: "Invalid input", details: parsed.error.flatten() }, { status: 400 })
+    }
+
+    const { fullName, phone, email, pin, biometricEnabled } = parsed.data
+    const normalized = normalizePhoneNumber(phone)
+
+    const existing = await storage.getUserByPhone(normalized)
+    if (existing) {
+      return NextResponse.json({ error: "Phone already registered" }, { status: 409 })
+    }
+
+    const pinHash = await bcrypt.hash(pin, 12)
+    const user = await storage.createUser({
+      fullName,
+      phone: normalized,
+      email: email || "",
+      biometricEnabled: biometricEnabled || false,
+      pin: pinHash,
+      walletBalance: 0,
+      joinedDate: new Date(),
+      paypassUsername: `@${fullName.toLowerCase().replace(/\s+/g, '_')}`,
+    })
+
+    const token = await signToken({ type: "user", userId: user.id, phone: user.phone })
+
+    const res = NextResponse.json({ user: toSafeUser(user), token })
+    const cookie = cookieOptions()
+    res.cookies.set(cookie.name, token, {
+      httpOnly: cookie.httpOnly,
+      secure: cookie.secure,
+      sameSite: cookie.sameSite,
+      path: cookie.path,
+      maxAge: cookie.maxAge,
+    })
+    return res
+  } catch (e) {
+    return NextResponse.json({ error: "Registration failed" }, { status: 500 })
+=======
   // Handle different formats
   if (digitsOnly.length === 10) {
     // US number without country code
@@ -105,5 +163,6 @@ export async function POST(request: NextRequest) {
       },
       { status: 500 },
     )
+>>>>>>> origin/main
   }
 }

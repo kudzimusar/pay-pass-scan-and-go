@@ -1,5 +1,5 @@
 import { neon } from "@neondatabase/serverless"
-import type { User, Operator, Transaction, Route, PaymentRequest, NotificationRecord, StorageInterface } from "./index"
+import type { User, Operator, Admin, Merchant, Partner, Transaction, Route, PaymentRequest, NotificationRecord, StorageInterface } from "./index"
 
 const sql = neon(process.env.DATABASE_URL!)
 
@@ -157,13 +157,24 @@ export class NeonStorage implements StorageInterface {
     return result[0] ? this.mapRouteFromDb(result[0]) : null
   }
 
+  async getRouteByQrCode(qrCode: string): Promise<Route | null> {
+    // For now, we'll use a simple mapping - in a real app, QR codes would be stored in the route
+    const result = await sql`SELECT * FROM routes WHERE id = ${qrCode}`
+    return result[0] ? this.mapRouteFromDb(result[0]) : null
+  }
+
+  async getOperator(operatorId: string): Promise<Operator | null> {
+    const result = await sql`SELECT * FROM operators WHERE id = ${operatorId}`
+    return result[0] ? this.mapOperatorFromDb(result[0]) : null
+  }
+
   // Payment Request methods
   async createPaymentRequest(
     requestData: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt">,
   ): Promise<PaymentRequest> {
     const result = await sql`
       INSERT INTO payment_requests (sender_id, receiver_id, amount, description, bill_type, status, expires_at)
-      VALUES (${requestData.senderId}, ${requestData.receiverId}, ${requestData.amount}, ${requestData.description}, ${requestData.billType}, ${requestData.status}, ${requestData.expiresAt})
+      VALUES (${requestData.senderId}, ${requestData.recipientId}, ${requestData.amount}, ${requestData.description}, ${requestData.billType}, ${requestData.status}, ${requestData.expiresAt})
       RETURNING *
     `
     return this.mapPaymentRequestFromDb(result[0])
@@ -245,17 +256,78 @@ export class NeonStorage implements StorageInterface {
     return Number.parseInt(result[0]?.count || "0")
   }
 
-  // Legacy methods for compatibility
-  async getAdminByPhone(phone: string): Promise<any> {
-    return null // Not implemented for Neon yet
+
+
+  // Additional methods for compatibility
+  async getUnpaidTransactions(userId: string): Promise<Transaction[]> {
+    // For Neon, filter transactions that are not paid
+    const result = await sql`SELECT * FROM transactions WHERE user_id = ${userId} AND is_paid = false`
+    return result.map((row) => this.mapTransactionFromDb(row))
   }
 
-  async getMerchantByPhone(phone: string): Promise<any> {
-    return null // Not implemented for Neon yet
+  async getTransactionById(id: string): Promise<Transaction | null> {
+    const result = await sql`SELECT * FROM transactions WHERE id = ${id}`
+    return result[0] ? this.mapTransactionFromDb(result[0]) : null
   }
 
-  async getPartnerByPhone(phone: string): Promise<any> {
-    return null // Not implemented for Neon yet
+  // Admin methods
+  async createAdmin(adminData: Omit<Admin, "id" | "createdAt" | "updatedAt">): Promise<Admin> {
+    const result = await sql`
+      INSERT INTO admins (full_name, phone, email, pin, role, permissions, is_active)
+      VALUES (${adminData.fullName}, ${adminData.phone}, ${adminData.email}, ${adminData.pin}, ${adminData.role}, ${JSON.stringify(adminData.permissions)}, ${adminData.isActive})
+      RETURNING *
+    `
+    return this.mapAdminFromDb(result[0])
+  }
+
+  async getAdminById(id: string): Promise<Admin | null> {
+    const result = await sql`SELECT * FROM admins WHERE id = ${id}`
+    return result[0] ? this.mapAdminFromDb(result[0]) : null
+  }
+
+  async getAdminByPhone(phone: string): Promise<Admin | null> {
+    const result = await sql`SELECT * FROM admins WHERE phone = ${phone}`
+    return result[0] ? this.mapAdminFromDb(result[0]) : null
+  }
+
+  // Merchant methods
+  async createMerchant(merchantData: Omit<Merchant, "id" | "createdAt" | "updatedAt">): Promise<Merchant> {
+    const result = await sql`
+      INSERT INTO merchants (business_name, phone, email, pin, business_type, license_number, total_earnings, is_active)
+      VALUES (${merchantData.businessName}, ${merchantData.phone}, ${merchantData.email}, ${merchantData.pin}, ${merchantData.businessType}, ${merchantData.licenseNumber}, ${merchantData.totalEarnings}, ${merchantData.isActive})
+      RETURNING *
+    `
+    return this.mapMerchantFromDb(result[0])
+  }
+
+  async getMerchantById(id: string): Promise<Merchant | null> {
+    const result = await sql`SELECT * FROM merchants WHERE id = ${id}`
+    return result[0] ? this.mapMerchantFromDb(result[0]) : null
+  }
+
+  async getMerchantByPhone(phone: string): Promise<Merchant | null> {
+    const result = await sql`SELECT * FROM merchants WHERE phone = ${phone}`
+    return result[0] ? this.mapMerchantFromDb(result[0]) : null
+  }
+
+  // Partner methods
+  async createPartner(partnerData: Omit<Partner, "id" | "createdAt" | "updatedAt">): Promise<Partner> {
+    const result = await sql`
+      INSERT INTO partners (company_name, phone, email, pin, partner_type, integration_key, total_transactions, is_active)
+      VALUES (${partnerData.companyName}, ${partnerData.phone}, ${partnerData.email}, ${partnerData.pin}, ${partnerData.partnerType}, ${partnerData.integrationKey}, ${partnerData.totalTransactions}, ${partnerData.isActive})
+      RETURNING *
+    `
+    return this.mapPartnerFromDb(result[0])
+  }
+
+  async getPartnerById(id: string): Promise<Partner | null> {
+    const result = await sql`SELECT * FROM partners WHERE id = ${id}`
+    return result[0] ? this.mapPartnerFromDb(result[0]) : null
+  }
+
+  async getPartnerByPhone(phone: string): Promise<Partner | null> {
+    const result = await sql`SELECT * FROM partners WHERE phone = ${phone}`
+    return result[0] ? this.mapPartnerFromDb(result[0]) : null
   }
 
   // Helper methods for mapping database rows to objects
@@ -270,6 +342,9 @@ export class NeonStorage implements StorageInterface {
       walletBalance: Number.parseFloat(row.wallet_balance),
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
+      dateOfBirth: row.date_of_birth ? new Date(row.date_of_birth) : undefined,
+      joinedDate: new Date(row.joined_date || row.created_at),
+      paypassUsername: row.paypass_username || `@user_${row.id}`,
     }
   }
 
@@ -289,6 +364,53 @@ export class NeonStorage implements StorageInterface {
     }
   }
 
+  private mapAdminFromDb(row: any): Admin {
+    return {
+      id: row.id,
+      fullName: row.full_name,
+      phone: row.phone,
+      email: row.email,
+      pin: row.pin,
+      role: row.role,
+      permissions: row.permissions ? JSON.parse(row.permissions) : [],
+      isActive: row.is_active,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+    }
+  }
+
+  private mapMerchantFromDb(row: any): Merchant {
+    return {
+      id: row.id,
+      businessName: row.business_name,
+      phone: row.phone,
+      email: row.email,
+      pin: row.pin,
+      businessType: row.business_type,
+      licenseNumber: row.license_number,
+      totalEarnings: Number.parseFloat(row.total_earnings),
+      isActive: row.is_active,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+    }
+  }
+
+  private mapPartnerFromDb(row: any): Partner {
+    return {
+      id: row.id,
+      companyName: row.company_name,
+      phone: row.phone,
+      email: row.email,
+      pin: row.pin,
+      partnerType: row.partner_type,
+      integrationKey: row.integration_key,
+      totalTransactions: row.total_transactions,
+      isActive: row.is_active,
+      createdAt: new Date(row.created_at),
+      updatedAt: new Date(row.updated_at),
+    }
+  }
+
   private mapTransactionFromDb(row: any): Transaction {
     return {
       id: row.id,
@@ -298,8 +420,15 @@ export class NeonStorage implements StorageInterface {
       description: row.description,
       operatorId: row.operator_id,
       status: row.status,
+      isPaid: row.is_paid || false,
       createdAt: new Date(row.created_at),
       updatedAt: new Date(row.updated_at),
+      category: row.category,
+      merchantName: row.merchant_name,
+      receiptNumber: row.receipt_number,
+      dueDate: row.due_date ? new Date(row.due_date) : undefined,
+      transactionHash: row.transaction_hash || `txn_${row.id}`,
+      metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
     }
   }
 
@@ -323,7 +452,7 @@ export class NeonStorage implements StorageInterface {
     return {
       id: row.id,
       senderId: row.sender_id,
-      receiverId: row.receiver_id,
+      recipientId: row.receiver_id,
       amount: Number.parseFloat(row.amount),
       description: row.description,
       billType: row.bill_type,

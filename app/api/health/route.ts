@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { neon } from "@neondatabase/serverless"
-import { getRedis } from "../_lib/redis"
+import { redis } from "../_lib/redis"
 
 export async function GET() {
   const status: any = { ok: true, framework: "Next.js" }
@@ -21,9 +21,8 @@ export async function GET() {
   }
 
   try {
-    const r = getRedis()
-    if (r) {
-      await r.ping()
+    if (redis.enabled) {
+      await redis.ping()
       status.redis = true
     } else {
       status.redis = false

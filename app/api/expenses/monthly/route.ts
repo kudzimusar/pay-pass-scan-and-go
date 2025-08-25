@@ -1,14 +1,54 @@
 import { type NextRequest, NextResponse } from "next/server"
+<<<<<<< HEAD
+import { ensureSeeded, getUserTransactions } from "../../_lib/storage"
+
+export async function GET(request: NextRequest) {
+  try {
+    console.log("Monthly expenses API called")
+    await ensureSeeded()
+=======
 import { storage } from "../_lib/storage"
 
 export async function GET(request: NextRequest) {
   try {
     console.log("=== MONTHLY EXPENSES API CALLED ===")
     await storage.ensureSeeded()
+>>>>>>> origin/main
 
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get("userId")
 
+<<<<<<< HEAD
+    console.log("Calculating monthly expenses for user:", userId)
+
+    if (!userId) {
+      console.log("Missing userId parameter")
+      return NextResponse.json({ success: false, error: "User ID is required" }, { status: 400 })
+    }
+
+    // Get user transactions for the current month
+    const transactions = await getUserTransactions(userId)
+    console.log("Found transactions:", transactions.length)
+
+    // Calculate current month expenses (outgoing payments)
+    const now = new Date()
+    const currentMonth = now.getMonth()
+    const currentYear = now.getFullYear()
+
+    const monthlyExpenses = transactions
+      .filter((txn: any) => {
+        const txnDate = new Date(txn.createdAt)
+        return (
+          txnDate.getMonth() === currentMonth &&
+          txnDate.getFullYear() === currentYear &&
+          (txn.type === "payment" || txn.type === "transfer") &&
+          txn.status === "completed"
+        )
+      })
+      .reduce((total: number, txn: any) => total + txn.amount, 0)
+
+    console.log("Calculated monthly expenses:", monthlyExpenses)
+=======
     if (!userId) {
       console.log("Missing userId parameter")
       return NextResponse.json(
@@ -43,6 +83,7 @@ export async function GET(request: NextRequest) {
     const now = new Date()
     const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
     const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+>>>>>>> origin/main
 
     console.log("Month range:", startOfMonth.toISOString(), "to", endOfMonth.toISOString())
 
@@ -87,6 +128,15 @@ export async function GET(request: NextRequest) {
 
     const response = {
       success: true,
+<<<<<<< HEAD
+      totalExpenses: monthlyExpenses,
+      month: now.toLocaleString("default", { month: "long" }),
+      year: currentYear,
+    })
+  } catch (error) {
+    console.error("Monthly expenses API error:", error)
+    return NextResponse.json({ success: false, error: "Failed to calculate monthly expenses" }, { status: 500 })
+=======
       totalExpenses,
       transactionCount: monthlyTransactions.length,
       month: now.toLocaleString("default", { month: "long", year: "numeric" }),
@@ -111,5 +161,6 @@ export async function GET(request: NextRequest) {
       },
       { status: 500 },
     )
+>>>>>>> origin/main
   }
 }

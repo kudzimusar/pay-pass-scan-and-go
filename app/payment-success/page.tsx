@@ -84,16 +84,22 @@ export default function PaymentSuccessPage() {
   }
 
   const shareReceipt = async () => {
-    if (navigator.share && paymentData) {
-      try {
-        await navigator.share({
+    try {
+      if (!paymentData) return
+      if (typeof navigator !== "undefined" && (navigator as any).share) {
+        await (navigator as any).share({
           title: "PayPass Payment Receipt",
           text: `Payment of $${paymentData.amount.toFixed(2)} completed successfully`,
-          url: `${process.env.NEXT_PUBLIC_APP_URL}/receipt/${paymentData.transactionId}`,
+          url: `${process.env.NEXT_PUBLIC_APP_URL || window.location.origin}/receipt/${paymentData.transactionId}`,
         })
-      } catch (error) {
-        console.log("Error sharing:", error)
+        return
       }
+      const summary = `PayPass Receipt\nAmount: $${paymentData.amount.toFixed(2)}\nTransaction: ${paymentData.transactionId}\nDate: ${new Date(paymentData.timestamp).toLocaleString()}`
+      await navigator.clipboard.writeText(summary)
+      alert("Receipt details copied to clipboard")
+    } catch (error) {
+      console.log("Error sharing:", error)
+      alert("Unable to share on this device")
     }
   }
 

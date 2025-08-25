@@ -1,16 +1,15 @@
 import { NextResponse } from "next/server"
 import { verifyAuthHeader } from "../../_lib/auth"
 import { storage } from "../../_lib/storage"
-import { getRedis } from "../../_lib/redis"
+import { redis } from "../../_lib/redis"
 
 export async function POST(req: Request) {
   const auth = verifyAuthHeader(req.headers.get("authorization"))
   if (!auth) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   try {
     const { qrCode } = await req.json()
-    const redis = getRedis()
     const cacheKey = qrCode ? `route:qr:${qrCode}` : ""
-    if (redis && cacheKey) {
+    if (redis.enabled && cacheKey) {
       const cached = await redis.get(cacheKey)
       if (cached) return NextResponse.json(cached)
     }
@@ -20,11 +19,11 @@ export async function POST(req: Request) {
     const payload = {
       route,
       operator: operator
-        ? { id: operator.id, name: operator.name, phone: operator.phone, email: operator.email }
+        ? { id: operator.id, companyName: operator.companyName, phone: operator.phone, email: operator.email }
         : null,
     }
-    if (redis && cacheKey) {
-      await redis.set(cacheKey, payload, { ex: 300 })
+    if (redis.enabled && cacheKey) {
+      await redis.set(cacheKey, JSON.stringify(payload), 300)
     }
     return NextResponse.json(payload)
   } catch {

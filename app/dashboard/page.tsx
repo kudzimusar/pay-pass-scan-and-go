@@ -86,6 +86,10 @@ export default function DashboardPage() {
   const fetchPendingRequests = async (userId: string) => {
     try {
       const response = await fetch(`/api/requests/pending?userId=${userId}`)
+      if (!response.ok) {
+        const text = await response.text()
+        throw new Error(text || `HTTP ${response.status}`)
+      }
       const data = await response.json()
 
       if (data.success) {
@@ -99,6 +103,15 @@ export default function DashboardPage() {
   const fetchNotifications = async (userId: string) => {
     try {
       const response = await fetch(`/api/notifications?userId=${userId}`)
+      if (!response.ok) {
+        const text = await response.text()
+        throw new Error(text || `HTTP ${response.status}`)
+      }
+      const contentType = response.headers.get("content-type") || ""
+      if (!contentType.includes("application/json")) {
+        const text = await response.text()
+        throw new Error(text || "Invalid response format from notifications API")
+      }
       const data = await response.json()
 
       if (data.success) {
@@ -115,6 +128,12 @@ export default function DashboardPage() {
     try {
       console.log("Fetching monthly expenses for user:", userId)
       const response = await fetch(`/api/expenses/monthly?userId=${userId}`)
+<<<<<<< HEAD
+      if (!response.ok) {
+        const text = await response.text()
+        throw new Error(text || `HTTP ${response.status}`)
+      }
+=======
 
       console.log("Monthly expenses response status:", response.status)
 
@@ -130,6 +149,7 @@ export default function DashboardPage() {
         throw new Error("Server returned invalid response format")
       }
 
+>>>>>>> origin/main
       const data = await response.json()
       console.log("Monthly expenses data:", data)
 
@@ -163,11 +183,24 @@ export default function DashboardPage() {
         }),
       })
 
+<<<<<<< HEAD
+      let data: any = null
+      if (!response.ok) {
+        const text = await response.text()
+        try {
+          data = text.trim().startsWith("{") ? JSON.parse(text) : null
+        } catch {}
+        setError(data?.error || text || `Failed to ${action} request: HTTP ${response.status}`)
+        return
+      }
+      data = await response.json()
+=======
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
       }
 
       const data = await response.json()
+>>>>>>> origin/main
 
       if (data.success) {
         // Refresh pending requests and user data

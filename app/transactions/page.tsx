@@ -57,7 +57,16 @@ export default function TransactionsPage() {
 
   const fetchTransactions = async () => {
     try {
+<<<<<<< HEAD
+      const response = await fetch(`/api/transactions?userId=${user?.id || ""}&month=${selectedMonth}&year=${selectedYear}`)
+      if (!response.ok) {
+        const text = await response.text()
+        throw new Error(text || `HTTP ${response.status}`)
+      }
+      const data = await response.json()
+=======
       const response = await fetch(`/api/transactions?userId=${user.id}&month=${selectedMonth}&year=${selectedYear}`)
+>>>>>>> origin/main
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`)
@@ -76,6 +85,13 @@ export default function TransactionsPage() {
 
   const fetchMonthlyExpenses = async () => {
     try {
+<<<<<<< HEAD
+      const response = await fetch(`/api/expenses/monthly?userId=${user?.id || ""}`)
+      if (!response.ok) {
+        const text = await response.text()
+        throw new Error(text || `HTTP ${response.status}`)
+      }
+=======
       console.log("Fetching monthly expenses for user:", user.id)
       const response = await fetch(`/api/expenses/monthly?userId=${user.id}`)
 
@@ -93,6 +109,7 @@ export default function TransactionsPage() {
         throw new Error("Server returned invalid response format")
       }
 
+>>>>>>> origin/main
       const data = await response.json()
       console.log("Monthly expenses data:", data)
 
@@ -143,8 +160,14 @@ export default function TransactionsPage() {
     return null
   }
 
+<<<<<<< HEAD
+  // Ensure balance is a number with fallback; align with walletBalance used across app
+  const rawBalance = (user as any).walletBalance ?? (user as any).balance
+  const userBalance = typeof rawBalance === "number" ? rawBalance : 0
+=======
   // Use the balance from AuthProvider (which is the single source of truth)
   const userBalance = user.walletBalance || 0
+>>>>>>> origin/main
 
   const filteredTransactions = transactions.filter((transaction) => {
     const matchesSearch =

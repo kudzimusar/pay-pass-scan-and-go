@@ -80,6 +80,17 @@ export default function RequestMoneyPage() {
     try {
       // Load mock contacts with proper error handling
       const mockResponse = await fetch("/api/contacts/mock")
+<<<<<<< HEAD
+      if (!mockResponse.ok) {
+        const text = await mockResponse.text()
+        throw new Error(text || `HTTP ${mockResponse.status}`)
+      }
+      const mockCt = mockResponse.headers.get("content-type") || ""
+      if (!mockCt.includes("application/json")) {
+        const text = await mockResponse.text()
+        throw new Error(text || "Invalid contacts response format")
+      }
+=======
 
       if (!mockResponse.ok) {
         const errorText = await mockResponse.text()
@@ -94,6 +105,7 @@ export default function RequestMoneyPage() {
         throw new Error(`Mock contacts API returned non-JSON response: ${errorText}`)
       }
 
+>>>>>>> origin/main
       const mockData = await mockResponse.json()
 
       if (mockData.success) {
@@ -118,6 +130,20 @@ export default function RequestMoneyPage() {
         throw new Error(`Users search API returned non-JSON response: ${errorText}`)
       }
 
+<<<<<<< HEAD
+      // Load system users (excluding current user)
+      const usersResponse = await fetch(`/api/users/search?q=${encodeURIComponent(" ")}&excludeUserId=${currentUserId}`)
+      if (!usersResponse.ok) {
+        const text = await usersResponse.text()
+        throw new Error(text || `HTTP ${usersResponse.status}`)
+      }
+      const userCt = usersResponse.headers.get("content-type") || ""
+      if (!userCt.includes("application/json")) {
+        const text = await usersResponse.text()
+        throw new Error(text || "Invalid users response format")
+      }
+=======
+>>>>>>> origin/main
       const usersData = await usersResponse.json()
 
       if (usersData.success) {
@@ -144,10 +170,14 @@ export default function RequestMoneyPage() {
         setAllContacts(mockContactsAsUsers)
         setSearchResults(mockContactsAsUsers)
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error loading contacts:", error)
+<<<<<<< HEAD
+      setError(error?.message || "Failed to load contacts")
+=======
       const errorMessage = error instanceof Error ? error.message : "Failed to load contacts"
       setError(`Failed to load contacts: ${errorMessage}`)
+>>>>>>> origin/main
     }
   }
 

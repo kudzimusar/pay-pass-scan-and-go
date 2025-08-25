@@ -59,6 +59,26 @@ export default function ProofOfPaymentPage() {
 
   const handleShare = async () => {
     try {
+<<<<<<< HEAD
+      if (!receiptData) return
+      if (typeof navigator !== "undefined" && (navigator as any).share) {
+        await (navigator as any).share({
+          title: `PayPass Receipt - ${receiptData.provider}`,
+          text: `Receipt for ${receiptData.provider} payment of $${receiptData.amount.toFixed(2)}`,
+          url: window.location.href,
+        })
+        return
+      }
+      // Fallback: copy to clipboard
+      const summary = `PayPass Receipt\nProvider: ${receiptData.provider}\nAmount: $${receiptData.amount.toFixed(
+        2,
+      )}\nBill: ${receiptData.billNumber}\nDate: ${new Date(receiptData.date).toLocaleString()}`
+      await navigator.clipboard.writeText(summary)
+      alert("Receipt details copied to clipboard")
+    } catch (err: any) {
+      console.error("Error sharing:", err)
+      alert("Unable to share on this device")
+=======
       // Check if Web Share API is supported
       if (navigator.share) {
         await navigator.share({
@@ -91,6 +111,7 @@ export default function ProofOfPaymentPage() {
         console.error("Clipboard error:", clipboardError)
         alert("Unable to share or copy. You can take a screenshot of this receipt instead.")
       }
+>>>>>>> origin/main
     }
   }
 

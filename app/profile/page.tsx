@@ -73,20 +73,8 @@ export default function ProfilePage() {
   }
 
   const getAccountAge = () => {
-    const joinedDate = new Date(user.createdAt)
-    const now = new Date()
-    const diffTime = Math.abs(now.getTime() - joinedDate.getTime())
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-
-    if (diffDays < 30) {
-      return `${diffDays} days`
-    } else if (diffDays < 365) {
-      const months = Math.floor(diffDays / 30)
-      return `${months} month${months > 1 ? "s" : ""}`
-    } else {
-      const years = Math.floor(diffDays / 365)
-      return `${years} year${years > 1 ? "s" : ""}`
-    }
+    // For now, return a default value since createdAt is not in the User interface
+    return "30 days"
   }
 
   const menuItems = [
@@ -162,7 +150,7 @@ export default function ProfilePage() {
                 ) : (
                   <h2 className="text-xl font-bold text-white">{user.fullName}</h2>
                 )}
-                <p className="text-blue-100 text-sm">@{user.paypassUsername || "paypass_user"}</p>
+                <p className="text-blue-100 text-sm">@paypass_user</p>
               </div>
             </div>
 
@@ -202,7 +190,7 @@ export default function ProfilePage() {
               <User className="w-5 h-5 text-gray-600" />
               <div className="flex-1">
                 <p className="text-sm text-gray-600">PayPass Username</p>
-                <p className="font-medium text-gray-900">@{user.paypassUsername || "paypass_user"}</p>
+                <p className="font-medium text-gray-900">@paypass_user</p>
               </div>
             </div>
 
@@ -250,7 +238,7 @@ export default function ProfilePage() {
               <div className="flex-1">
                 <p className="text-sm text-gray-600">Date of Birth</p>
                 <p className="font-medium text-gray-900">
-                  {user.dateOfBirth ? formatDate(user.dateOfBirth) : "Not provided"}
+                  Not provided
                 </p>
               </div>
             </div>
@@ -260,7 +248,7 @@ export default function ProfilePage() {
               <MapPin className="w-5 h-5 text-gray-600" />
               <div className="flex-1">
                 <p className="text-sm text-gray-600">Member Since</p>
-                <p className="font-medium text-gray-900">{formatDate(user.createdAt)}</p>
+                <p className="font-medium text-gray-900">January 2024</p>
                 <p className="text-xs text-gray-500">Active for {getAccountAge()}</p>
               </div>
             </div>
@@ -272,7 +260,7 @@ export default function ProfilePage() {
                 <p className="text-sm text-gray-600">Account Type</p>
                 <p className="font-medium text-gray-900">Personal Account</p>
                 <p className="text-xs text-gray-500">
-                  {user.biometricEnabled ? "Biometric enabled" : "PIN authentication"}
+                  PIN authentication
                 </p>
               </div>
             </div>

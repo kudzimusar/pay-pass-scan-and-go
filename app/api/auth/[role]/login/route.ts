@@ -18,9 +18,13 @@ function getClientIp(req: Request) {
   return req.headers.get("x-real-ip") || "unknown"
 }
 
-export async function POST(req: Request, ctx: { params: { role: string } }) {
-  const role = String(ctx.params?.role || "").toLowerCase()
-  if (!roles.has(role)) {
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ role: string }> }
+) {
+  const { role } = await params
+  const roleStr = String(role || "").toLowerCase()
+  if (!roles.has(roleStr)) {
     return NextResponse.json({ error: "Invalid role" }, { status: 400 })
   }
 
@@ -40,8 +44,8 @@ export async function POST(req: Request, ctx: { params: { role: string } }) {
   const ip = getClientIp(req)
 
   // Rate limit by role+phone and IP
-  const rl1 = await rateLimit(`login:${role}:${normalized}`, 5, 60)
-  const rl2 = await rateLimit(`login:${role}:ip:${ip}`, 30, 60)
+  const rl1 = await rateLimit(`login:${roleStr}:${normalized}`, 5, 60)
+  const rl2 = await rateLimit(`login:${roleStr}:ip:${ip}`, 30, 60)
   if (!rl1.allowed || !rl2.allowed) {
     return NextResponse.json({ error: "Too many attempts, try later." }, { status: 429 })
   }
@@ -50,11 +54,11 @@ export async function POST(req: Request, ctx: { params: { role: string } }) {
     await storage.ensureSeeded()
 
     let account: any = null
-    if (role === "user") account = await storage.getUserByPhone(normalized)
-    if (role === "operator") account = await storage.getOperatorByPhone(normalized)
-    if (role === "merchant") account = await storage.getMerchantByPhone(normalized)
-    if (role === "admin") account = await storage.getAdminByPhone(normalized)
-    if (role === "partner") account = await storage.getPartnerByPhone(normalized)
+    if (roleStr === "user") account = await storage.getUserByPhone(normalized)
+    if (roleStr === "operator") account = await storage.getOperatorByPhone(normalized)
+    if (roleStr === "merchant") account = await storage.getMerchantByPhone(normalized)
+    if (roleStr === "admin") account = await storage.getAdminByPhone(normalized)
+    if (roleStr === "partner") account = await storage.getPartnerByPhone(normalized)
 
     if (!account) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
@@ -67,15 +71,15 @@ export async function POST(req: Request, ctx: { params: { role: string } }) {
 
     // Build token payload based on role
     let token: string
-    if (role === "user") token = signToken({ type: "user", userId: account.id, phone: account.phone })
-    else if (role === "operator") token = signToken({ type: "operator", operatorId: account.id, phone: account.phone })
-    else if (role === "merchant") token = signToken({ type: "merchant", merchantId: account.id, phone: account.phone })
-    else if (role === "admin") token = signToken({ type: "admin", adminId: account.id, phone: account.phone })
+    if (roleStr === "user") token = signToken({ type: "user", userId: account.id, phone: account.phone })
+    else if (roleStr === "operator") token = signToken({ type: "operator", operatorId: account.id, phone: account.phone })
+    else if (roleStr === "merchant") token = signToken({ type: "merchant", merchantId: account.id, phone: account.phone })
+    else if (roleStr === "admin") token = signToken({ type: "admin", adminId: account.id, phone: account.phone })
     else token = signToken({ type: "partner", partnerId: account.id, phone: account.phone })
 
     // Build a safe account object
     const safe =
-      role === "user"
+      roleStr === "user"
         ? {
             id: account.id,
             fullName: account.fullName,
@@ -85,7 +89,7 @@ export async function POST(req: Request, ctx: { params: { role: string } }) {
             createdAt: account.createdAt,
             updatedAt: account.updatedAt,
           }
-        : role === "operator"
+        : roleStr === "operator"
           ? {
               id: account.id,
               companyName: account.companyName,
@@ -94,7 +98,7 @@ export async function POST(req: Request, ctx: { params: { role: string } }) {
               createdAt: account.createdAt,
               updatedAt: account.updatedAt,
             }
-          : role === "merchant"
+          : roleStr === "merchant"
             ? {
                 id: account.id,
                 name: account.name,
@@ -103,7 +107,7 @@ export async function POST(req: Request, ctx: { params: { role: string } }) {
                 createdAt: account.createdAt,
                 updatedAt: account.updatedAt,
               }
-            : role === "admin"
+            : roleStr === "admin"
               ? {
                   id: account.id,
                   fullName: account.fullName,
@@ -121,7 +125,7 @@ export async function POST(req: Request, ctx: { params: { role: string } }) {
                   updatedAt: account.updatedAt,
                 }
 
-    const res = NextResponse.json({ role, account: safe, token })
+    const res = NextResponse.json({ role: roleStr, account: safe, token })
     const cookie = sessionCookieOptions()
     res.cookies.set(cookie.name, token, {
       httpOnly: cookie.httpOnly,

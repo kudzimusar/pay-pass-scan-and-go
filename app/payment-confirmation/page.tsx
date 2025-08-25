@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useAuth } from "@/context/AuthContext" // Assuming AuthContext is defined somewhere
+import { useAuth } from "@/components/auth-provider"
 
 const PaymentConfirmationPage = () => {
   const { user, refreshUserData } = useAuth()
@@ -9,7 +9,7 @@ const PaymentConfirmationPage = () => {
   const [showSuccess, setShowSuccess] = useState(false)
   const [error, setError] = useState("")
 
-  const handleConfirmPayment = async (data) => {
+  const handleConfirmPayment = async (data: any) => {
     if (data.success) {
       // Refresh user data to get updated balance
       await refreshUserData()

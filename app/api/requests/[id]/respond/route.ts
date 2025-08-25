@@ -2,12 +2,37 @@ import { type NextRequest, NextResponse } from "next/server"
 import { storage } from "../../_lib/storage"
 import { FinancialCore } from "../../_lib/financial-core"
 
+<<<<<<< HEAD
+export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    console.log("=== PAYMENT REQUEST RESPONSE API ===")
+    await ensureSeeded()
+    const { id } = await params
+    const requestId = id
+
+    if (!requestId) {
+      console.log("Missing request ID")
+      return NextResponse.json({ success: false, error: "Request ID is required" }, { status: 400 })
+    }
+
+    // Get request body
+    let body
+    try {
+      body = await req.json()
+      console.log("Request body:", body)
+    } catch (error) {
+      console.log("Invalid JSON in request body:", error)
+      return NextResponse.json({ success: false, error: "Invalid JSON in request body" }, { status: 400 })
+    }
+
+=======
 export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     console.log("=== PAYMENT REQUEST RESPONSE API ===")
 
     const requestId = params.id
     const body = await request.json()
+>>>>>>> origin/main
     const { action, userId } = body
 
     console.log("Request ID:", requestId)
@@ -48,6 +73,21 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     console.log("Payment request found:", paymentRequest)
 
+<<<<<<< HEAD
+      // Update request status
+      console.log("Updating request status to accepted")
+      const updatedRequest = await updatePaymentRequestStatus(requestId, "accepted", new Date())
+      if (!updatedRequest) {
+        console.log("Failed to update request status; returning success since payment already processed")
+        return NextResponse.json({
+          success: true,
+          message: "Payment processed but request status could not be updated",
+          newBalance: result.newBalance,
+          transactionId: result.transactionId,
+          warning: true,
+        })
+      }
+=======
     // Verify the user is the recipient
     if (paymentRequest.recipientId !== userId) {
       return NextResponse.json(
@@ -58,6 +98,7 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
         { status: 403 },
       )
     }
+>>>>>>> origin/main
 
     // Check if already responded
     if (paymentRequest.status !== "pending") {
@@ -74,7 +115,33 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       // Simply update the request status
       await storage.updatePaymentRequestStatus(requestId, "declined")
 
+<<<<<<< HEAD
+      // Decline the request
+      const updatedRequest = await updatePaymentRequestStatus(requestId, "declined", new Date())
+      if (!updatedRequest) {
+        console.log("Failed to update request status; treating as already processed/removed")
+        return NextResponse.json({ success: true, message: "Request declined" })
+      }
+
+      // Get recipient user for the notification
+      const recipient = await getUserById(userId)
+      if (recipient) {
+        console.log("Creating notification for sender")
+        // Create notification for sender
+        await createNotification({
+          userId: request.senderId,
+          type: "request_declined",
+          title: "Payment Request Declined",
+          message: `${recipient.fullName} declined your payment request for $${request.amount.toFixed(2)}`,
+          data: { requestId, amount: request.amount },
+          isRead: false,
+        })
+      }
+
+      console.log("Payment request declined successfully")
+=======
       console.log("Payment request declined")
+>>>>>>> origin/main
       return NextResponse.json({
         success: true,
         message: "Payment request declined",
