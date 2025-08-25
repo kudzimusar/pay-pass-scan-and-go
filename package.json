@@ -18,9 +18,9 @@
     "lint": "next lint",
     
     "_comment_validation": "=== PHASE VALIDATION & QUALITY GATES ===",
-    "validate:current": "node scripts/validate-phase1.js",
+    "validate:current": "node scripts/validate-phase2.js",
     "validate:phase1": "node scripts/validate-phase1.js",
-    "validate:phase2": "CURRENT_PHASE=2 node scripts/validate-phase.js",
+    "validate:phase2": "node scripts/validate-phase2.js",
     "validate:all": "npm run validate:code && npm run validate:security && npm run validate:performance",
     "validate:code": "npm run type-check && npm run lint",
     "validate:security": "npm run security:check",

@@ -211,6 +211,123 @@ export const fraudScores = pgTable("fraud_scores", {
   reviewedAt: timestamp("reviewed_at"),
 });
 
+// Mobile Money Provider Accounts
+export const mobileMoneyAccounts = pgTable("mobile_money_accounts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  provider: text("provider").notNull(), // 'ecocash', 'telecash', 'onemoney'
+  phoneNumber: text("phone_number").notNull(),
+  accountName: text("account_name").notNull(),
+  
+  // Verification status
+  isVerified: boolean("is_verified").default(false),
+  verificationMethod: text("verification_method"), // 'sms', 'ussd', 'api'
+  verificationCode: text("verification_code"), // Temporary verification code
+  verificationExpiresAt: timestamp("verification_expires_at"),
+  
+  // Account limits and status
+  dailyLimit: decimal("daily_limit", { precision: 15, scale: 2 }).default("1000.00"),
+  monthlyLimit: decimal("monthly_limit", { precision: 15, scale: 2 }).default("10000.00"),
+  isActive: boolean("is_active").default(true),
+  
+  // Usage tracking
+  totalSent: decimal("total_sent", { precision: 15, scale: 2 }).default("0.00"),
+  totalReceived: decimal("total_received", { precision: 15, scale: 2 }).default("0.00"),
+  lastUsedAt: timestamp("last_used_at"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Mobile Money Transactions
+export const mobileMoneyTransactions = pgTable("mobile_money_transactions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  mobileMoneyAccountId: varchar("mobile_money_account_id").references(() => mobileMoneyAccounts.id).notNull(),
+  transactionId: varchar("transaction_id").references(() => transactions.id),
+  
+  // Transaction details
+  type: text("type").notNull(), // 'topup', 'withdrawal', 'payment', 'receive'
+  amount: decimal("amount", { precision: 15, scale: 2 }).notNull(),
+  currency: text("currency").notNull(),
+  description: text("description").notNull(),
+  
+  // Provider specific details
+  providerTransactionId: text("provider_transaction_id"), // External transaction ID
+  providerReference: text("provider_reference"), // Provider reference number
+  providerStatus: text("provider_status"), // 'pending', 'successful', 'failed'
+  
+  // Processing details
+  status: text("status").default("pending"), // 'pending', 'processing', 'completed', 'failed'
+  initiatedAt: timestamp("initiated_at").defaultNow(),
+  completedAt: timestamp("completed_at"),
+  failureReason: text("failure_reason"),
+  
+  // Fee information
+  providerFee: decimal("provider_fee", { precision: 10, scale: 2 }).default("0.00"),
+  platformFee: decimal("platform_fee", { precision: 10, scale: 2 }).default("0.00"),
+  totalFees: decimal("total_fees", { precision: 10, scale: 2 }).default("0.00"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Real-time Notifications
+export const notifications = pgTable("notifications", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  
+  // Notification content
+  type: text("type").notNull(), // 'payment', 'security', 'system', 'marketing'
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  data: text("data"), // JSON payload for additional data
+  
+  // Delivery status
+  isRead: boolean("is_read").default(false),
+  readAt: timestamp("read_at"),
+  
+  // Delivery channels
+  channels: text("channels").notNull(), // JSON array: ['push', 'sms', 'email']
+  deliveryStatus: text("delivery_status").default("pending"), // 'pending', 'sent', 'delivered', 'failed'
+  
+  // Priority and scheduling
+  priority: text("priority").default("normal"), // 'low', 'normal', 'high', 'urgent'
+  scheduledFor: timestamp("scheduled_for"),
+  
+  // Metadata
+  relatedEntityId: text("related_entity_id"), // ID of related transaction, payment, etc.
+  relatedEntityType: text("related_entity_type"), // 'transaction', 'payment', 'user', etc.
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Performance Monitoring
+export const performanceMetrics = pgTable("performance_metrics", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  
+  // Metric identification
+  metricType: text("metric_type").notNull(), // 'api_response', 'page_load', 'transaction_time'
+  endpoint: text("endpoint"), // API endpoint or page route
+  userId: varchar("user_id").references(() => users.id),
+  
+  // Performance data
+  duration: integer("duration").notNull(), // Duration in milliseconds
+  status: text("status").notNull(), // 'success', 'error', 'timeout'
+  errorMessage: text("error_message"),
+  
+  // Request context
+  userAgent: text("user_agent"),
+  ipAddress: text("ip_address"),
+  deviceType: text("device_type"), // 'mobile', 'desktop', 'tablet'
+  
+  // Additional metadata
+  metadata: text("metadata"), // JSON object with additional context
+  
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const userRelations = relations(users, ({ one, many }) => ({
   wallet: one(wallets),
@@ -221,6 +338,9 @@ export const userRelations = relations(users, ({ one, many }) => ({
   receivedCrossBorderPayments: many(crossBorderPayments, { foreignKey: crossBorderPayments.recipientId }),
   identityVerifications: many(identityVerifications),
   fraudScores: many(fraudScores),
+  mobileMoneyAccounts: many(mobileMoneyAccounts),
+  mobileMoneyTransactions: many(mobileMoneyTransactions),
+  notifications: many(notifications),
 }));
 
 export const operatorRelations = relations(operators, ({ many }) => ({
@@ -310,6 +430,36 @@ export const fraudScoreRelations = relations(fraudScores, ({ one }) => ({
   crossBorderPayment: one(crossBorderPayments, {
     fields: [fraudScores.crossBorderPaymentId],
     references: [crossBorderPayments.id],
+  }),
+}));
+
+export const mobileMoneyAccountRelations = relations(mobileMoneyAccounts, ({ one, many }) => ({
+  user: one(users, {
+    fields: [mobileMoneyAccounts.userId],
+    references: [users.id],
+  }),
+  transactions: many(mobileMoneyTransactions),
+}));
+
+export const mobileMoneyTransactionRelations = relations(mobileMoneyTransactions, ({ one }) => ({
+  user: one(users, {
+    fields: [mobileMoneyTransactions.userId],
+    references: [users.id],
+  }),
+  mobileMoneyAccount: one(mobileMoneyAccounts, {
+    fields: [mobileMoneyTransactions.mobileMoneyAccountId],
+    references: [mobileMoneyAccounts.id],
+  }),
+  transaction: one(transactions, {
+    fields: [mobileMoneyTransactions.transactionId],
+    references: [transactions.id],
+  }),
+}));
+
+export const notificationRelations = relations(notifications, ({ one }) => ({
+  user: one(users, {
+    fields: [notifications.userId],
+    references: [users.id],
   }),
 }));
 
@@ -406,6 +556,43 @@ export type InsertIdentityVerification = typeof identityVerifications.$inferInse
 export type FraudScore = typeof fraudScores.$inferSelect;
 export type InsertFraudScore = typeof fraudScores.$inferInsert;
 
+// Phase 2 types for Mobile Money and Advanced Features
+export type MobileMoneyAccount = typeof mobileMoneyAccounts.$inferSelect;
+export type InsertMobileMoneyAccount = typeof mobileMoneyAccounts.$inferInsert;
+
+export type MobileMoneyTransaction = typeof mobileMoneyTransactions.$inferSelect;
+export type InsertMobileMoneyTransaction = typeof mobileMoneyTransactions.$inferInsert;
+
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = typeof notifications.$inferInsert;
+
+export type PerformanceMetric = typeof performanceMetrics.$inferSelect;
+export type InsertPerformanceMetric = typeof performanceMetrics.$inferInsert;
+
+// Enhanced insert schemas for Phase 2 tables
+export const insertMobileMoneyAccountSchema = createInsertSchema(mobileMoneyAccounts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertMobileMoneyTransactionSchema = createInsertSchema(mobileMoneyTransactions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPerformanceMetricSchema = createInsertSchema(performanceMetrics).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Enums for better type safety
 export const UserTypeEnum = z.enum(['user', 'operator', 'merchant', 'partner', 'admin']);
 export const CurrencyEnum = z.enum(['USD', 'ZWL', 'EUR', 'GBP', 'ZAR']);
@@ -413,8 +600,16 @@ export const KYCStatusEnum = z.enum(['pending', 'verified', 'rejected']);
 export const PaymentStatusEnum = z.enum(['pending', 'processing', 'completed', 'failed', 'compliance_hold']);
 export const RiskLevelEnum = z.enum(['low', 'medium', 'high', 'critical']);
 
+// Phase 2 specific enums
+export const MobileMoneyProviderEnum = z.enum(['ecocash', 'telecash', 'onemoney']);
+export const NotificationTypeEnum = z.enum(['payment', 'security', 'system', 'marketing']);
+export const NotificationPriorityEnum = z.enum(['low', 'normal', 'high', 'urgent']);
+
 export type UserType = z.infer<typeof UserTypeEnum>;
 export type Currency = z.infer<typeof CurrencyEnum>;
 export type KYCStatus = z.infer<typeof KYCStatusEnum>;
 export type PaymentStatus = z.infer<typeof PaymentStatusEnum>;
 export type RiskLevel = z.infer<typeof RiskLevelEnum>;
+export type MobileMoneyProvider = z.infer<typeof MobileMoneyProviderEnum>;
+export type NotificationType = z.infer<typeof NotificationTypeEnum>;
+export type NotificationPriority = z.infer<typeof NotificationPriorityEnum>;
