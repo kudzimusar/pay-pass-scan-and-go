@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { storage as memoryStorage } from "./storage/storage-memory"
 
 // Only import NeonStorage if DATABASE_URL is available
@@ -10,6 +11,10 @@ if (process.env.DATABASE_URL) {
     console.warn("Neon storage not available:", error)
   }
 }
+=======
+import { storage as neonStorage } from "./storage/storage-neon"
+import { storage as memoryStorage } from "./storage/storage-memory"
+>>>>>>> origin/main
 
 // Define all interfaces
 export interface User {
@@ -95,6 +100,7 @@ export interface MonthlyExpense {
 }
 
 // Use Neon storage if DATABASE_URL is available, otherwise use memory storage
+<<<<<<< HEAD
 const useNeonStorage = !!process.env.DATABASE_URL && NeonStorage
 
 export const storage = useNeonStorage ? new NeonStorage() : memoryStorage
@@ -125,6 +131,12 @@ export async function searchUsers(query: string, excludeUserId?: string) {
 
 
 
+=======
+const useNeonStorage = !!process.env.DATABASE_URL
+
+export const storage = useNeonStorage ? neonStorage : memoryStorage
+
+>>>>>>> origin/main
 // Re-export all storage functions for convenience
 export const {
   ensureSeeded,
@@ -138,7 +150,16 @@ export const {
   createPaymentRequest,
   getPaymentRequestById,
   updatePaymentRequestStatus,
+<<<<<<< HEAD
   createNotification,
   getUserNotifications,
   markNotificationAsRead,
+=======
+  getPendingPaymentRequests,
+  createNotification,
+  getUserNotifications,
+  markNotificationAsRead,
+  recordMonthlyExpense,
+  getMonthlyExpenses,
+>>>>>>> origin/main
 } = storage

@@ -1,13 +1,8 @@
-import { NextResponse } from "next/server"
-import {
-  ensureSeeded,
-  getPaymentRequestById,
-  updatePaymentRequestStatus,
-  getUserById,
-  createNotification,
-} from "../../../_lib/storage"
-import { processRequestPayment } from "../../../_lib/financial-core"
+import { type NextRequest, NextResponse } from "next/server"
+import { storage } from "../../_lib/storage"
+import { FinancialCore } from "../../_lib/financial-core"
 
+<<<<<<< HEAD
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     console.log("=== PAYMENT REQUEST RESPONSE API ===")
@@ -30,54 +25,55 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       return NextResponse.json({ success: false, error: "Invalid JSON in request body" }, { status: 400 })
     }
 
+=======
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    console.log("=== PAYMENT REQUEST RESPONSE API ===")
+
+    const requestId = params.id
+    const body = await request.json()
+>>>>>>> origin/main
     const { action, userId } = body
 
-    if (!action || !userId) {
-      console.log("Missing action or userId")
-      return NextResponse.json({ success: false, error: "Action and userId are required" }, { status: 400 })
-    }
+    console.log("Request ID:", requestId)
+    console.log("Action:", action)
+    console.log("User ID:", userId)
 
-    if (action !== "accept" && action !== "decline") {
-      console.log("Invalid action:", action)
-      return NextResponse.json({ success: false, error: "Invalid action" }, { status: 400 })
-    }
-
-    // Get payment request
-    console.log("Getting payment request:", requestId)
-    const request = await getPaymentRequestById(requestId)
-    if (!request) {
-      console.log("Payment request not found")
-      return NextResponse.json({ success: false, error: "Payment request not found" }, { status: 404 })
-    }
-
-    console.log("Payment request found:", request)
-
-    if (request.recipientId !== userId) {
-      console.log("Unauthorized access attempt")
-      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 })
-    }
-
-    if (request.status !== "pending") {
-      console.log("Request already processed:", request.status)
+    if (!requestId || !action || !userId) {
       return NextResponse.json(
-        { success: false, error: `Request has already been ${request.status}`, alreadyProcessed: true },
-        { status: 409 },
+        {
+          success: false,
+          error: "Missing required parameters",
+        },
+        { status: 400 },
       )
     }
 
-    // Process the request
-    if (action === "accept") {
-      console.log("Processing payment request acceptance")
+    if (!["accept", "decline"].includes(action)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Invalid action. Must be 'accept' or 'decline'",
+        },
+        { status: 400 },
+      )
+    }
 
-      // Process payment through Financial Core
-      const result = await processRequestPayment(userId, request.amount, request.description, requestId)
-      console.log("Financial core result:", result)
+    // Get the payment request
+    const paymentRequest = await storage.getPaymentRequestById(requestId)
+    if (!paymentRequest) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Payment request not found",
+        },
+        { status: 404 },
+      )
+    }
 
-      if (!result.success) {
-        console.log("Payment processing failed:", result.error)
-        return NextResponse.json({ success: false, error: result.error }, { status: 400 })
-      }
+    console.log("Payment request found:", paymentRequest)
 
+<<<<<<< HEAD
       // Update request status
       console.log("Updating request status to accepted")
       const updatedRequest = await updatePaymentRequestStatus(requestId, "accepted", new Date())
@@ -91,32 +87,35 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
           warning: true,
         })
       }
+=======
+    // Verify the user is the recipient
+    if (paymentRequest.recipientId !== userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: "Unauthorized to respond to this request",
+        },
+        { status: 403 },
+      )
+    }
+>>>>>>> origin/main
 
-      // Get recipient user for notifications
-      const recipient = await getUserById(userId)
-      if (recipient) {
-        console.log("Creating notification for sender")
-        // Create notification for sender
-        await createNotification({
-          userId: request.senderId,
-          type: "request_accepted",
-          title: "Payment Request Accepted",
-          message: `${recipient.fullName} accepted your payment request for $${request.amount.toFixed(2)}`,
-          data: { requestId, amount: request.amount, transactionId: result.transactionId },
-          isRead: false,
-        })
-      }
+    // Check if already responded
+    if (paymentRequest.status !== "pending") {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Request already ${paymentRequest.status}`,
+        },
+        { status: 400 },
+      )
+    }
 
-      console.log("Payment request accepted successfully")
-      return NextResponse.json({
-        success: true,
-        message: "Payment request accepted",
-        newBalance: result.newBalance,
-        transactionId: result.transactionId,
-      })
-    } else {
-      console.log("Processing payment request decline")
+    if (action === "decline") {
+      // Simply update the request status
+      await storage.updatePaymentRequestStatus(requestId, "declined")
 
+<<<<<<< HEAD
       // Decline the request
       const updatedRequest = await updatePaymentRequestStatus(requestId, "declined", new Date())
       if (!updatedRequest) {
@@ -140,19 +139,121 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       }
 
       console.log("Payment request declined successfully")
+=======
+      console.log("Payment request declined")
+>>>>>>> origin/main
       return NextResponse.json({
         success: true,
         message: "Payment request declined",
+        status: "declined",
       })
     }
-  } catch (error) {
-    console.error("=== PAYMENT REQUEST RESPONSE ERROR ===", error)
-    // Always return JSON, even for errors
+
+    if (action === "accept") {
+      // Get user to check balance
+      const user = await storage.getUserById(userId)
+      if (!user) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: "User not found",
+          },
+          { status: 404 },
+        )
+      }
+
+      // Check if user has sufficient funds
+      if (user.walletBalance < paymentRequest.amount) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: `Insufficient funds. You have $${user.walletBalance.toFixed(2)} but need $${paymentRequest.amount.toFixed(2)}`,
+          },
+          { status: 400 },
+        )
+      }
+
+      // Process the payment using FinancialCore
+      const result = await FinancialCore.processOperation({
+        userId,
+        amount: paymentRequest.amount,
+        type: "debit",
+        category: "payment_request",
+        description: `Payment for: ${paymentRequest.description}`,
+        recipientId: paymentRequest.senderId,
+        metadata: {
+          requestId,
+          originalRequestDescription: paymentRequest.description,
+        },
+      })
+
+      if (!result.success) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: result.error || "Payment processing failed",
+          },
+          { status: 400 },
+        )
+      }
+
+      // Update the payment request status
+      await storage.updatePaymentRequestStatus(requestId, "accepted")
+
+      // Credit the sender (requester)
+      const sender = await storage.getUserById(paymentRequest.senderId)
+      if (sender) {
+        const senderNewBalance = sender.walletBalance + paymentRequest.amount
+        await storage.updateUserWalletBalance(paymentRequest.senderId, senderNewBalance)
+
+        // Create transaction for sender
+        await storage.createTransaction({
+          userId: paymentRequest.senderId,
+          type: "payment_received",
+          amount: paymentRequest.amount,
+          description: `Payment received from ${user.fullName}: ${paymentRequest.description}`,
+          status: "completed",
+          isPaid: true,
+          category: "payment_received",
+          metadata: {
+            requestId,
+            payerId: userId,
+            transactionId: result.transactionId,
+          },
+        })
+
+        console.log(`Sender balance updated: ${sender.walletBalance} → ${senderNewBalance}`)
+      }
+
+      console.log("Payment request accepted and processed")
+      return NextResponse.json({
+        success: true,
+        message: "Payment completed successfully",
+        newBalance: result.newBalance,
+        transactionId: result.transactionId,
+        status: "accepted",
+      })
+    }
+
     return NextResponse.json(
       {
         success: false,
-        error: "Internal server error",
-        details: error instanceof Error ? error.message : "Unknown error",
+        error: "Invalid action",
+      },
+      { status: 400 },
+    )
+  } catch (error) {
+    console.error("=== PAYMENT REQUEST RESPONSE ERROR ===")
+    console.error("Error details:", error)
+    console.error("Stack trace:", error instanceof Error ? error.stack : "No stack trace")
+
+    // Always return JSON, never plain text
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Failed to process payment request response",
+        details:
+          process.env.NODE_ENV === "development" ? (error instanceof Error ? error.message : String(error)) : undefined,
       },
       { status: 500 },
     )
