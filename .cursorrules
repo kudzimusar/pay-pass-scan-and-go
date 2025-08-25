@@ -1,0 +1,138 @@
+# PayPass Development Rules - PLAN.md as Guiding Document
+
+## 🎯 CORE PRINCIPLES
+- **PLAN.md is the single source of truth** for all development decisions
+- **Every code change must align** with the current phase objectives
+- **Phase completion validation** is mandatory before moving to next phase
+- **Testing at every commit** to ensure code quality and functionality
+
+## 📋 DEVELOPMENT WORKFLOW
+
+### Phase-Based Development
+1. **Current Phase**: Phase 1 - Foundation (Week 1-2)
+2. **Phase Objectives**: Must be completed before advancing
+3. **Testing Requirements**: All phase tests must pass
+4. **Documentation**: Update PLAN.md with progress
+
+### Code Quality Standards
+- **TypeScript compliance**: Zero compilation errors
+- **Build success**: All build scripts must pass
+- **Test coverage**: Phase-specific tests must pass
+- **Documentation**: Code comments aligned with PLAN.md
+
+### Commit Standards
+- **Commit messages**: Must reference PLAN.md phase and objective
+- **Pre-commit testing**: Run phase validation tests
+- **Post-commit validation**: Verify phase completion criteria
+
+## 🔍 PHASE VALIDATION CRITERIA
+
+### Phase 1: Foundation (Week 1-2) - 95% Priority
+**Success Criteria:**
+- ✅ Merge conflicts resolved (16 files, 182 TypeScript errors)
+- ✅ App is testable and runs without errors
+- ✅ Basic authentication working for all user types
+- ✅ Wallet funding system foundation implemented
+- ✅ "Pay for your Friend" diaspora user registration
+- ✅ Basic cross-border payment processing
+
+### Phase 2: Integration (Week 3-4) - 100% Priority
+**Success Criteria:**
+- ✅ Remittance provider integration (Mukuru, Western Union, WorldRemit)
+- ✅ Multi-currency support (USD, ZWL, EUR, GBP)
+- ✅ Real-time currency conversion with FX rates
+- ✅ Instant notification system for payments
+- ✅ SAGA Pattern for distributed transactions
+- ✅ Queued processing for API downtime
+
+### Phase 3: Advanced Features (Month 2) - 100% Priority
+**Success Criteria:**
+- ✅ Advanced fraud detection for cross-border transactions
+- ✅ Compliance engine for international regulations
+- ✅ Analytics dashboard for diaspora transactions
+- ✅ Mobile app for diaspora users
+- ✅ PCI DSS compliance implementation
+- ✅ Prometheus/Grafana monitoring
+
+### Phase 4: Production Ready (Month 3) - 100% Priority
+**Success Criteria:**
+- ✅ Complete security hardening
+- ✅ Full compliance implementation
+- ✅ Performance optimization
+- ✅ Production deployment and monitoring
+- ✅ Market expansion to other African countries
+
+## 🧪 TESTING FRAMEWORK
+
+### Automated Testing
+- **Build validation**: npm run build must succeed
+- **TypeScript validation**: Zero compilation errors
+- **Phase-specific tests**: Run phase completion tests
+- **Integration tests**: API endpoints functional
+- **User flow tests**: Core user journeys working
+
+### Manual Testing Checklist
+- **Authentication flows**: All user types can login
+- **Payment processing**: Basic payments work
+- **Wallet functionality**: Balance management
+- **"Pay for your Friend"**: Diaspora functionality
+- **Cross-border payments**: International transactions
+
+## 📊 PROGRESS TRACKING
+
+### Current Status
+- **Overall Progress**: 65% complete
+- **Current Phase**: Phase 1 - Foundation
+- **Critical Issues**: 12 identified
+- **Blocking Issues**: Merge conflicts, build failures
+
+### Success Metrics
+- **Technical Metrics**: All phase criteria met
+- **User Experience**: Core flows functional
+- **Business Metrics**: USP features operational
+- **Performance**: Response times within targets
+
+## 🚨 QUALITY GATES
+
+### Pre-Commit Requirements
+- ✅ TypeScript compilation successful
+- ✅ No merge conflicts
+- ✅ Phase-specific tests pass
+- ✅ Code follows PLAN.md specifications
+
+### Post-Commit Validation
+- ✅ Build process successful
+- ✅ App runs without errors
+- ✅ Phase objectives achieved
+- ✅ Documentation updated
+
+## 📝 DOCUMENTATION STANDARDS
+
+### Code Comments
+- Reference PLAN.md sections
+- Explain phase-specific implementations
+- Document USP features
+- Note compliance requirements
+
+### Commit Messages
+Format: `[Phase X] [Component] [Description] - PLAN.md reference`
+Examples:
+- `[Phase 1] [Auth] Fix merge conflicts in login route - PLAN.md #1`
+- `[Phase 1] [USP] Add diaspora user registration - PLAN.md #12`
+- `[Phase 2] [Payment] Implement SAGA Pattern - PLAN.md #11`
+
+## 🎯 SUCCESS DEFINITION
+
+### Phase Completion
+- All phase criteria met
+- Tests passing
+- Documentation updated
+- No blocking issues
+- Ready for next phase
+
+### Project Success
+- All 12 critical issues resolved
+- USP fully functional
+- Enterprise-grade architecture deployed
+- Market-ready product
+- Regulatory compliance achieved
