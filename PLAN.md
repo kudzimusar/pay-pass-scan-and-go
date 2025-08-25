@@ -5,10 +5,11 @@
 **PayPass Scan & Go** is a comprehensive mobile payment platform designed for the Zimbabwean market, supporting multiple user types with QR-based transactions, mobile money integration, and real-time analytics.
 
 ### Core Mission
-- Enable seamless digital payments across Zimbabwe
+- Enable seamless digital payments across Zimbabwe with **pre-funded wallet system**
 - Support multiple user types (consumers, merchants, operators, partners, admins)
 - Integrate with local mobile money providers (EcoCash, TeleCash, OneMoney)
 - Provide QR-based payment solutions for various use cases
+- **Implement comprehensive wallet funding system** before payment processing
 
 ---
 
@@ -51,6 +52,9 @@
 - **Banks**: CBZ Bank and other Zimbabwean banks
 - **QR Codes**: JSON-based payment data format
 - **Analytics**: Recharts for dashboard visualizations
+- **Diaspora Remittances**: Mukuru, Western Union, World Remit
+- **ATM Networks**: Local ATM integration for wallet funding
+- **Retail Partners**: Supermarket cash deposit points
 
 ---
 
@@ -68,11 +72,15 @@
 - ✅ Profile management
 - ✅ PIN management
 - ✅ Contact management
+- ✅ Basic wallet top-up interface
 
 **Features Pending:**
+- ⚠️ **CRITICAL: Complete wallet funding system**
 - ⚠️ Balance synchronization across pages
 - ⚠️ Payment confirmation flows
 - ⚠️ Notification system integration
+- ⚠️ **Pre-payment balance verification**
+- ⚠️ **Real-time balance updates during transactions**
 
 ### 2. Bus/Taxi Operators - 90% Complete
 **Login Route**: `/operator-login` | **Dashboard**: `/operator`
@@ -152,11 +160,15 @@
 - ✅ Bill payment processing
 - ✅ Transaction recording
 - ✅ Payment confirmation flows
+- ✅ Basic wallet top-up interface
 
 **Issues:**
+- ❌ **CRITICAL: Wallet funding system incomplete**
 - ❌ Balance synchronization across components
 - ❌ Payment failure handling incomplete
 - ❌ Transaction rollback mechanism missing
+- ❌ **Pre-payment balance verification missing**
+- ❌ **Real-time balance updates during transactions**
 
 ### Database Layer - 85% Complete
 **Implemented:**
@@ -212,6 +224,19 @@
 **Impact**: Some payment processes may fail
 **Priority**: 🟡 HIGH
 
+### 5. Wallet Funding System (CRITICAL)
+**Impact**: Core payment system cannot function without proper funding
+**Priority**: 🔴 CRITICAL
+**Missing Components:**
+- ❌ Mobile money top-up integration (EcoCash, TeleCash)
+- ❌ Bank transfer integration
+- ❌ ATM integration for wallet funding
+- ❌ Cash deposit at retail partners
+- ❌ Diaspora remittances integration (Mukuru, Western Union, World Remit)
+- ❌ Peer-to-peer instant top-up system
+- ❌ Pre-payment balance verification
+- ❌ Real-time balance updates during transactions
+
 ---
 
 ## 📋 IMMEDIATE ACTION PLAN
@@ -246,24 +271,38 @@
    - Verify role-based access
    - Test PIN management
 
-2. **Payment Testing**
-   - Test QR code payments
-   - Test money transfers
-   - Test bill payments
-   - Verify transaction recording
+2. **Wallet Funding System Testing (CRITICAL)**
+   - Test mobile money top-up (EcoCash, TeleCash)
+   - Test bank transfer integration
+   - Test ATM integration for wallet funding
+   - Test cash deposit at retail partners
+   - Test diaspora remittances (Mukuru, Western Union, World Remit)
+   - Test peer-to-peer instant top-up
+   - Verify pre-payment balance verification
+   - Test real-time balance updates during transactions
 
-3. **Balance Synchronization**
+3. **Payment Testing**
+   - Test QR code payments (with balance verification)
+   - Test money transfers (with balance verification)
+   - Test bill payments (with balance verification)
+   - Verify transaction recording
+   - Test payment failure scenarios (insufficient balance)
+
+4. **Balance Synchronization**
    - Fix balance display issues
    - Ensure consistency across pages
    - Test real-time updates
+   - Verify balance updates during transactions
 
 ### Phase 3: Integration & Polish (Week 3)
 **Goal**: Complete integrations and polish
 
 1. **Mobile Money Integration**
-   - Test EcoCash integration
-   - Test TeleCash integration
-   - Test OneMoney integration
+   - Test EcoCash integration for wallet funding
+   - Test TeleCash integration for wallet funding
+   - Test OneMoney integration for wallet funding
+   - Implement real-time balance updates
+   - Test payment processing with funded wallets
 
 2. **QR System Enhancement**
    - Improve QR code format
@@ -301,8 +340,11 @@
 - ✅ Zero TypeScript compilation errors
 - ✅ All API endpoints return 200/201 responses
 - ✅ Authentication works for all user types
+- ✅ **Wallet funding system operational**
+- ✅ **Pre-payment balance verification working**
 - ✅ Payment flows complete successfully
 - ✅ Balance synchronization across all pages
+- ✅ **Real-time balance updates during transactions**
 
 ### User Experience Metrics
 - ✅ Login process < 3 seconds
@@ -312,9 +354,13 @@
 
 ### Business Metrics
 - ✅ Support for all 5 user types
-- ✅ Integration with 3 mobile money providers
-- ✅ Support for major Zimbabwean banks
-- ✅ QR payment system operational
+- ✅ Integration with 3 mobile money providers for wallet funding
+- ✅ Support for major Zimbabwean banks for wallet funding
+- ✅ QR payment system operational with pre-funded wallets
+- ✅ **Diaspora remittance integration (Mukuru, Western Union, World Remit)**
+- ✅ **ATM integration for wallet funding**
+- ✅ **Retail partner network for cash deposits**
+- ✅ **Peer-to-peer instant top-up system**
 
 ---
 
@@ -337,7 +383,84 @@ JWT_SECRET=your-secret-key
 DATABASE_URL=your-neon-connection-string
 UPSTASH_REDIS_REST_URL=your-redis-url
 UPSTASH_REDIS_REST_TOKEN=your-redis-token
+
+# Wallet Funding System APIs
+ECOCASH_API_KEY=your-ecocash-api-key
+TELECASH_API_KEY=your-telecash-api-key
+ONEMONEY_API_KEY=your-onemoney-api-key
+
+# Bank Integration APIs
+CBZ_BANK_API_KEY=your-cbz-api-key
+OTHER_BANK_API_KEY=your-other-bank-api-key
+
+# Diaspora Remittance APIs
+MUKURU_API_KEY=your-mukuru-api-key
+WESTERN_UNION_API_KEY=your-western-union-api-key
+WORLD_REMIT_API_KEY=your-world-remit-api-key
+
+# ATM Network Integration
+ATM_NETWORK_API_KEY=your-atm-network-api-key
+
+# Retail Partner Integration
+RETAIL_PARTNER_API_KEY=your-retail-partner-api-key
 ```
+
+---
+
+## 💰 WALLET FUNDING SYSTEM ARCHITECTURE
+
+### Core Principle: **Pre-Funded Wallet System**
+Users must fund their PayPass wallet **before** making any payments. Balance is debited **before or when scanning** to pay.
+
+### Funding Methods Implementation Priority:
+
+#### 1. Mobile Money Integration (HIGH PRIORITY)
+- **EcoCash**: Direct wallet top-up integration
+- **TeleCash**: Direct wallet top-up integration
+- **OneMoney**: Direct wallet top-up integration
+- **Real-time balance updates** after successful funding
+
+#### 2. Bank Transfer Integration (MEDIUM PRIORITY)
+- **CBZ Bank**: Direct bank-to-wallet transfers
+- **Other Zimbabwean banks**: Integration as available
+- **Automated balance updates** after transfer confirmation
+
+#### 3. ATM Integration (MEDIUM PRIORITY)
+- **Local ATM networks**: Cash-to-wallet funding
+- **ATM card integration**: Direct wallet top-up
+- **Real-time balance verification**
+
+#### 4. Cash Deposit at Retail Partners (MEDIUM PRIORITY)
+- **Supermarket partnerships**: Cash deposit points
+- **Retail partner network**: Nationwide coverage
+- **Instant wallet credit** after cash deposit
+
+#### 5. Diaspora Remittances (HIGH PRIORITY)
+- **Mukuru**: International-to-wallet transfers
+- **Western Union**: International-to-wallet transfers
+- **World Remit**: International-to-wallet transfers
+- **Real-time exchange rate integration**
+
+#### 6. Peer-to-Peer Instant Top-up (HIGH PRIORITY)
+- **Local transfers**: Friend/family instant top-up
+- **International transfers**: Diaspora instant top-up
+- **Real-time instant credit** to wallet
+
+### Payment Flow with Pre-Funded System:
+
+1. **User funds wallet** via any of the above methods
+2. **Balance is verified** before any payment attempt
+3. **Payment is processed** only if sufficient balance exists
+4. **Balance is debited** before or when scanning QR code
+5. **Transaction is recorded** with real-time balance update
+6. **Receipt is generated** with new balance confirmation
+
+### Security & Validation:
+- **Pre-payment balance verification** on every transaction
+- **Real-time balance updates** during transactions
+- **Transaction rollback** if balance becomes insufficient
+- **Fraud detection** for unusual funding patterns
+- **Multi-factor authentication** for large funding amounts
 
 ---
 
