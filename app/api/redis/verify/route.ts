@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
-import { verifyRedis } from "../../_lib/redis"
+import { redis } from "../../_lib/redis"
 
 export async function GET() {
-  const result = await verifyRedis()
-  return NextResponse.json(result)
+  const ok = await redis.ping()
+  return NextResponse.json({ ok, enabled: redis.enabled })
 }

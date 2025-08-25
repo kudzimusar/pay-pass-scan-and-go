@@ -1,16 +1,17 @@
-import bcrypt from "bcryptjs"
-
-// Define types directly in this file to avoid circular dependencies
-export interface User {
+interface User {
   id: string
   fullName: string
-  phone: string
-  email: string
-  pin: string
-  biometricEnabled: boolean
+  phoneNumber: string
+  email?: string
+  password: string
   walletBalance: number
+<<<<<<< HEAD
   createdAt: Date
   updatedAt: Date
+  // Profile additions
+  dateOfBirth?: Date
+  joinedDate: Date
+  paypassUsername: string
 }
 
 export interface Operator {
@@ -27,47 +28,114 @@ export interface Operator {
   updatedAt: Date
 }
 
-export interface Transaction {
+export interface Admin {
   id: string
-  userId: string
-  type: "payment" | "topup" | "transfer"
-  amount: number
-  description: string
-  operatorId?: string
-  status: "pending" | "completed" | "failed"
-  createdAt: Date
-  updatedAt: Date
-}
-
-export interface Route {
-  id: string
-  operatorId: string
-  name: string
-  startLocation: string
-  endLocation: string
-  fare: number
-  distance: number
-  estimatedDuration: number
+  fullName: string
+  phone: string
+  email: string
+  pin: string
+  role: "super_admin" | "platform_admin" | "support_admin"
+  permissions: string[]
   isActive: boolean
   createdAt: Date
   updatedAt: Date
 }
 
-export interface PaymentRequest {
+export interface Merchant {
   id: string
-  senderId: string
-  receiverId: string
-  amount: number
-  description: string
-  billType: string
-  status: "pending" | "accepted" | "declined" | "expired"
-  expiresAt: Date
-  respondedAt?: Date
+  businessName: string
+  phone: string
+  email: string
+  pin: string
+  businessType: "retailer" | "utility" | "service_provider"
+  licenseNumber: string
+  totalEarnings: number
+  isActive: boolean
   createdAt: Date
   updatedAt: Date
 }
 
-export interface NotificationRecord {
+export interface Partner {
+  id: string
+  companyName: string
+  phone: string
+  email: string
+  pin: string
+  partnerType: "mobile_money" | "bank" | "fintech"
+  integrationKey: string
+  totalTransactions: number
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface Transaction {
+  id: string
+  userId: string
+  type: "payment" | "topup" | "top_up" | "transfer" | "bus_ticket" | "grocery" | "utility"
+| "electricity" | "water" | "internet" | "bill_payment" | "payment_request" | "qr_payment" | "transfer_received"
+
+  amount: number
+  description: string
+  operatorId?: string
+  status: "pending" | "completed" | "failed"
+  isPaid: boolean
+  createdAt: Date
+  updatedAt: Date
+  // New fields for better transaction management
+  category?: string
+  merchantName?: string
+  receiptNumber?: string
+  dueDate?: Date
+  // Prevent duplicates
+  transactionHash: string
+  // Additional metadata
+  metadata?: Record<string, any>
+=======
+  createdAt: string
+  updatedAt: string
+}
+
+interface Transaction {
+  id: string
+  userId: string
+  type: string
+  amount: number
+  description: string
+  status: string
+  createdAt: string
+  updatedAt: string
+  category?: string
+  metadata?: any
+  isPaid?: boolean
+  senderId?: string
+  receiverId?: string
+>>>>>>> origin/main
+}
+
+interface PaymentRequest {
+  id: string
+  senderId: string
+  recipientId: string
+  amount: number
+  description: string
+<<<<<<< HEAD
+  billType: string
+  status: "pending" | "accepted" | "declined" | "expired"
+  linkedTransactionId?: string
+  expiresAt: Date
+  respondedAt?: Date
+  createdAt: Date
+  updatedAt: Date
+=======
+  status: string
+  createdAt: string
+  updatedAt: string
+  respondedAt?: string
+>>>>>>> origin/main
+}
+
+interface Notification {
   id: string
   userId: string
   type: string
@@ -75,9 +143,10 @@ export interface NotificationRecord {
   message: string
   data?: any
   isRead: boolean
-  createdAt: Date
+  createdAt: string
 }
 
+<<<<<<< HEAD
 // Storage interface
 export interface StorageInterface {
   ensureSeeded(): Promise<void>
@@ -91,12 +160,23 @@ export interface StorageInterface {
   createOperator(operatorData: Omit<Operator, "id" | "createdAt" | "updatedAt">): Promise<Operator>
   getOperatorById(id: string): Promise<Operator | null>
   getOperatorByPhone(phone: string): Promise<Operator | null>
+  createAdmin(adminData: Omit<Admin, "id" | "createdAt" | "updatedAt">): Promise<Admin>
+  getAdminById(id: string): Promise<Admin | null>
+  getAdminByPhone(phone: string): Promise<Admin | null>
+  createMerchant(merchantData: Omit<Merchant, "id" | "createdAt" | "updatedAt">): Promise<Merchant>
+  getMerchantById(id: string): Promise<Merchant | null>
+  getMerchantByPhone(phone: string): Promise<Merchant | null>
+  createPartner(partnerData: Omit<Partner, "id" | "createdAt" | "updatedAt">): Promise<Partner>
+  getPartnerById(id: string): Promise<Partner | null>
+  getPartnerByPhone(phone: string): Promise<Partner | null>
   createTransaction(txnData: Omit<Transaction, "id" | "createdAt" | "updatedAt">): Promise<Transaction>
   getUserTransactions(userId: string, limit?: number): Promise<Transaction[]>
   getOperatorTransactions(operatorId: string, limit?: number): Promise<Transaction[]>
   createRoute(routeData: Omit<Route, "id" | "createdAt" | "updatedAt">): Promise<Route>
   getOperatorRoutes(operatorId: string): Promise<Route[]>
   getRouteById(id: string): Promise<Route | null>
+  getRouteByQrCode(qrCode: string): Promise<Route | null>
+  getOperator(operatorId: string): Promise<Operator | null>
   createPaymentRequest(requestData: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt">): Promise<PaymentRequest>
   getPaymentRequestById(id: string): Promise<PaymentRequest | null>
   getUserSentPaymentRequests(userId: string): Promise<PaymentRequest[]>
@@ -113,11 +193,28 @@ export interface StorageInterface {
   getAdminByPhone(phone: string): Promise<any>
   getMerchantByPhone(phone: string): Promise<any>
   getPartnerByPhone(phone: string): Promise<any>
+=======
+interface MonthlyExpense {
+  id: string
+  userId: string
+  amount: number
+  category: string
+  description: string
+  month: number
+  year: number
+  createdAt: string
+>>>>>>> origin/main
 }
 
-// Global seeding flag
+// In-memory storage
+const users: User[] = []
+const transactions: Transaction[] = []
+const paymentRequests: PaymentRequest[] = []
+const notifications: Notification[] = []
+const monthlyExpenses: MonthlyExpense[] = []
 let isSeeded = false
 
+<<<<<<< HEAD
 // Mock data templates
 const mockUsers: Omit<User, "pin">[] = [
   {
@@ -129,6 +226,8 @@ const mockUsers: Omit<User, "pin">[] = [
     walletBalance: 50.0,
     createdAt: new Date("2024-01-15"),
     updatedAt: new Date("2024-01-15"),
+    joinedDate: new Date("2024-01-15"),
+    paypassUsername: "@john_doe",
   },
   {
     id: "user_2",
@@ -139,6 +238,8 @@ const mockUsers: Omit<User, "pin">[] = [
     walletBalance: 125.75,
     createdAt: new Date("2024-01-10"),
     updatedAt: new Date("2024-01-10"),
+    joinedDate: new Date("2024-01-10"),
+    paypassUsername: "@sarah_wilson",
   },
   {
     id: "user_3",
@@ -149,6 +250,8 @@ const mockUsers: Omit<User, "pin">[] = [
     walletBalance: 89.25,
     createdAt: new Date("2024-01-12"),
     updatedAt: new Date("2024-01-12"),
+    joinedDate: new Date("2024-01-12"),
+    paypassUsername: "@mike_johnson",
   },
   {
     id: "user_4",
@@ -159,6 +262,8 @@ const mockUsers: Omit<User, "pin">[] = [
     walletBalance: 203.5,
     createdAt: new Date("2024-01-08"),
     updatedAt: new Date("2024-01-08"),
+    joinedDate: new Date("2024-01-08"),
+    paypassUsername: "@emma_davis",
   },
   {
     id: "user_5",
@@ -169,6 +274,8 @@ const mockUsers: Omit<User, "pin">[] = [
     walletBalance: 67.8,
     createdAt: new Date("2024-01-14"),
     updatedAt: new Date("2024-01-14"),
+    joinedDate: new Date("2024-01-14"),
+    paypassUsername: "@david_brown",
   },
 ]
 
@@ -176,7 +283,7 @@ const mockPaymentRequests: PaymentRequest[] = [
   {
     id: "req_1",
     senderId: "user_2",
-    receiverId: "user_1",
+    recipientId: "user_1",
     amount: 15.5,
     description: "Groceries split",
     billType: "groceries",
@@ -188,7 +295,7 @@ const mockPaymentRequests: PaymentRequest[] = [
   {
     id: "req_2",
     senderId: "user_3",
-    receiverId: "user_1",
+    recipientId: "user_1",
     amount: 8.0,
     description: "Bus ticket",
     billType: "transport",
@@ -200,7 +307,7 @@ const mockPaymentRequests: PaymentRequest[] = [
   {
     id: "req_3",
     senderId: "user_1",
-    receiverId: "user_4",
+    recipientId: "user_4",
     amount: 22.0,
     description: "Dinner bill",
     billType: "food",
@@ -208,6 +315,162 @@ const mockPaymentRequests: PaymentRequest[] = [
     expiresAt: new Date(Date.now() + 18 * 60 * 60 * 1000),
     createdAt: new Date("2024-01-15T19:00:00Z"),
     updatedAt: new Date("2024-01-15T19:00:00Z"),
+  },
+]
+
+// Demo data for new user types
+const mockAdmins: Omit<Admin, "pin">[] = [
+  {
+    id: "admin_1",
+    fullName: "System Administrator",
+    phone: "+263700000001",
+    email: "admin@paypass.co.zw",
+    role: "super_admin",
+    permissions: ["all"],
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+  {
+    id: "admin_2",
+    fullName: "Platform Manager",
+    phone: "+263700000002",
+    email: "manager@paypass.co.zw",
+    role: "platform_admin",
+    permissions: ["users", "operators", "transactions", "reports"],
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+]
+
+const mockMerchants: Omit<Merchant, "pin">[] = [
+  {
+    id: "merchant_1",
+    businessName: "Pick n Pay Harare",
+    phone: "+263711111111",
+    email: "harare@pnp.co.zw",
+    businessType: "retailer",
+    licenseNumber: "RET001",
+    totalEarnings: 12500.75,
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+  {
+    id: "merchant_2",
+    businessName: "ZESA Harare",
+    phone: "+263722222222",
+    email: "harare@zesa.co.zw",
+    businessType: "utility",
+    licenseNumber: "UTL001",
+    totalEarnings: 8900.50,
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+  {
+    id: "merchant_3",
+    businessName: "City of Harare",
+    phone: "+263733333333",
+    email: "payments@hararecity.co.zw",
+    businessType: "service_provider",
+    licenseNumber: "GOV001",
+    totalEarnings: 15600.25,
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+]
+
+const mockPartners: Omit<Partner, "pin">[] = [
+  {
+    id: "partner_1",
+    companyName: "EcoCash",
+    phone: "+263744444444",
+    email: "integration@ecocash.co.zw",
+    partnerType: "mobile_money",
+    integrationKey: "ecocash_prod_2024",
+    totalTransactions: 45000,
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+  {
+    id: "partner_2",
+    companyName: "CBZ Bank",
+    phone: "+263755555555",
+    email: "payments@cbz.co.zw",
+    partnerType: "bank",
+    integrationKey: "cbz_bank_prod_2024",
+    totalTransactions: 32000,
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+  {
+    id: "partner_3",
+    companyName: "OneMoney",
+    phone: "+263766666666",
+    email: "api@onemoney.co.zw",
+    partnerType: "mobile_money",
+    integrationKey: "onemoney_prod_2024",
+    totalTransactions: 28000,
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+]
+
+// Demo operator data
+const mockOperators: Omit<Operator, "pin">[] = [
+  {
+    id: "op_1",
+    companyName: "City Bus Lines",
+    phone: "+263712345678",
+    email: "info@citybus.co.zw",
+    licenseNumber: "OP001",
+    vehicleCount: 25,
+    totalEarnings: 12500.75,
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+  {
+    id: "op_2",
+    companyName: "ZUPCO Transport",
+    phone: "+263775432109",
+    email: "admin@zupco.co.zw",
+    licenseNumber: "OP002",
+    vehicleCount: 45,
+    totalEarnings: 18900.50,
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+  {
+    id: "op_3",
+    companyName: "Harare Kombis",
+    phone: "+263787654321",
+    email: "contact@hararekombis.co.zw",
+    licenseNumber: "OP003",
+    vehicleCount: 12,
+    totalEarnings: 8900.25,
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+  },
+  {
+    id: "op_4",
+    companyName: "Metro Peach",
+    phone: "+263796543210",
+    email: "support@metropeach.co.zw",
+    licenseNumber: "OP004",
+    vehicleCount: 18,
+    totalEarnings: 15600.00,
+    isActive: true,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
   },
 ]
 
@@ -247,6 +510,9 @@ const mockNotifications: NotificationRecord[] = [
 export class MemoryStorage implements StorageInterface {
   private users: User[] = []
   private operators: Operator[] = []
+  private admins: Admin[] = []
+  private merchants: Merchant[] = []
+  private partners: Partner[] = []
   private transactions: Transaction[] = []
   private routes: Route[] = []
   private paymentRequests: PaymentRequest[] = []
@@ -270,6 +536,12 @@ export class MemoryStorage implements StorageInterface {
       // Seed other data
       this.paymentRequests = [...mockPaymentRequests]
       this.notifications = [...mockNotifications]
+
+      // Seed new user types
+      this.admins = mockAdmins.map((admin) => ({ ...admin, pin: hashedPin }))
+      this.merchants = mockMerchants.map((merchant) => ({ ...merchant, pin: hashedPin }))
+      this.partners = mockPartners.map((partner) => ({ ...partner, pin: hashedPin }))
+      this.operators = mockOperators.map((operator) => ({ ...operator, pin: hashedPin }))
 
       isSeeded = true
       console.log("Memory storage seeded successfully with", this.users.length, "users")
@@ -357,6 +629,66 @@ export class MemoryStorage implements StorageInterface {
     return this.operators.find((op) => op.phone === phone) || null
   }
 
+  // Admin methods
+  async createAdmin(adminData: Omit<Admin, "id" | "createdAt" | "updatedAt">): Promise<Admin> {
+    const admin: Admin = {
+      id: `admin_${Date.now()}`,
+      ...adminData,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    this.admins.push(admin)
+    return admin
+  }
+
+  async getAdminById(id: string): Promise<Admin | null> {
+    return this.admins.find((admin) => admin.id === id) || null
+  }
+
+  async getAdminByPhone(phone: string): Promise<Admin | null> {
+    return this.admins.find((admin) => admin.phone === phone) || null
+  }
+
+  // Merchant methods
+  async createMerchant(merchantData: Omit<Merchant, "id" | "createdAt" | "updatedAt">): Promise<Merchant> {
+    const merchant: Merchant = {
+      id: `merchant_${Date.now()}`,
+      ...merchantData,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    this.merchants.push(merchant)
+    return merchant
+  }
+
+  async getMerchantById(id: string): Promise<Merchant | null> {
+    return this.merchants.find((merchant) => merchant.id === id) || null
+  }
+
+  async getMerchantByPhone(phone: string): Promise<Merchant | null> {
+    return this.merchants.find((merchant) => merchant.phone === phone) || null
+  }
+
+  // Partner methods
+  async createPartner(partnerData: Omit<Partner, "id" | "createdAt" | "updatedAt">): Promise<Partner> {
+    const partner: Partner = {
+      id: `partner_${Date.now()}`,
+      ...partnerData,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+    this.partners.push(partner)
+    return partner
+  }
+
+  async getPartnerById(id: string): Promise<Partner | null> {
+    return this.partners.find((partner) => partner.id === id) || null
+  }
+
+  async getPartnerByPhone(phone: string): Promise<Partner | null> {
+    return this.partners.find((partner) => partner.phone === phone) || null
+  }
+
   // Transaction methods
   async createTransaction(txnData: Omit<Transaction, "id" | "createdAt" | "updatedAt">): Promise<Transaction> {
     const transaction: Transaction = {
@@ -370,10 +702,20 @@ export class MemoryStorage implements StorageInterface {
   }
 
   async getUserTransactions(userId: string, limit?: number): Promise<Transaction[]> {
-    const userTxns = this.transactions
+    const userTxn = this.transactions
       .filter((txn) => txn.userId === userId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
-    return limit ? userTxns.slice(0, limit) : userTxns
+    return limit ? userTxn.slice(0, limit) : userTxn
+  }
+
+  async getTransactionById(id: string): Promise<Transaction | null> {
+    return this.transactions.find((txn) => txn.id === id) || null
+  }
+
+  async getUnpaidTransactions(userId: string): Promise<Transaction[]> {
+    return this.transactions
+      .filter((txn) => txn.userId === userId && txn.status === "pending")
+      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
   }
 
   async getOperatorTransactions(operatorId: string, limit?: number): Promise<Transaction[]> {
@@ -403,6 +745,15 @@ export class MemoryStorage implements StorageInterface {
     return this.routes.find((route) => route.id === id) || null
   }
 
+  async getRouteByQrCode(qrCode: string): Promise<Route | null> {
+    // For now, we'll use a simple mapping - in a real app, QR codes would be stored in the route
+    return this.routes.find((route) => route.id === qrCode) || null
+  }
+
+  async getOperator(operatorId: string): Promise<Operator | null> {
+    return this.operators.find((operator) => operator.id === operatorId) || null
+  }
+
   // Payment Request methods
   async createPaymentRequest(
     requestData: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt">,
@@ -429,7 +780,7 @@ export class MemoryStorage implements StorageInterface {
 
   async getUserReceivedPaymentRequests(userId: string): Promise<PaymentRequest[]> {
     return this.paymentRequests
-      .filter((req) => req.receiverId === userId)
+      .filter((req) => req.recipientId === userId)
       .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
   }
 
@@ -481,16 +832,247 @@ export class MemoryStorage implements StorageInterface {
     return this.notifications.filter((notif) => notif.userId === userId && !notif.isRead).length
   }
 
-  // Legacy methods for compatibility
-  async getAdminByPhone(phone: string): Promise<any> {
-    return null
-  }
 
-  async getMerchantByPhone(phone: string): Promise<any> {
-    return null
-  }
-
-  async getPartnerByPhone(phone: string): Promise<any> {
-    return null
-  }
+=======
+function generateId(): string {
+  return Math.random().toString(36).substring(2) + Date.now().toString(36)
 }
+
+async function ensureSeeded(): Promise<void> {
+  if (isSeeded) return
+
+  console.log("Seeding memory storage...")
+
+  // Create demo users
+  const demoUsers = [
+    {
+      id: generateId(),
+      fullName: "John Doe",
+      phoneNumber: "+1234567890",
+      email: "john@example.com",
+      password: "1234",
+      walletBalance: 150.0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: generateId(),
+      fullName: "Jane Smith",
+      phoneNumber: "+1234567891",
+      email: "jane@example.com",
+      password: "1234",
+      walletBalance: 200.0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+  ]
+
+  users.push(...demoUsers)
+
+  // Create demo transactions
+  const demoTransactions = [
+    {
+      id: generateId(),
+      userId: demoUsers[0].id,
+      type: "payment",
+      amount: 25.0,
+      description: "Coffee Shop Payment",
+      status: "completed",
+      category: "food",
+      createdAt: new Date(Date.now() - 86400000).toISOString(), // Yesterday
+      updatedAt: new Date(Date.now() - 86400000).toISOString(),
+      isPaid: true,
+    },
+    {
+      id: generateId(),
+      userId: demoUsers[0].id,
+      type: "topup",
+      amount: 100.0,
+      description: "Wallet Top-up",
+      status: "completed",
+      category: "topup",
+      createdAt: new Date(Date.now() - 172800000).toISOString(), // 2 days ago
+      updatedAt: new Date(Date.now() - 172800000).toISOString(),
+      isPaid: true,
+    },
+  ]
+
+  transactions.push(...demoTransactions)
+
+  isSeeded = true
+  console.log("Memory storage seeded successfully")
+}
+
+async function createUser(userData: Omit<User, "id" | "createdAt" | "updatedAt">): Promise<User> {
+  const user: User = {
+    ...userData,
+    id: generateId(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }
+
+  users.push(user)
+  return user
+}
+
+async function getUserById(id: string): Promise<User | null> {
+  return users.find((user) => user.id === id) || null
+}
+
+async function getUserByPhone(phoneNumber: string): Promise<User | null> {
+  return users.find((user) => user.phoneNumber === phoneNumber) || null
+}
+
+async function updateUserWalletBalance(userId: string, newBalance: number): Promise<boolean> {
+  const userIndex = users.findIndex((user) => user.id === userId)
+  if (userIndex === -1) return false
+
+  users[userIndex].walletBalance = newBalance
+  users[userIndex].updatedAt = new Date().toISOString()
+  return true
+}
+
+async function createTransaction(
+  transactionData: Omit<Transaction, "id" | "createdAt" | "updatedAt">,
+): Promise<Transaction> {
+  const transaction: Transaction = {
+    ...transactionData,
+    id: generateId(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }
+
+  transactions.push(transaction)
+  return transaction
+}
+
+async function getUserTransactions(userId: string): Promise<Transaction[]> {
+  return transactions.filter(
+    (transaction) =>
+      transaction.userId === userId || transaction.senderId === userId || transaction.receiverId === userId,
+  )
+}
+
+async function getTransactionById(id: string): Promise<Transaction | null> {
+  return transactions.find((transaction) => transaction.id === id) || null
+}
+
+async function createPaymentRequest(
+  requestData: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt">,
+): Promise<PaymentRequest> {
+  const request: PaymentRequest = {
+    ...requestData,
+    id: generateId(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+  }
+
+  paymentRequests.push(request)
+  return request
+}
+
+async function getPaymentRequestById(id: string): Promise<PaymentRequest | null> {
+  return paymentRequests.find((request) => request.id === id) || null
+}
+
+async function updatePaymentRequestStatus(
+  id: string,
+  status: string,
+  respondedAt?: Date,
+): Promise<PaymentRequest | null> {
+  const requestIndex = paymentRequests.findIndex((request) => request.id === id)
+  if (requestIndex === -1) return null
+
+  paymentRequests[requestIndex].status = status
+  paymentRequests[requestIndex].updatedAt = new Date().toISOString()
+  if (respondedAt) {
+    paymentRequests[requestIndex].respondedAt = respondedAt.toISOString()
+  }
+
+  return paymentRequests[requestIndex]
+}
+
+async function getPendingPaymentRequests(userId: string): Promise<PaymentRequest[]> {
+  return paymentRequests.filter((request) => request.recipientId === userId && request.status === "pending")
+}
+
+async function createNotification(notificationData: Omit<Notification, "id" | "createdAt">): Promise<Notification> {
+  const notification: Notification = {
+    ...notificationData,
+    id: generateId(),
+    createdAt: new Date().toISOString(),
+  }
+
+  notifications.push(notification)
+  return notification
+}
+
+async function getUserNotifications(userId: string): Promise<Notification[]> {
+  return notifications
+    .filter((notification) => notification.userId === userId)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+}
+
+async function markNotificationAsRead(id: string): Promise<boolean> {
+  const notificationIndex = notifications.findIndex((notification) => notification.id === id)
+  if (notificationIndex === -1) return false
+
+  notifications[notificationIndex].isRead = true
+  return true
+}
+
+async function recordMonthlyExpense(
+  userId: string,
+  amount: number,
+  category: string,
+  description: string,
+): Promise<MonthlyExpense> {
+  const now = new Date()
+  const expense: MonthlyExpense = {
+    id: generateId(),
+    userId,
+    amount,
+    category,
+    description,
+    month: now.getMonth(),
+    year: now.getFullYear(),
+    createdAt: now.toISOString(),
+  }
+
+  monthlyExpenses.push(expense)
+  return expense
+}
+
+async function getMonthlyExpenses(userId: string, month?: number, year?: number): Promise<MonthlyExpense[]> {
+  const now = new Date()
+  const targetMonth = month ?? now.getMonth()
+  const targetYear = year ?? now.getFullYear()
+
+  return monthlyExpenses.filter(
+    (expense) => expense.userId === userId && expense.month === targetMonth && expense.year === targetYear,
+  )
+}
+
+export const storage = {
+  ensureSeeded,
+  createUser,
+  getUserById,
+  getUserByPhone,
+  updateUserWalletBalance,
+  createTransaction,
+  getUserTransactions,
+  getTransactionById,
+  createPaymentRequest,
+  getPaymentRequestById,
+  updatePaymentRequestStatus,
+  getPendingPaymentRequests,
+  createNotification,
+  getUserNotifications,
+  markNotificationAsRead,
+  recordMonthlyExpense,
+  getMonthlyExpenses,
+>>>>>>> origin/main
+}
+
+// Create and export the storage instance
+export const storage = new MemoryStorage()

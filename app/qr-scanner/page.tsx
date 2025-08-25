@@ -7,7 +7,7 @@ import Link from "next/link"
 import { ArrowLeft, QrCode, Camera, Home, History, User, AlertCircle, CheckCircle } from "lucide-react"
 
 export default function QRScannerPage() {
-  const { user, updateUserBalance } = useAuth()
+  const { user } = useAuth()
   const router = useRouter()
   const [selectedDemo, setSelectedDemo] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)

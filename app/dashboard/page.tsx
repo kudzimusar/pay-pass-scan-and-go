@@ -58,6 +58,7 @@ export default function DashboardPage() {
   const [monthlyExpenses, setMonthlyExpenses] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
+  const [expensesError, setExpensesError] = useState("")
 
   // Get current date info
   const now = new Date()
@@ -85,6 +86,10 @@ export default function DashboardPage() {
   const fetchPendingRequests = async (userId: string) => {
     try {
       const response = await fetch(`/api/requests/pending?userId=${userId}`)
+      if (!response.ok) {
+        const text = await response.text()
+        throw new Error(text || `HTTP ${response.status}`)
+      }
       const data = await response.json()
 
       if (data.success) {
@@ -98,6 +103,15 @@ export default function DashboardPage() {
   const fetchNotifications = async (userId: string) => {
     try {
       const response = await fetch(`/api/notifications?userId=${userId}`)
+      if (!response.ok) {
+        const text = await response.text()
+        throw new Error(text || `HTTP ${response.status}`)
+      }
+      const contentType = response.headers.get("content-type") || ""
+      if (!contentType.includes("application/json")) {
+        const text = await response.text()
+        throw new Error(text || "Invalid response format from notifications API")
+      }
       const data = await response.json()
 
       if (data.success) {
@@ -112,18 +126,45 @@ export default function DashboardPage() {
 
   const calculateMonthlyExpenses = async (userId: string) => {
     try {
+      console.log("Fetching monthly expenses for user:", userId)
       const response = await fetch(`/api/expenses/monthly?userId=${userId}`)
+<<<<<<< HEAD
+      if (!response.ok) {
+        const text = await response.text()
+        throw new Error(text || `HTTP ${response.status}`)
+      }
+=======
+
+      console.log("Monthly expenses response status:", response.status)
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+
+      // Check if response is JSON
+      const contentType = response.headers.get("content-type")
+      if (!contentType || !contentType.includes("application/json")) {
+        const text = await response.text()
+        console.error("Non-JSON response from monthly expenses API:", text)
+        throw new Error("Server returned invalid response format")
+      }
+
+>>>>>>> origin/main
       const data = await response.json()
+      console.log("Monthly expenses data:", data)
 
       if (data.success) {
         setMonthlyExpenses(data.totalExpenses || 0)
+        setExpensesError("")
+      } else {
+        console.error("Monthly expenses API returned error:", data.error)
+        setExpensesError("Error loading monthly expenses")
+        setMonthlyExpenses(0)
       }
     } catch (error) {
       console.error("Error calculating monthly expenses:", error)
-      // Fallback calculation based on accepted requests
-      const acceptedRequests = pendingRequests.filter((req) => req.status === "accepted")
-      const total = acceptedRequests.reduce((sum, req) => sum + req.amount, 0)
-      setMonthlyExpenses(total)
+      setExpensesError("Error loading monthly expenses. Please try again later.")
+      setMonthlyExpenses(0)
     }
   }
 
@@ -142,7 +183,24 @@ export default function DashboardPage() {
         }),
       })
 
+<<<<<<< HEAD
+      let data: any = null
+      if (!response.ok) {
+        const text = await response.text()
+        try {
+          data = text.trim().startsWith("{") ? JSON.parse(text) : null
+        } catch {}
+        setError(data?.error || text || `Failed to ${action} request: HTTP ${response.status}`)
+        return
+      }
+      data = await response.json()
+=======
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
+
       const data = await response.json()
+>>>>>>> origin/main
 
       if (data.success) {
         // Refresh pending requests and user data
@@ -159,7 +217,7 @@ export default function DashboardPage() {
       }
     } catch (error) {
       console.error(`Error ${action}ing request:`, error)
-      setError(`Failed to ${action} request`)
+      setError(`Failed to ${action} request. Please try again.`)
     }
   }
 
@@ -170,8 +228,15 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen bg-gray-50">
+        <div className="mobile-container">
+          <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading dashboard...</p>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }
@@ -187,7 +252,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="w-full max-w-md mx-auto bg-white min-h-screen shadow-xl">
+      <div className="mobile-container">
         {/* Hero Section */}
         <div className="bg-gradient-to-br from-blue-600 via-teal-600 to-emerald-600 px-6 py-8 text-white">
           {/* Header */}
@@ -245,11 +310,21 @@ export default function DashboardPage() {
               </div>
               <div className="flex items-center text-sm text-blue-100">
                 <span className="mr-2">{currentMonth} Expenses:</span>
-                <span className="font-medium">${monthlyExpenses.toFixed(2)}</span>
-                <div className={`flex items-center ml-2 ${isExpenseUp ? "text-red-200" : "text-green-200"}`}>
-                  {isExpenseUp ? <TrendingUp className="w-3 h-3 mr-1" /> : <TrendingDown className="w-3 h-3 mr-1" />}
-                  <span className="text-xs">${Math.abs(expenseChange).toFixed(2)}</span>
-                </div>
+                {expensesError ? (
+                  <span className="text-red-200 text-xs">{expensesError}</span>
+                ) : (
+                  <>
+                    <span className="font-medium">${monthlyExpenses.toFixed(2)}</span>
+                    <div className={`flex items-center ml-2 ${isExpenseUp ? "text-red-200" : "text-green-200"}`}>
+                      {isExpenseUp ? (
+                        <TrendingUp className="w-3 h-3 mr-1" />
+                      ) : (
+                        <TrendingDown className="w-3 h-3 mr-1" />
+                      )}
+                      <span className="text-xs">${Math.abs(expenseChange).toFixed(2)}</span>
+                    </div>
+                  </>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -78,16 +78,72 @@ export default function RequestMoneyPage() {
 
   const loadAllContacts = async (currentUserId: string) => {
     try {
-      // Load mock contacts
+      // Load mock contacts with proper error handling
       const mockResponse = await fetch("/api/contacts/mock")
+<<<<<<< HEAD
+      if (!mockResponse.ok) {
+        const text = await mockResponse.text()
+        throw new Error(text || `HTTP ${mockResponse.status}`)
+      }
+      const mockCt = mockResponse.headers.get("content-type") || ""
+      if (!mockCt.includes("application/json")) {
+        const text = await mockResponse.text()
+        throw new Error(text || "Invalid contacts response format")
+      }
+=======
+
+      if (!mockResponse.ok) {
+        const errorText = await mockResponse.text()
+        console.error("Mock contacts API error:", errorText)
+        throw new Error(`Mock contacts API failed: ${errorText}`)
+      }
+
+      const contentType = mockResponse.headers.get("content-type")
+      if (!contentType || !contentType.includes("application/json")) {
+        const errorText = await mockResponse.text()
+        console.error("Mock contacts API returned non-JSON:", errorText)
+        throw new Error(`Mock contacts API returned non-JSON response: ${errorText}`)
+      }
+
+>>>>>>> origin/main
       const mockData = await mockResponse.json()
 
       if (mockData.success) {
         setMockContacts(mockData.contacts || [])
+      } else {
+        console.warn("Mock contacts API returned success: false", mockData)
       }
 
+      // Load system users (excluding current user) with proper error handling
+      const usersResponse = await fetch(`/api/users/search?q=&excludeUserId=${currentUserId}`)
+
+      if (!usersResponse.ok) {
+        const errorText = await usersResponse.text()
+        console.error("Users search API error:", errorText)
+        throw new Error(`Users search API failed: ${errorText}`)
+      }
+
+      const usersContentType = usersResponse.headers.get("content-type")
+      if (!usersContentType || !usersContentType.includes("application/json")) {
+        const errorText = await usersResponse.text()
+        console.error("Users search API returned non-JSON:", errorText)
+        throw new Error(`Users search API returned non-JSON response: ${errorText}`)
+      }
+
+<<<<<<< HEAD
       // Load system users (excluding current user)
-      const usersResponse = await fetch(`/api/users/search?q=&exclude=${currentUserId}`)
+      const usersResponse = await fetch(`/api/users/search?q=${encodeURIComponent(" ")}&excludeUserId=${currentUserId}`)
+      if (!usersResponse.ok) {
+        const text = await usersResponse.text()
+        throw new Error(text || `HTTP ${usersResponse.status}`)
+      }
+      const userCt = usersResponse.headers.get("content-type") || ""
+      if (!userCt.includes("application/json")) {
+        const text = await usersResponse.text()
+        throw new Error(text || "Invalid users response format")
+      }
+=======
+>>>>>>> origin/main
       const usersData = await usersResponse.json()
 
       if (usersData.success) {
@@ -102,10 +158,26 @@ export default function RequestMoneyPage() {
         const combinedContacts = [...systemUsers, ...mockContactsAsUsers]
         setAllContacts(combinedContacts)
         setSearchResults(combinedContacts)
+      } else {
+        console.warn("Users search API returned success: false", usersData)
+        // Still set mock contacts even if users search fails
+        const mockContactsAsUsers = (mockData.contacts || []).map((contact: MockContact) => ({
+          id: contact.id,
+          fullName: contact.name,
+          phone: contact.phone,
+          email: contact.email,
+        }))
+        setAllContacts(mockContactsAsUsers)
+        setSearchResults(mockContactsAsUsers)
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error loading contacts:", error)
-      setError("Failed to load contacts")
+<<<<<<< HEAD
+      setError(error?.message || "Failed to load contacts")
+=======
+      const errorMessage = error instanceof Error ? error.message : "Failed to load contacts"
+      setError(`Failed to load contacts: ${errorMessage}`)
+>>>>>>> origin/main
     }
   }
 
@@ -205,6 +277,19 @@ export default function RequestMoneyPage() {
         }),
       })
 
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error("Send request API error:", errorText)
+        throw new Error(`Send request failed: ${errorText}`)
+      }
+
+      const contentType = response.headers.get("content-type")
+      if (!contentType || !contentType.includes("application/json")) {
+        const errorText = await response.text()
+        console.error("Send request API returned non-JSON:", errorText)
+        throw new Error(`Send request API returned non-JSON response: ${errorText}`)
+      }
+
       const data = await response.json()
 
       if (data.success) {
@@ -225,7 +310,8 @@ export default function RequestMoneyPage() {
       }
     } catch (error) {
       console.error("Send request error:", error)
-      setError("Failed to send request")
+      const errorMessage = error instanceof Error ? error.message : "Failed to send request"
+      setError(errorMessage)
     } finally {
       setIsSending(false)
     }

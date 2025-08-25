@@ -50,16 +50,25 @@ export default function UnpaidTransactionsPage() {
   const fetchUnpaidTransactions = async (userId: string) => {
     try {
       const response = await fetch(`/api/transactions/unpaid?userId=${userId}`)
+      if (!response.ok) {
+        const text = await response.text()
+        throw new Error(text || `HTTP ${response.status}`)
+      }
+      const contentType = response.headers.get("content-type") || ""
+      if (!contentType.includes("application/json")) {
+        const text = await response.text()
+        throw new Error(text || "Invalid server response")
+      }
       const data = await response.json()
 
       if (data.success) {
         setTransactions(data.transactions)
       } else {
-        setError("Failed to load transactions")
+        setError(data.error || "Failed to load transactions")
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Fetch transactions error:", error)
-      setError("Failed to load transactions")
+      setError(error?.message || "Failed to load transactions")
     } finally {
       setIsLoading(false)
     }

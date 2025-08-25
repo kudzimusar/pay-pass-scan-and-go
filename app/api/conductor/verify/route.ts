@@ -1,7 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { neon } from "@neondatabase/serverless"
 
-const sql = neon(process.env.DATABASE_URL!)
+const hasDb = Boolean(process.env.DATABASE_URL)
+const sql = hasDb ? neon(process.env.DATABASE_URL as string) : (async () => { throw new Error("DB not configured") })
 
 interface ConductorLoginRequest {
   conductor_id: string
@@ -61,14 +62,15 @@ async function handleConductorLogin(body: ConductorLoginRequest) {
   }
 
   // Check if conductor is already logged in
-  const existingSessions = await sql`
+  if (!hasDb) return NextResponse.json({ error: "Database not configured" }, { status: 503 })
+  const existingSessions = await (sql as any)`
     SELECT * FROM conductor_sessions 
     WHERE conductor_id = ${conductor_id} AND is_active = true
   `
 
   // End any existing sessions
   if (existingSessions.length > 0) {
-    await sql`
+    await (sql as any)`
       UPDATE conductor_sessions 
       SET is_active = false, shift_end = CURRENT_TIMESTAMP
       WHERE conductor_id = ${conductor_id} AND is_active = true
@@ -79,7 +81,7 @@ async function handleConductorLogin(body: ConductorLoginRequest) {
   const session_id = `SESS_${conductor_id}_${Date.now()}`
   const assigned_route = route_id || conductor.routes[0] // Use provided route or default
 
-  await sql`
+  await (sql as any)`
     INSERT INTO conductor_sessions (
       session_id, conductor_id, conductor_name, route_id, bus_id, is_active
     ) VALUES (
@@ -110,7 +112,8 @@ async function handleTicketVerification(body: TicketVerificationRequest) {
   }
 
   // Verify conductor session is active
-  const sessions = await sql`
+  if (!hasDb) return NextResponse.json({ error: "Database not configured" }, { status: 503 })
+  const sessions = await (sql as any)`
     SELECT * FROM conductor_sessions 
     WHERE conductor_id = ${conductor_id} AND is_active = true
   `
@@ -122,7 +125,7 @@ async function handleTicketVerification(body: TicketVerificationRequest) {
   const session = sessions[0]
 
   // Get ticket details with route and station information
-  const tickets = await sql`
+  const tickets = await (sql as any)`
     SELECT 
       rt.*,
       r.route_name,
@@ -165,7 +168,7 @@ async function handleTicketVerification(body: TicketVerificationRequest) {
       }
 
       // Update ticket to confirm boarding
-      await sql`
+      await (sql as any)`
         UPDATE route_transactions 
         SET boarding_confirmed = true, boarding_time = CURRENT_TIMESTAMP, conductor_id = ${conductor_id}
         WHERE qr_ticket_code = ${qr_ticket_code}
@@ -194,7 +197,7 @@ async function handleTicketVerification(body: TicketVerificationRequest) {
 
       // Update ticket to confirm drop-off
       const actualStation = additional_data?.new_station_id || ticket.station_id
-      await sql`
+      await (sql as any)`
         UPDATE route_transactions 
         SET dropoff_confirmed = true, dropoff_time = CURRENT_TIMESTAMP, actual_dropoff_station = ${actualStation}
         WHERE qr_ticket_code = ${qr_ticket_code}
@@ -273,7 +276,8 @@ export async function GET(request: NextRequest) {
 
     if (action === "session") {
       // Get active session
-      const sessions = await sql`
+      if (!hasDb) return NextResponse.json({ error: "Database not configured" }, { status: 503 })
+      const sessions = await (sql as any)`
         SELECT 
           cs.*,
           r.route_name
@@ -301,7 +305,7 @@ export async function GET(request: NextRequest) {
       const route_id = sessions[0].route_id
 
       // Get all passengers currently on this route
-      const manifest = await sql`
+      const manifest = await (sql as any)`
         SELECT 
           rt.transaction_id,
           rt.qr_ticket_code,
@@ -350,7 +354,7 @@ export async function PUT(request: NextRequest) {
     switch (action) {
       case "LOGOUT":
         // End conductor session
-        await sql`
+        await (sql as any)`
           UPDATE conductor_sessions 
           SET is_active = false, shift_end = CURRENT_TIMESTAMP
           WHERE conductor_id = ${conductor_id} AND is_active = true
@@ -367,7 +371,7 @@ export async function PUT(request: NextRequest) {
         }
 
         // Update conductor location
-        await sql`
+        await (sql as any)`
           UPDATE conductor_sessions 
           SET current_location = ${location}, last_ping = CURRENT_TIMESTAMP
           WHERE conductor_id = ${conductor_id} AND is_active = true

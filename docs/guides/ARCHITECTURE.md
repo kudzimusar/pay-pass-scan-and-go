@@ -1299,4 +1299,8 @@ class PCICompliantPaymentProcessor {
 
 ---
 
+<<<<<<< HEAD
 This comprehensive architecture guide provides the foundation for building a scalable, secure, and maintainable PayPass platform. Each section should be implemented progressively, starting with the monolithic foundation and evolving toward the microservices architecture as the platform grows.
+=======
+This comprehensive architecture guide provides the foundation for building a scalable, secure, and maintainable PayPass platform. Each section should be implemented progressively, starting with the monolithic foundation and evolving toward the microservices architecture as the platform grows.
+>>>>>>> 5369374451513e9b5f7afd9dc5a8e42ac51c60c6

@@ -393,4 +393,8 @@ export const bankTransferRequestSchema = z.object({
   currency: z.enum(['USD', 'ZWL', 'EUR', 'GBP', 'ZAR']),
   purpose: z.string().min(5, "Transfer purpose is required").max(500, "Purpose too long"),
   reference: z.string().max(100, "Reference too long").optional(),
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> 5369374451513e9b5f7afd9dc5a8e42ac51c60c6

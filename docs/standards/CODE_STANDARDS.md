@@ -759,4 +759,8 @@ This script checks:
 
 ---
 
+<<<<<<< HEAD
 *These standards ensure consistent, maintainable, and high-quality code across the PayPass platform. All team members must follow these guidelines for code reviews and development.*
+=======
+*These standards ensure consistent, maintainable, and high-quality code across the PayPass platform. All team members must follow these guidelines for code reviews and development.*
+>>>>>>> 5369374451513e9b5f7afd9dc5a8e42ac51c60c6

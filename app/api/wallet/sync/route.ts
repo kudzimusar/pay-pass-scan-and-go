@@ -7,7 +7,7 @@ export async function GET(req: Request) {
     await ensureSeeded()
 
     const auth = verifyAuthHeader(req.headers.get("authorization"))
-    if (!auth || auth.type !== "user") {
+    if (!auth || auth.type !== "user" || !auth.userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -28,9 +28,6 @@ export async function GET(req: Request) {
         email: user.email,
         biometricEnabled: user.biometricEnabled,
         walletBalance: user.walletBalance,
-        paypassUsername: user.paypassUsername,
-        dateOfBirth: user.dateOfBirth,
-        joinedDate: user.joinedDate,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
       },

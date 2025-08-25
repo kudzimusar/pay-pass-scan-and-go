@@ -3,7 +3,8 @@ import { neon } from "@neondatabase/serverless"
 import { randomBytes } from "crypto"
 import { verifyAuthHeader } from "../../_lib/auth"
 
-const sql = neon(process.env.DATABASE_URL!)
+const hasDb = Boolean(process.env.DATABASE_URL)
+const sql = hasDb ? neon(process.env.DATABASE_URL as string) : (async () => { throw new Error("DB not configured") })
 
 interface CreateTicketRequest {
   user_id: string
@@ -18,6 +19,10 @@ export async function POST(request: NextRequest) {
   const auth = verifyAuthHeader(request.headers.get("authorization"))
   if (!auth || auth.type !== "user") {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
+  if (!hasDb) {
+    return NextResponse.json({ error: "Database not configured" }, { status: 503 })
   }
 
   try {
@@ -55,11 +60,11 @@ export async function POST(request: NextRequest) {
     const qr_ticket_code = `TICKET_${Date.now()}_${randomBytes(6).toString("hex").toUpperCase()}`
 
     // Start database transaction
-    await sql`BEGIN`
+    await (sql as any)`BEGIN`
 
     try {
       // Create the route transaction record
-      await sql`
+      await (sql as any)`
         INSERT INTO route_transactions (
           transaction_id, user_id, route_id, station_id, qr_ticket_code,
           base_fare, peak_surcharge, total_fare, currency, payment_status,
@@ -74,14 +79,14 @@ export async function POST(request: NextRequest) {
 
       // Deduct the fare from user's wallet balance
       if (currency === "USD") {
-        await sql`
+        await (sql as any)`
           UPDATE wallets 
           SET usd_balance = usd_balance - ${fareCalculation.total_fare},
               updated_at = NOW()
           WHERE user_id = ${user_id}
         `
       } else {
-        await sql`
+        await (sql as any)`
           UPDATE wallets 
           SET zwl_balance = zwl_balance - ${fareCalculation.total_fare},
               updated_at = NOW()
@@ -89,7 +94,7 @@ export async function POST(request: NextRequest) {
         `
       }
 
-      await sql`COMMIT`
+      await (sql as any)`COMMIT`
 
       // Get user details for the ticket (in real app, this would come from user table)
       const userDetails = {
@@ -131,7 +136,7 @@ export async function POST(request: NextRequest) {
         { status: 201 },
       )
     } catch (error) {
-      await sql`ROLLBACK`
+      await (sql as any)`ROLLBACK`
       throw error
     }
   } catch (error) {
@@ -143,6 +148,9 @@ export async function POST(request: NextRequest) {
 // GET endpoint to retrieve ticket by QR code or transaction ID
 export async function GET(request: NextRequest) {
   try {
+    if (!hasDb) {
+      return NextResponse.json({ error: "Database not configured" }, { status: 503 })
+    }
     const { searchParams } = new URL(request.url)
     const qr_code = searchParams.get("qr_code")
     const transaction_id = searchParams.get("transaction_id")
@@ -163,7 +171,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get ticket with route and station details
-    const tickets = await sql`
+    const tickets = await (sql as any)`
       SELECT 
         rt.*,
         r.route_name,
@@ -171,7 +179,7 @@ export async function GET(request: NextRequest) {
       FROM route_transactions rt
       JOIN routes r ON rt.route_id = r.route_id
       JOIN stations s ON rt.station_id = s.station_id
-      WHERE ${sql.unsafe(whereClause, [param])}
+      WHERE ${(sql as any).unsafe(whereClause, [param])}
     `
 
     if (tickets.length === 0) {
@@ -197,6 +205,9 @@ export async function GET(request: NextRequest) {
 // PUT endpoint to update ticket status (for conductor actions)
 export async function PUT(request: NextRequest) {
   try {
+    if (!hasDb) {
+      return NextResponse.json({ error: "Database not configured" }, { status: 503 })
+    }
     const body = await request.json()
     const { qr_ticket_code, action, conductor_id, additional_data } = body
 
@@ -248,7 +259,7 @@ export async function PUT(request: NextRequest) {
       RETURNING *
     `
 
-    const result = await sql.unsafe(query, values)
+    const result = await (sql as any).unsafe(query, values)
 
     if (result.length === 0) {
       return NextResponse.json({ error: "Ticket not found" }, { status: 404 })

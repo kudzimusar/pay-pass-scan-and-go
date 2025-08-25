@@ -3,20 +3,25 @@ import { ensureSeeded, getPaymentRequestsByRecipient, getUserById } from "../../
 
 export async function GET(request: NextRequest) {
   try {
+    console.log("Pending requests API called")
     await ensureSeeded()
 
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get("userId")
 
+    console.log("Fetching pending requests for user:", userId)
+
     if (!userId) {
+      console.log("Missing userId parameter")
       return NextResponse.json({ success: false, error: "User ID is required" }, { status: 400 })
     }
 
     const requests = await getPaymentRequestsByRecipient(userId)
+    console.log("Found requests:", requests.length)
 
     // Enrich requests with sender information
     const enrichedRequests = await Promise.all(
-      requests.map(async (request) => {
+      requests.map(async (request: any) => {
         const sender = await getUserById(request.senderId)
         return {
           ...request,
@@ -25,6 +30,8 @@ export async function GET(request: NextRequest) {
         }
       }),
     )
+
+    console.log("Returning enriched requests:", enrichedRequests.length)
 
     return NextResponse.json({
       success: true,

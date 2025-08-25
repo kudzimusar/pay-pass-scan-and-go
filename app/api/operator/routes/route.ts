@@ -5,14 +5,14 @@ import { operatorRouteSchema } from "../../_lib/schema"
 
 export async function GET(req: Request) {
   const auth = verifyAuthHeader(req.headers.get("authorization"))
-  if (!auth || auth.type !== "operator") return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  const list = await storage.getRoutesByOperatorId(auth.operatorId)
+  if (!auth || auth.type !== "operator" || !auth.operatorId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const list = await storage.getOperatorRoutes(auth.operatorId)
   return NextResponse.json(list)
 }
 
 export async function POST(req: Request) {
   const auth = verifyAuthHeader(req.headers.get("authorization"))
-  if (!auth || auth.type !== "operator") return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  if (!auth || auth.type !== "operator" || !auth.operatorId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   try {
     const raw = await req.json()
     const data = operatorRouteSchema.parse(raw)
@@ -20,9 +20,12 @@ export async function POST(req: Request) {
     const route = await storage.createRoute({
       operatorId: auth.operatorId,
       name: data.name,
-      fareUSD: data.fareUSD,
-      fareZWL: data.fareZWL,
-      qrCode,
+      startLocation: "Route Start",
+      endLocation: "Route End",
+      fare: data.fareUSD,
+      distance: 0,
+      estimatedDuration: 0,
+      isActive: true,
     })
     return NextResponse.json(route)
   } catch {

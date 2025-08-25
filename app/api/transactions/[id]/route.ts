@@ -1,11 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { ensureSeeded, getTransactionById } from "../../_lib/storage"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await ensureSeeded()
 
-    const { id } = params
+    const { id } = await params
 
     if (!id) {
       return NextResponse.json({ success: false, error: "Transaction ID is required" }, { status: 400 })
