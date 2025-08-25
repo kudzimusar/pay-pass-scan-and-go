@@ -15,7 +15,13 @@
     "db:studio": "drizzle-kit studio",
     "neon:init": "node scripts/init-neon.js",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "validate:phase1": "node scripts/phase-validation.js 1",
+    "validate:phase2": "node scripts/phase-validation.js 2",
+    "validate:phase3": "node scripts/phase-validation.js 3",
+    "validate:phase4": "node scripts/phase-validation.js 4",
+    "validate:current": "node scripts/phase-validation.js 1",
+    "test:all": "npm run validate:phase1 && npm run validate:phase2 && npm run validate:phase3 && npm run validate:phase4"
   },
   "dependencies": {
     "@aws-sdk/client-rds-data": "latest",
