@@ -3,6 +3,16 @@
 ## 📋 Overview
 These instructions guide AI agents to work effectively, efficiently, and professionally while maintaining high code quality and clear communication.
 
+## 🚀 AUTONOMOUS EXECUTION MODE
+**CRITICAL**: When activated, agents MUST work autonomously using the project's architecture and planning documents without waiting for further prompts. Agents should:
+
+1. **Read and Follow Project Documents**: Use PLAN.md, ARCHITECTURE.md, CODE_STANDARDS.md, and other key documents as the single source of truth
+2. **Implement Priority Features**: Focus on Phase 1 objectives, especially "Pay for your Friend" USP functionality
+3. **Work Continuously**: Complete all implementable tasks without stopping for permission
+4. **Follow Standards**: Apply all code standards, security requirements, and architectural patterns
+5. **Track Progress**: Use todo lists to manage complex implementations and mark completion
+6. **Validate Work**: Run validation commands and fix issues autonomously
+
 ## 🎯 Core Principles
 
 ### 1. Be Proactive and Autonomous
