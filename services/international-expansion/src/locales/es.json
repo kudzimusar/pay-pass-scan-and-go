@@ -1,0 +1,135 @@
+{
+  "common": {
+    "welcome": "Bienvenido a PayPass",
+    "login": "Iniciar Sesión",
+    "logout": "Cerrar Sesión",
+    "signup": "Registrarse",
+    "send": "Enviar",
+    "receive": "Recibir",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "continue": "Continuar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "save": "Guardar",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito"
+  },
+  "auth": {
+    "login_title": "Inicia Sesión en Tu Cuenta",
+    "login_subtitle": "Ingresa tus credenciales para acceder a PayPass",
+    "signup_title": "Crea Tu Cuenta",
+    "signup_subtitle": "Únete a millones de usuarios enviando dinero globalmente",
+    "email": "Dirección de Correo",
+    "password": "Contraseña",
+    "confirm_password": "Confirmar Contraseña",
+    "forgot_password": "¿Olvidaste tu Contraseña?",
+    "remember_me": "Recordarme",
+    "login_button": "Iniciar Sesión",
+    "signup_button": "Crear Cuenta",
+    "or": "o",
+    "login_with_google": "Continuar con Google",
+    "login_with_facebook": "Continuar con Facebook"
+  },
+  "dashboard": {
+    "title": "Panel de Control",
+    "balance": "Saldo",
+    "recent_transactions": "Transacciones Recientes",
+    "quick_actions": "Acciones Rápidas",
+    "send_money": "Enviar Dinero",
+    "request_money": "Solicitar Dinero",
+    "pay_friend": "Pagar por Tu Amigo",
+    "view_all": "Ver Todo"
+  },
+  "payments": {
+    "send_title": "Enviar Dinero",
+    "recipient": "Destinatario",
+    "amount": "Cantidad",
+    "currency": "Moneda",
+    "message": "Mensaje (Opcional)",
+    "payment_method": "Método de Pago",
+    "review_payment": "Revisar Pago",
+    "confirm_payment": "Confirmar Pago",
+    "payment_sent": "Pago Enviado Exitosamente",
+    "payment_failed": "Pago Fallido",
+    "transaction_fee": "Tarifa de Transacción",
+    "exchange_rate": "Tipo de Cambio",
+    "total_amount": "Cantidad Total"
+  },
+  "friends": {
+    "pay_for_friend": "Pagar por Tu Amigo",
+    "select_friend": "Seleccionar Amigo",
+    "friend_location": "Ubicación del Amigo",
+    "add_friend": "Agregar Amigo",
+    "friend_added": "Amigo Agregado Exitosamente",
+    "pay_bills": "Pagar Facturas por Amigo",
+    "send_gift": "Enviar Dinero de Regalo",
+    "emergency_transfer": "Transferencia de Emergencia"
+  },
+  "wallet": {
+    "my_wallet": "Mi Billetera",
+    "add_money": "Agregar Dinero",
+    "withdraw": "Retirar",
+    "transaction_history": "Historial de Transacciones",
+    "payment_methods": "Métodos de Pago",
+    "add_card": "Agregar Tarjeta",
+    "add_bank": "Agregar Cuenta Bancaria",
+    "crypto_wallet": "Billetera Crypto"
+  },
+  "profile": {
+    "my_profile": "Mi Perfil",
+    "personal_info": "Información Personal",
+    "security": "Seguridad",
+    "notifications": "Notificaciones",
+    "preferences": "Preferencias",
+    "language": "Idioma",
+    "currency": "Moneda Predeterminada",
+    "timezone": "Zona Horaria"
+  },
+  "security": {
+    "security_settings": "Configuraciones de Seguridad",
+    "two_factor_auth": "Autenticación de Dos Factores",
+    "biometric_auth": "Autenticación Biométrica",
+    "change_password": "Cambiar Contraseña",
+    "login_activity": "Actividad de Inicio de Sesión",
+    "device_management": "Gestión de Dispositivos",
+    "security_alerts": "Alertas de Seguridad"
+  },
+  "compliance": {
+    "kyc_verification": "Verificación de Identidad",
+    "aml_check": "Verificación AML",
+    "document_upload": "Subir Documentos",
+    "verification_pending": "Verificación Pendiente",
+    "verification_complete": "Verificación Completa",
+    "compliance_status": "Estado de Cumplimiento"
+  },
+  "errors": {
+    "invalid_email": "Por favor ingresa una dirección de correo válida",
+    "invalid_password": "La contraseña debe tener al menos 8 caracteres",
+    "passwords_dont_match": "Las contraseñas no coinciden",
+    "insufficient_funds": "Fondos insuficientes",
+    "transaction_failed": "Transacción fallida. Por favor intenta de nuevo",
+    "network_error": "Error de red. Por favor verifica tu conexión",
+    "invalid_amount": "Por favor ingresa una cantidad válida",
+    "recipient_not_found": "Destinatario no encontrado"
+  },
+  "success": {
+    "account_created": "Cuenta creada exitosamente",
+    "login_successful": "Inicio de sesión exitoso",
+    "payment_sent": "Pago enviado exitosamente",
+    "profile_updated": "Perfil actualizado exitosamente",
+    "verification_submitted": "Documentos de verificación enviados",
+    "security_updated": "Configuraciones de seguridad actualizadas"
+  },
+  "notifications": {
+    "payment_received": "Recibiste un pago",
+    "payment_sent": "Pago enviado exitosamente",
+    "friend_request": "Nueva solicitud de amistad",
+    "security_alert": "Alerta de seguridad",
+    "verification_update": "Estado de verificación actualizado",
+    "new_feature": "Nueva función disponible"
+  }
+}

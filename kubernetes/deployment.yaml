@@ -1,0 +1,603 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paypass-app
+  labels:
+    app: paypass
+    component: web
+    version: v2.1.0
+    environment: production
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: paypass
+      component: web
+  template:
+    metadata:
+      labels:
+        app: paypass
+        component: web
+        version: v2.1.0
+    spec:
+      containers:
+      - name: paypass-web
+        image: paypass/web:v2.1.0
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3000"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: paypass-secrets
+              key: database-url
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: paypass-secrets
+              key: jwt-secret
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: paypass-config
+              key: redis-url
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+        startupProbe:
+          httpGet:
+            path: /api/health
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 3
+          failureThreshold: 10
+      nodeSelector:
+        node-type: web
+      tolerations:
+      - key: "web-workload"
+        operator: "Equal"
+        value: "true"
+        effect: "NoSchedule"
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paypass-api-gateway
+  labels:
+    app: paypass
+    component: api-gateway
+    version: v2.1.0
+spec:
+  replicas: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: paypass
+      component: api-gateway
+  template:
+    metadata:
+      labels:
+        app: paypass
+        component: api-gateway
+        version: v2.1.0
+    spec:
+      containers:
+      - name: api-gateway
+        image: paypass/api-gateway:v2.1.0
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "8080"
+        - name: USER_SERVICE_URL
+          value: "http://paypass-user-service:3001"
+        - name: PAYMENT_SERVICE_URL
+          value: "http://paypass-payment-service:3002"
+        - name: WALLET_SERVICE_URL
+          value: "http://paypass-wallet-service:3003"
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: paypass-config
+              key: redis-url
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "250m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 20
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paypass-user-service
+  labels:
+    app: paypass
+    component: user-service
+    version: v2.1.0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: paypass
+      component: user-service
+  template:
+    metadata:
+      labels:
+        app: paypass
+        component: user-service
+        version: v2.1.0
+    spec:
+      containers:
+      - name: user-service
+        image: paypass/user-service:v2.1.0
+        ports:
+        - containerPort: 3001
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3001"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: paypass-secrets
+              key: user-database-url
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: paypass-secrets
+              key: jwt-secret
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "400m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paypass-payment-service
+  labels:
+    app: paypass
+    component: payment-service
+    version: v2.1.0
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: paypass
+      component: payment-service
+  template:
+    metadata:
+      labels:
+        app: paypass
+        component: payment-service
+        version: v2.1.0
+    spec:
+      containers:
+      - name: payment-service
+        image: paypass/payment-service:v2.1.0
+        ports:
+        - containerPort: 3002
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3002"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: paypass-secrets
+              key: payment-database-url
+        - name: STRIPE_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: paypass-secrets
+              key: stripe-secret-key
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: paypass-config
+              key: redis-url
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "300m"
+          limits:
+            memory: "1Gi"
+            cpu: "600m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3002
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3002
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paypass-wallet-service
+  labels:
+    app: paypass
+    component: wallet-service
+    version: v2.1.0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: paypass
+      component: wallet-service
+  template:
+    metadata:
+      labels:
+        app: paypass
+        component: wallet-service
+        version: v2.1.0
+    spec:
+      containers:
+      - name: wallet-service
+        image: paypass/wallet-service:v2.1.0
+        ports:
+        - containerPort: 3003
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3003"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: paypass-secrets
+              key: wallet-database-url
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: paypass-config
+              key: redis-url
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "400m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3003
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3003
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paypass-analytics-service
+  labels:
+    app: paypass
+    component: analytics-service
+    version: v2.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: paypass
+      component: analytics-service
+  template:
+    metadata:
+      labels:
+        app: paypass
+        component: analytics-service
+        version: v2.1.0
+    spec:
+      containers:
+      - name: analytics-service
+        image: paypass/analytics-service:v2.1.0
+        ports:
+        - containerPort: 3004
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3004"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: paypass-secrets
+              key: analytics-database-url
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: paypass-config
+              key: redis-url
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "300m"
+          limits:
+            memory: "1Gi"
+            cpu: "600m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3004
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3004
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paypass-fraud-detection
+  labels:
+    app: paypass
+    component: fraud-detection
+    version: v2.1.0
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: paypass
+      component: fraud-detection
+  template:
+    metadata:
+      labels:
+        app: paypass
+        component: fraud-detection
+        version: v2.1.0
+    spec:
+      containers:
+      - name: fraud-detection
+        image: paypass/fraud-detection:v2.1.0
+        ports:
+        - containerPort: 3005
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3005"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: paypass-secrets
+              key: fraud-database-url
+        - name: ML_MODEL_PATH
+          value: "/models"
+        - name: REDIS_URL
+          valueFrom:
+            configMapKeyRef:
+              name: paypass-config
+              key: redis-url
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1"
+        volumeMounts:
+        - name: ml-models
+          mountPath: /models
+          readOnly: true
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3005
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3005
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: ml-models
+        persistentVolumeClaim:
+          claimName: paypass-ml-models
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paypass-compliance-service
+  labels:
+    app: paypass
+    component: compliance-service
+    version: v2.1.0
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: paypass
+      component: compliance-service
+  template:
+    metadata:
+      labels:
+        app: paypass
+        component: compliance-service
+        version: v2.1.0
+    spec:
+      containers:
+      - name: compliance-service
+        image: paypass/compliance-service:v2.1.0
+        ports:
+        - containerPort: 3006
+          name: http
+        env:
+        - name: NODE_ENV
+          value: "production"
+        - name: PORT
+          value: "3006"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: paypass-secrets
+              key: compliance-database-url
+        - name: AML_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: paypass-secrets
+              key: aml-api-key
+        - name: KYC_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: paypass-secrets
+              key: kyc-api-key
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "512Mi"
+            cpu: "400m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3006
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3006
+          initialDelaySeconds: 5
+          periodSeconds: 5
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: paypass-config
+data:
+  redis-url: "redis://paypass-redis:6379"
+  elasticsearch-url: "http://paypass-elasticsearch:9200"
+  environment: "production"
+  log-level: "info"
+  rate-limit-requests: "1000"
+  rate-limit-window: "3600"
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: paypass-secrets
+type: Opaque
+stringData:
+  database-url: "postgresql://paypass:secure_password@paypass-postgres:5432/paypass_production"
+  user-database-url: "postgresql://paypass:secure_password@paypass-postgres:5432/paypass_users"
+  payment-database-url: "postgresql://paypass:secure_password@paypass-postgres:5432/paypass_payments"
+  wallet-database-url: "postgresql://paypass:secure_password@paypass-postgres:5432/paypass_wallets"
+  analytics-database-url: "postgresql://paypass:secure_password@paypass-postgres:5432/paypass_analytics"
+  fraud-database-url: "postgresql://paypass:secure_password@paypass-postgres:5432/paypass_fraud"
+  compliance-database-url: "postgresql://paypass:secure_password@paypass-postgres:5432/paypass_compliance"
+  jwt-secret: "your-super-secure-jwt-secret-key-here"
+  stripe-secret-key: "sk_live_your_stripe_secret_key_here"
+  aml-api-key: "your-aml-service-api-key"
+  kyc-api-key: "your-kyc-service-api-key"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paypass-ml-models
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: fast-ssd

@@ -1,0 +1,135 @@
+{
+  "common": {
+    "welcome": "Bienvenue sur PayPass",
+    "login": "Se Connecter",
+    "logout": "Se Déconnecter",
+    "signup": "S'inscrire",
+    "send": "Envoyer",
+    "receive": "Recevoir",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "continue": "Continuer",
+    "back": "Retour",
+    "next": "Suivant",
+    "save": "Sauvegarder",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès"
+  },
+  "auth": {
+    "login_title": "Connectez-vous à Votre Compte",
+    "login_subtitle": "Entrez vos identifiants pour accéder à PayPass",
+    "signup_title": "Créez Votre Compte",
+    "signup_subtitle": "Rejoignez des millions d'utilisateurs envoyant de l'argent globalement",
+    "email": "Adresse Email",
+    "password": "Mot de Passe",
+    "confirm_password": "Confirmer le Mot de Passe",
+    "forgot_password": "Mot de Passe Oublié?",
+    "remember_me": "Se souvenir de moi",
+    "login_button": "Se Connecter",
+    "signup_button": "Créer un Compte",
+    "or": "ou",
+    "login_with_google": "Continuer avec Google",
+    "login_with_facebook": "Continuer avec Facebook"
+  },
+  "dashboard": {
+    "title": "Tableau de Bord",
+    "balance": "Solde",
+    "recent_transactions": "Transactions Récentes",
+    "quick_actions": "Actions Rapides",
+    "send_money": "Envoyer de l'Argent",
+    "request_money": "Demander de l'Argent",
+    "pay_friend": "Payer pour Votre Ami",
+    "view_all": "Voir Tout"
+  },
+  "payments": {
+    "send_title": "Envoyer de l'Argent",
+    "recipient": "Destinataire",
+    "amount": "Montant",
+    "currency": "Devise",
+    "message": "Message (Optionnel)",
+    "payment_method": "Méthode de Paiement",
+    "review_payment": "Réviser le Paiement",
+    "confirm_payment": "Confirmer le Paiement",
+    "payment_sent": "Paiement Envoyé avec Succès",
+    "payment_failed": "Échec du Paiement",
+    "transaction_fee": "Frais de Transaction",
+    "exchange_rate": "Taux de Change",
+    "total_amount": "Montant Total"
+  },
+  "friends": {
+    "pay_for_friend": "Payer pour Votre Ami",
+    "select_friend": "Sélectionner un Ami",
+    "friend_location": "Emplacement de l'Ami",
+    "add_friend": "Ajouter un Ami",
+    "friend_added": "Ami Ajouté avec Succès",
+    "pay_bills": "Payer les Factures pour l'Ami",
+    "send_gift": "Envoyer de l'Argent Cadeau",
+    "emergency_transfer": "Transfert d'Urgence"
+  },
+  "wallet": {
+    "my_wallet": "Mon Portefeuille",
+    "add_money": "Ajouter de l'Argent",
+    "withdraw": "Retirer",
+    "transaction_history": "Historique des Transactions",
+    "payment_methods": "Méthodes de Paiement",
+    "add_card": "Ajouter une Carte",
+    "add_bank": "Ajouter un Compte Bancaire",
+    "crypto_wallet": "Portefeuille Crypto"
+  },
+  "profile": {
+    "my_profile": "Mon Profil",
+    "personal_info": "Informations Personnelles",
+    "security": "Sécurité",
+    "notifications": "Notifications",
+    "preferences": "Préférences",
+    "language": "Langue",
+    "currency": "Devise par Défaut",
+    "timezone": "Fuseau Horaire"
+  },
+  "security": {
+    "security_settings": "Paramètres de Sécurité",
+    "two_factor_auth": "Authentification à Deux Facteurs",
+    "biometric_auth": "Authentification Biométrique",
+    "change_password": "Changer le Mot de Passe",
+    "login_activity": "Activité de Connexion",
+    "device_management": "Gestion des Appareils",
+    "security_alerts": "Alertes de Sécurité"
+  },
+  "compliance": {
+    "kyc_verification": "Vérification d'Identité",
+    "aml_check": "Vérification AML",
+    "document_upload": "Télécharger des Documents",
+    "verification_pending": "Vérification en Attente",
+    "verification_complete": "Vérification Complète",
+    "compliance_status": "Statut de Conformité"
+  },
+  "errors": {
+    "invalid_email": "Veuillez entrer une adresse email valide",
+    "invalid_password": "Le mot de passe doit contenir au moins 8 caractères",
+    "passwords_dont_match": "Les mots de passe ne correspondent pas",
+    "insufficient_funds": "Fonds insuffisants",
+    "transaction_failed": "Échec de la transaction. Veuillez réessayer",
+    "network_error": "Erreur réseau. Veuillez vérifier votre connexion",
+    "invalid_amount": "Veuillez entrer un montant valide",
+    "recipient_not_found": "Destinataire non trouvé"
+  },
+  "success": {
+    "account_created": "Compte créé avec succès",
+    "login_successful": "Connexion réussie",
+    "payment_sent": "Paiement envoyé avec succès",
+    "profile_updated": "Profil mis à jour avec succès",
+    "verification_submitted": "Documents de vérification soumis",
+    "security_updated": "Paramètres de sécurité mis à jour"
+  },
+  "notifications": {
+    "payment_received": "Vous avez reçu un paiement",
+    "payment_sent": "Paiement envoyé avec succès",
+    "friend_request": "Nouvelle demande d'ami",
+    "security_alert": "Alerte de sécurité",
+    "verification_update": "Statut de vérification mis à jour",
+    "new_feature": "Nouvelle fonctionnalité disponible"
+  }
+}

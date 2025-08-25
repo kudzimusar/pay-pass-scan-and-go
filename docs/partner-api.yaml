@@ -1,0 +1,634 @@
+openapi: 3.0.3
+info:
+  title: PayPass Partner API
+  description: |
+    The PayPass Partner API provides comprehensive integration capabilities for third-party partners.
+    This API enables partners to integrate PayPass payment functionality into their applications,
+    receive real-time notifications, and access advanced features like AI recommendations and blockchain payments.
+  version: 1.0.0
+  contact:
+    name: PayPass Partner Support
+    email: partners@paypass.com
+    url: https://docs.paypass.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: https://api.paypass.com/v1
+    description: Production server
+  - url: https://sandbox-api.paypass.com/v1
+    description: Sandbox server for testing
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  /health:
+    get:
+      summary: Service Health Check
+      description: Check the health status of the Partnership Platform service
+      tags:
+        - System
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: healthy
+                  service:
+                    type: string
+                    example: partnership-platform
+                  timestamp:
+                    type: string
+                    format: date-time
+
+  /auth/register:
+    post:
+      summary: Register as Partner
+      description: Register your company as a PayPass integration partner
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - companyName
+                - email
+                - integrationType
+              properties:
+                companyName:
+                  type: string
+                  example: "TechCorp Solutions"
+                email:
+                  type: string
+                  format: email
+                  example: "integration@techcorp.com"
+                website:
+                  type: string
+                  format: uri
+                  example: "https://techcorp.com"
+                description:
+                  type: string
+                  example: "E-commerce platform integration"
+                integrationType:
+                  type: string
+                  enum: [ecommerce, mobile-app, fintech, marketplace, other]
+                  example: "ecommerce"
+      responses:
+        '201':
+          description: Partner registration successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerRegistrationResponse'
+        '400':
+          description: Invalid request data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /partners/profile:
+    get:
+      summary: Get Partner Profile
+      description: Retrieve the authenticated partner's profile information
+      tags:
+        - Partners
+      responses:
+        '200':
+          description: Partner profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerProfile'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Update Partner Profile
+      description: Update the authenticated partner's profile information
+      tags:
+        - Partners
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PartnerProfileUpdate'
+      responses:
+        '200':
+          description: Partner profile updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PartnerProfile'
+
+  /payments/process:
+    post:
+      summary: Process Payment
+      description: Process a payment on behalf of a customer
+      tags:
+        - Payments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '200':
+          description: Payment processed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentResponse'
+        '400':
+          description: Invalid payment request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /payments/{paymentId}/status:
+    get:
+      summary: Get Payment Status
+      description: Retrieve the current status of a payment
+      tags:
+        - Payments
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: "pay_1234567890"
+      responses:
+        '200':
+          description: Payment status retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentStatus'
+
+  /webhooks:
+    get:
+      summary: List Webhooks
+      description: Get all configured webhooks for the partner
+      tags:
+        - Webhooks
+      responses:
+        '200':
+          description: Webhooks retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  webhooks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Webhook'
+
+    post:
+      summary: Create Webhook
+      description: Create a new webhook endpoint for receiving event notifications
+      tags:
+        - Webhooks
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookRequest'
+      responses:
+        '201':
+          description: Webhook created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+
+  /webhooks/{webhookId}:
+    put:
+      summary: Update Webhook
+      description: Update an existing webhook configuration
+      tags:
+        - Webhooks
+      parameters:
+        - name: webhookId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookRequest'
+      responses:
+        '200':
+          description: Webhook updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Webhook'
+
+    delete:
+      summary: Delete Webhook
+      description: Delete a webhook endpoint
+      tags:
+        - Webhooks
+      parameters:
+        - name: webhookId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Webhook deleted successfully
+
+  /webhooks/test:
+    post:
+      summary: Test Webhook
+      description: Test webhook delivery to your endpoint
+      tags:
+        - Webhooks
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  example: "https://your-site.com/webhook"
+                event:
+                  type: string
+                  example: "payment.completed"
+                data:
+                  type: object
+                  example: {"test": true}
+      responses:
+        '200':
+          description: Webhook test completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  result:
+                    type: object
+
+  /analytics/usage:
+    get:
+      summary: Get Usage Analytics
+      description: Retrieve API usage analytics for the partner
+      tags:
+        - Analytics
+      parameters:
+        - name: startDate
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2024-01-01"
+        - name: endDate
+          in: query
+          schema:
+            type: string
+            format: date
+          example: "2024-01-31"
+        - name: granularity
+          in: query
+          schema:
+            type: string
+            enum: [hour, day, week, month]
+            default: day
+      responses:
+        '200':
+          description: Usage analytics retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsageAnalytics'
+
+  /sdks/{language}:
+    get:
+      summary: Download SDK
+      description: Download the PayPass SDK for a specific programming language
+      tags:
+        - SDKs
+      security: []
+      parameters:
+        - name: language
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [javascript, python, php, java, ruby, go]
+          example: "javascript"
+      responses:
+        '200':
+          description: SDK download successful
+          content:
+            application/zip:
+              schema:
+                type: string
+                format: binary
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: Authorization
+      description: "Bearer token format: 'Bearer {api_key}'"
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          example: "Invalid request"
+        message:
+          type: string
+          example: "The request data is invalid"
+        code:
+          type: string
+          example: "INVALID_REQUEST"
+
+    PartnerRegistrationResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        message:
+          type: string
+          example: "Partner registration successful"
+        partner:
+          type: object
+          properties:
+            id:
+              type: string
+              example: "partner_1234567890"
+            companyName:
+              type: string
+              example: "TechCorp Solutions"
+            status:
+              type: string
+              example: "pending"
+        apiKey:
+          type: object
+          properties:
+            key:
+              type: string
+              example: "pk_test_1234567890abcdef"
+            environment:
+              type: string
+              example: "sandbox"
+            expiresAt:
+              type: string
+              format: date-time
+
+    PartnerProfile:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "partner_1234567890"
+        companyName:
+          type: string
+          example: "TechCorp Solutions"
+        email:
+          type: string
+          example: "integration@techcorp.com"
+        website:
+          type: string
+          example: "https://techcorp.com"
+        status:
+          type: string
+          enum: [pending, approved, suspended]
+          example: "approved"
+        integrationType:
+          type: string
+          example: "ecommerce"
+        createdAt:
+          type: string
+          format: date-time
+        lastActive:
+          type: string
+          format: date-time
+
+    PartnerProfileUpdate:
+      type: object
+      properties:
+        companyName:
+          type: string
+        website:
+          type: string
+        description:
+          type: string
+
+    PaymentRequest:
+      type: object
+      required:
+        - amount
+        - currency
+        - customerId
+      properties:
+        amount:
+          type: number
+          example: 100.00
+        currency:
+          type: string
+          example: "USD"
+        customerId:
+          type: string
+          example: "customer_1234567890"
+        description:
+          type: string
+          example: "Payment for order #12345"
+        metadata:
+          type: object
+          example: {"orderId": "12345", "productId": "abc123"}
+        paymentMethod:
+          type: string
+          example: "card"
+        returnUrl:
+          type: string
+          format: uri
+          example: "https://your-site.com/return"
+
+    PaymentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "pay_1234567890"
+        status:
+          type: string
+          enum: [pending, completed, failed, cancelled]
+          example: "pending"
+        amount:
+          type: number
+          example: 100.00
+        currency:
+          type: string
+          example: "USD"
+        customerId:
+          type: string
+          example: "customer_1234567890"
+        createdAt:
+          type: string
+          format: date-time
+        paymentUrl:
+          type: string
+          format: uri
+          example: "https://checkout.paypass.com/pay_1234567890"
+
+    PaymentStatus:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "pay_1234567890"
+        status:
+          type: string
+          enum: [pending, completed, failed, cancelled]
+          example: "completed"
+        amount:
+          type: number
+          example: 100.00
+        currency:
+          type: string
+          example: "USD"
+        fees:
+          type: number
+          example: 2.50
+        netAmount:
+          type: number
+          example: 97.50
+        completedAt:
+          type: string
+          format: date-time
+
+    Webhook:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "wh_1234567890"
+        url:
+          type: string
+          format: uri
+          example: "https://your-site.com/webhook"
+        events:
+          type: array
+          items:
+            type: string
+          example: ["payment.completed", "payment.failed"]
+        secret:
+          type: string
+          example: "whsec_1234567890abcdef"
+        active:
+          type: boolean
+          example: true
+        createdAt:
+          type: string
+          format: date-time
+
+    WebhookRequest:
+      type: object
+      required:
+        - url
+        - events
+      properties:
+        url:
+          type: string
+          format: uri
+          example: "https://your-site.com/webhook"
+        events:
+          type: array
+          items:
+            type: string
+          example: ["payment.completed", "payment.failed"]
+        description:
+          type: string
+          example: "Main webhook for payment events"
+
+    UsageAnalytics:
+      type: object
+      properties:
+        period:
+          type: object
+          properties:
+            startDate:
+              type: string
+              format: date
+            endDate:
+              type: string
+              format: date
+        totalRequests:
+          type: integer
+          example: 15420
+        successfulRequests:
+          type: integer
+          example: 15200
+        failedRequests:
+          type: integer
+          example: 220
+        averageResponseTime:
+          type: number
+          example: 245.5
+        dailyUsage:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+              requests:
+                type: integer
+              errors:
+                type: integer
+
+tags:
+  - name: System
+    description: System health and status endpoints
+  - name: Authentication
+    description: Partner authentication and registration
+  - name: Partners
+    description: Partner profile management
+  - name: Payments
+    description: Payment processing and management
+  - name: Webhooks
+    description: Webhook configuration and management
+  - name: Analytics
+    description: Usage analytics and reporting
+  - name: SDKs
+    description: Software Development Kits download

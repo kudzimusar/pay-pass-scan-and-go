@@ -1,0 +1,901 @@
+openapi: 3.0.3
+info:
+  title: PayPass API
+  description: |
+    PayPass is a comprehensive payment platform providing secure, scalable payment processing solutions.
+    
+    ## Features
+    - Payment Processing
+    - Wallet Management  
+    - User Authentication
+    - Enterprise Billing
+    - Fraud Detection
+    - Compliance Management
+    
+    ## Authentication
+    PayPass API uses API key authentication. Include your API key in the Authorization header:
+    ```
+    Authorization: Bearer YOUR_API_KEY
+    ```
+    
+    ## Rate Limiting
+    API requests are rate limited based on your subscription plan:
+    - Basic: 100 requests/hour
+    - Premium: 1000 requests/hour  
+    - Enterprise: 10000 requests/hour
+    
+    ## Webhooks
+    PayPass can send webhook notifications for various events. Configure webhooks in your dashboard.
+    
+  version: 2.1.0
+  contact:
+    name: PayPass API Support
+    email: api-support@paypass.com
+    url: https://docs.paypass.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  termsOfService: https://paypass.com/terms
+
+servers:
+  - url: https://api.paypass.com/v1
+    description: Production server
+  - url: https://api-staging.paypass.com/v1
+    description: Staging server
+  - url: https://api-dev.paypass.com/v1
+    description: Development server
+
+security:
+  - ApiKeyAuth: []
+  - BearerAuth: []
+
+paths:
+  # Payment Endpoints
+  /payments:
+    post:
+      tags:
+        - Payments
+      summary: Create a payment
+      description: Process a new payment transaction
+      operationId: createPayment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentRequest'
+      responses:
+        '201':
+          description: Payment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+    get:
+      tags:
+        - Payments
+      summary: List payments
+      description: Retrieve a list of payments
+      operationId: listPayments
+      parameters:
+        - name: limit
+          in: query
+          description: Number of payments to return
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          description: Number of payments to skip
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: status
+          in: query
+          description: Filter by payment status
+          schema:
+            type: string
+            enum: [pending, completed, failed, cancelled]
+      responses:
+        '200':
+          description: List of payments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Payment'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+  /payments/{paymentId}:
+    get:
+      tags:
+        - Payments
+      summary: Get payment by ID
+      description: Retrieve a specific payment by its ID
+      operationId: getPayment
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          description: Payment ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Payment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # User Endpoints
+  /users:
+    post:
+      tags:
+        - Users
+      summary: Create a user
+      description: Register a new user account
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+    get:
+      tags:
+        - Users
+      summary: List users
+      description: Retrieve a list of users
+      operationId: listUsers
+      parameters:
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+  /users/{userId}:
+    get:
+      tags:
+        - Users
+      summary: Get user by ID
+      operationId: getUser
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: User details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  # Wallet Endpoints
+  /wallets:
+    post:
+      tags:
+        - Wallets
+      summary: Create a wallet
+      operationId: createWallet
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWalletRequest'
+      responses:
+        '201':
+          description: Wallet created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wallet'
+
+  /wallets/{walletId}:
+    get:
+      tags:
+        - Wallets
+      summary: Get wallet by ID
+      operationId: getWallet
+      parameters:
+        - name: walletId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Wallet details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wallet'
+
+  /wallets/{walletId}/balance:
+    get:
+      tags:
+        - Wallets
+      summary: Get wallet balance
+      operationId: getWalletBalance
+      parameters:
+        - name: walletId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Wallet balance
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Balance'
+
+  # Authentication Endpoints
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      description: Authenticate user and return access token
+      operationId: login
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Authentication
+      summary: Refresh access token
+      operationId: refreshToken
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+
+  # Enterprise Endpoints
+  /enterprise/accounts:
+    get:
+      tags:
+        - Enterprise
+      summary: List enterprise accounts
+      operationId: listEnterpriseAccounts
+      responses:
+        '200':
+          description: List of enterprise accounts
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/EnterpriseAccount'
+
+  /enterprise/billing:
+    get:
+      tags:
+        - Enterprise
+      summary: Get billing information
+      operationId: getEnterpriseBilling
+      responses:
+        '200':
+          description: Billing information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BillingInfo'
+
+  # Fraud Detection Endpoints
+  /fraud-detection:
+    post:
+      tags:
+        - Fraud Detection
+      summary: Analyze transaction for fraud
+      operationId: analyzeFraud
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FraudAnalysisRequest'
+      responses:
+        '200':
+          description: Fraud analysis result
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FraudAnalysisResult'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    # Payment Schemas
+    CreatePaymentRequest:
+      type: object
+      required:
+        - amount
+        - currency
+        - source
+        - destination
+      properties:
+        amount:
+          type: number
+          format: decimal
+          minimum: 0.01
+          description: Payment amount
+          example: 100.50
+        currency:
+          type: string
+          length: 3
+          description: ISO 4217 currency code
+          example: USD
+        source:
+          $ref: '#/components/schemas/PaymentSource'
+        destination:
+          $ref: '#/components/schemas/PaymentDestination'
+        description:
+          type: string
+          maxLength: 255
+          description: Payment description
+          example: Payment for services
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional metadata
+
+    Payment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Payment ID
+        amount:
+          type: number
+          format: decimal
+          description: Payment amount
+        currency:
+          type: string
+          description: Payment currency
+        status:
+          type: string
+          enum: [pending, completed, failed, cancelled]
+          description: Payment status
+        source:
+          $ref: '#/components/schemas/PaymentSource'
+        destination:
+          $ref: '#/components/schemas/PaymentDestination'
+        description:
+          type: string
+          description: Payment description
+        fees:
+          type: number
+          format: decimal
+          description: Processing fees
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+
+    PaymentSource:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum: [wallet, bank_account, card]
+          description: Source type
+        wallet_id:
+          type: string
+          format: uuid
+          description: Wallet ID (if type is wallet)
+        account_number:
+          type: string
+          description: Account number (if type is bank_account)
+        card_token:
+          type: string
+          description: Card token (if type is card)
+
+    PaymentDestination:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          type: string
+          enum: [wallet, bank_account, card]
+          description: Destination type
+        wallet_id:
+          type: string
+          format: uuid
+          description: Wallet ID (if type is wallet)
+        account_number:
+          type: string
+          description: Account number (if type is bank_account)
+
+    # User Schemas
+    CreateUserRequest:
+      type: object
+      required:
+        - email
+        - password
+        - first_name
+        - last_name
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+        password:
+          type: string
+          minLength: 8
+          description: User password
+        first_name:
+          type: string
+          maxLength: 50
+          description: First name
+        last_name:
+          type: string
+          maxLength: 50
+          description: Last name
+        phone:
+          type: string
+          description: Phone number
+        country:
+          type: string
+          description: Country code
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: User ID
+        email:
+          type: string
+          format: email
+          description: Email address
+        first_name:
+          type: string
+          description: First name
+        last_name:
+          type: string
+          description: Last name
+        phone:
+          type: string
+          description: Phone number
+        country:
+          type: string
+          description: Country
+        status:
+          type: string
+          enum: [active, inactive, suspended]
+          description: User status
+        created_at:
+          type: string
+          format: date-time
+          description: Creation timestamp
+        updated_at:
+          type: string
+          format: date-time
+          description: Last update timestamp
+
+    # Wallet Schemas
+    CreateWalletRequest:
+      type: object
+      required:
+        - user_id
+        - currency
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: User ID
+        currency:
+          type: string
+          length: 3
+          description: Wallet currency
+        name:
+          type: string
+          maxLength: 100
+          description: Wallet name
+
+    Wallet:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Wallet ID
+        user_id:
+          type: string
+          format: uuid
+          description: User ID
+        currency:
+          type: string
+          description: Wallet currency
+        name:
+          type: string
+          description: Wallet name
+        balance:
+          type: number
+          format: decimal
+          description: Current balance
+        status:
+          type: string
+          enum: [active, inactive, frozen]
+          description: Wallet status
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    Balance:
+      type: object
+      properties:
+        available:
+          type: number
+          format: decimal
+          description: Available balance
+        pending:
+          type: number
+          format: decimal
+          description: Pending balance
+        currency:
+          type: string
+          description: Currency
+        last_updated:
+          type: string
+          format: date-time
+          description: Last update timestamp
+
+    # Auth Schemas
+    LoginRequest:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email
+        password:
+          type: string
+          description: User password
+
+    AuthResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: JWT access token
+        refresh_token:
+          type: string
+          description: Refresh token
+        token_type:
+          type: string
+          example: Bearer
+          description: Token type
+        expires_in:
+          type: integer
+          description: Token expiry in seconds
+        user:
+          $ref: '#/components/schemas/User'
+
+    # Enterprise Schemas
+    EnterpriseAccount:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        company_name:
+          type: string
+        business_type:
+          type: string
+        status:
+          type: string
+          enum: [active, inactive, suspended]
+        tier:
+          type: string
+          enum: [basic, premium, enterprise]
+        created_at:
+          type: string
+          format: date-time
+
+    BillingInfo:
+      type: object
+      properties:
+        current_balance:
+          type: number
+          format: decimal
+        monthly_spend:
+          type: number
+          format: decimal
+        next_billing_date:
+          type: string
+          format: date
+        billing_cycle:
+          type: string
+          enum: [monthly, quarterly, annually]
+
+    # Fraud Detection Schemas
+    FraudAnalysisRequest:
+      type: object
+      required:
+        - transaction_id
+        - amount
+        - user_id
+      properties:
+        transaction_id:
+          type: string
+          format: uuid
+        amount:
+          type: number
+          format: decimal
+        currency:
+          type: string
+        user_id:
+          type: string
+          format: uuid
+        merchant_id:
+          type: string
+        device_id:
+          type: string
+        ip_address:
+          type: string
+
+    FraudAnalysisResult:
+      type: object
+      properties:
+        transaction_id:
+          type: string
+          format: uuid
+        fraud_probability:
+          type: number
+          format: decimal
+          minimum: 0
+          maximum: 1
+        risk_score:
+          type: number
+          format: decimal
+        risk_level:
+          type: string
+          enum: [LOW, MEDIUM, HIGH]
+        recommendation:
+          type: string
+          enum: [APPROVE, REVIEW, BLOCK]
+        explanations:
+          type: array
+          items:
+            type: string
+
+    # Common Schemas
+    Pagination:
+      type: object
+      properties:
+        limit:
+          type: integer
+          description: Items per page
+        offset:
+          type: integer
+          description: Items skipped
+        total:
+          type: integer
+          description: Total items
+        has_more:
+          type: boolean
+          description: More items available
+
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+          description: Error message
+        error_code:
+          type: string
+          description: Error code
+        details:
+          type: string
+          description: Detailed error information
+        timestamp:
+          type: string
+          format: date-time
+          description: Error timestamp
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Invalid request data"
+            error_code: "INVALID_REQUEST"
+            details: "The amount field is required"
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Authentication required"
+            error_code: "UNAUTHORIZED"
+            details: "Valid API key required"
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Resource not found"
+            error_code: "NOT_FOUND"
+            details: "The requested resource does not exist"
+
+    RateLimited:
+      description: Rate limit exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+          example:
+            error: "Rate limit exceeded"
+            error_code: "RATE_LIMITED"
+            details: "You have exceeded your API rate limit"
+
+tags:
+  - name: Payments
+    description: Payment processing operations
+  - name: Users
+    description: User management operations
+  - name: Wallets
+    description: Wallet management operations
+  - name: Authentication
+    description: Authentication operations
+  - name: Enterprise
+    description: Enterprise account operations
+  - name: Fraud Detection
+    description: Fraud detection and prevention
+
+webhooks:
+  paymentCompleted:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                  example: payment.completed
+                data:
+                  $ref: '#/components/schemas/Payment'
+      responses:
+        '200':
+          description: Webhook received successfully
+
+  paymentFailed:
+    post:
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                event:
+                  type: string
+                  example: payment.failed
+                data:
+                  $ref: '#/components/schemas/Payment'
+      responses:
+        '200':
+          description: Webhook received successfully

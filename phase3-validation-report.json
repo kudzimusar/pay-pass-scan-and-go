@@ -1,0 +1,777 @@
+{
+  "timestamp": "2025-08-25T11:00:02.308Z",
+  "phase": 3,
+  "score": 81,
+  "passThreshold": 85,
+  "passed": false,
+  "results": {
+    "passed": 91,
+    "failed": 21,
+    "warnings": 0,
+    "total": 112
+  },
+  "categoryScores": {
+    "microservices": {
+      "passed": 18,
+      "total": 18,
+      "score": 100
+    },
+    "analytics": {
+      "passed": 12,
+      "total": 12,
+      "score": 100
+    },
+    "fraudDetection": {
+      "passed": 10,
+      "total": 11,
+      "score": 91
+    },
+    "compliance": {
+      "passed": 11,
+      "total": 14,
+      "score": 79
+    },
+    "mobileApp": {
+      "passed": 7,
+      "total": 9,
+      "score": 78
+    },
+    "enterprise": {
+      "passed": 10,
+      "total": 12,
+      "score": 83
+    },
+    "apiManagement": {
+      "passed": 11,
+      "total": 13,
+      "score": 85
+    },
+    "performance": {
+      "passed": 5,
+      "total": 11,
+      "score": 45
+    },
+    "scalability": {
+      "passed": 7,
+      "total": 12,
+      "score": 58
+    }
+  },
+  "details": [
+    {
+      "timestamp": "2025-08-25T11:00:02.150Z",
+      "type": "info",
+      "message": "\u001b[1mPayPass Phase 3 Validation Started\u001b[0m"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.202Z",
+      "type": "info",
+      "message": "Validating against PLAN.md Phase 3 requirements..."
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.203Z",
+      "type": "info",
+      "message": "Focus: Microservices migration, advanced features, business expansion\n"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.204Z",
+      "type": "info",
+      "message": "\u001b[1m=== 1. Microservices Architecture Migration ===\u001b[0m"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.208Z",
+      "type": "pass",
+      "message": "✓ Services directory: services"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.209Z",
+      "type": "pass",
+      "message": "✓ User Service: services/user-service"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.209Z",
+      "type": "pass",
+      "message": "✓ Payment Service: services/payment-service"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.212Z",
+      "type": "pass",
+      "message": "✓ Wallet Service: services/wallet-service"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.212Z",
+      "type": "pass",
+      "message": "✓ API Gateway Service: services/api-gateway"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.213Z",
+      "type": "pass",
+      "message": "✓ User Service Config: services/user-service/package.json"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.213Z",
+      "type": "pass",
+      "message": "✓ Payment Service Config: services/payment-service/package.json"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.217Z",
+      "type": "pass",
+      "message": "✓ Wallet Service Config: services/wallet-service/package.json"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.220Z",
+      "type": "pass",
+      "message": "✓ API Gateway Config: services/api-gateway/package.json"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.221Z",
+      "type": "pass",
+      "message": "✓ User Service Implementation: services/user-service/src/index.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.224Z",
+      "type": "pass",
+      "message": "✓ Payment Service Implementation: services/payment-service/src/index.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.225Z",
+      "type": "pass",
+      "message": "✓ Wallet Service Implementation: services/wallet-service/src/index.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.225Z",
+      "type": "pass",
+      "message": "✓ API Gateway Implementation: services/api-gateway/src/index.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.228Z",
+      "type": "pass",
+      "message": "✓ Event Bus Pattern"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.230Z",
+      "type": "pass",
+      "message": "✓ Service Discovery"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.231Z",
+      "type": "pass",
+      "message": "✓ Docker Compose Configuration: docker-compose.yml"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.232Z",
+      "type": "pass",
+      "message": "✓ User Service Docker: services/user-service/Dockerfile"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.232Z",
+      "type": "pass",
+      "message": "✓ Payment Service Docker: services/payment-service/Dockerfile"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.233Z",
+      "type": "info",
+      "message": "\u001b[1m=== 2. Advanced Analytics & Reporting ===\u001b[0m"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.233Z",
+      "type": "pass",
+      "message": "✓ Analytics Components: components/analytics"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.234Z",
+      "type": "pass",
+      "message": "✓ Analytics Dashboard: components/analytics/dashboard.tsx"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.234Z",
+      "type": "pass",
+      "message": "✓ Real-time Metrics: components/analytics/real-time-metrics.tsx"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.234Z",
+      "type": "pass",
+      "message": "✓ Business Intelligence: components/analytics/business-intelligence.tsx"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.236Z",
+      "type": "pass",
+      "message": "✓ Analytics API: app/api/analytics"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.237Z",
+      "type": "pass",
+      "message": "✓ Transaction Analytics: app/api/analytics/transactions/route.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.239Z",
+      "type": "pass",
+      "message": "✓ User Analytics: app/api/analytics/users/route.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.239Z",
+      "type": "pass",
+      "message": "✓ Revenue Analytics: app/api/analytics/revenue/route.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.240Z",
+      "type": "pass",
+      "message": "✓ Fraud Analytics: app/api/analytics/fraud/route.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.241Z",
+      "type": "pass",
+      "message": "✓ Performance Analytics: app/api/analytics/performance/route.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.242Z",
+      "type": "pass",
+      "message": "✓ Analytics Service: services/analytics-service"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.242Z",
+      "type": "pass",
+      "message": "✓ Analytics Service Implementation: services/analytics-service/src/index.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.243Z",
+      "type": "info",
+      "message": "\u001b[1m=== 3. AI-Powered Fraud Detection ===\u001b[0m"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.243Z",
+      "type": "pass",
+      "message": "✓ AI Fraud Detection Service: services/ai-fraud-detection"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.243Z",
+      "type": "pass",
+      "message": "✓ AI Service Config: services/ai-fraud-detection/package.json"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.243Z",
+      "type": "pass",
+      "message": "✓ AI Service Implementation: services/ai-fraud-detection/src/index.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.243Z",
+      "type": "pass",
+      "message": "✓ ML Model Manager: services/ai-fraud-detection/src/ml/ModelManager.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.245Z",
+      "type": "pass",
+      "message": "✓ TensorFlow.js Integration"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.246Z",
+      "type": "pass",
+      "message": "✓ Fraud Detection API: services/ai-fraud-detection/src/routes/fraudRoutes.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.247Z",
+      "type": "pass",
+      "message": "✓ Anomaly Detection"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.249Z",
+      "type": "pass",
+      "message": "✓ Risk Assessment"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.250Z",
+      "type": "fail",
+      "message": "✗ Real-time Processing (pattern not found)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.251Z",
+      "type": "pass",
+      "message": "✓ Fraud Detection Endpoint: app/api/fraud-detection/route.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.251Z",
+      "type": "pass",
+      "message": "✓ ML Dependencies"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.251Z",
+      "type": "info",
+      "message": "\u001b[1m=== 4. International Compliance ===\u001b[0m"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.252Z",
+      "type": "pass",
+      "message": "✓ Compliance Service: services/compliance-service"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.253Z",
+      "type": "pass",
+      "message": "✓ Compliance Service Config: services/compliance-service/package.json"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.254Z",
+      "type": "pass",
+      "message": "✓ Compliance Service Implementation: services/compliance-service/src/index.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.255Z",
+      "type": "pass",
+      "message": "✓ KYC Form Component: components/compliance/kyc-form.tsx"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.255Z",
+      "type": "pass",
+      "message": "✓ AML Check Component: components/compliance/aml-check.tsx"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.255Z",
+      "type": "pass",
+      "message": "✓ Compliance Status: components/compliance/compliance-status.tsx"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.255Z",
+      "type": "pass",
+      "message": "✓ Regulatory Reports: components/compliance/regulatory-report.tsx"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.255Z",
+      "type": "pass",
+      "message": "✓ Compliance API Routes: services/compliance-service/src/routes/complianceRoutes.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.258Z",
+      "type": "pass",
+      "message": "✓ Compliance Controller: services/compliance-service/src/controllers/ComplianceController.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.259Z",
+      "type": "pass",
+      "message": "✓ AML Screening"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.261Z",
+      "type": "pass",
+      "message": "✓ Sanctions Screening"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.261Z",
+      "type": "fail",
+      "message": "✗ Regulatory Reporting (pattern not found)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.267Z",
+      "type": "fail",
+      "message": "✗ Compliance Dashboard (pattern not found)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.269Z",
+      "type": "fail",
+      "message": "✗ Document Verification (pattern not found)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.270Z",
+      "type": "info",
+      "message": "\u001b[1m=== 5. Mobile App Development ===\u001b[0m"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.271Z",
+      "type": "warn",
+      "message": "⚠ Mobile app development typically requires separate React Native project"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.273Z",
+      "type": "pass",
+      "message": "✓ Mobile API Directory: app/api/mobile"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.275Z",
+      "type": "pass",
+      "message": "✓ Mobile Auth API: app/api/mobile/auth/route.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.275Z",
+      "type": "pass",
+      "message": "✓ Mobile Payment API: app/api/mobile/payments/route.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.275Z",
+      "type": "pass",
+      "message": "✓ Mobile Push Notifications: app/api/mobile/notifications/route.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.275Z",
+      "type": "pass",
+      "message": "✓ Mobile QR Scanner API: app/api/mobile/qr-scanner/route.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.275Z",
+      "type": "pass",
+      "message": "✓ Mobile Components: components/mobile"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.275Z",
+      "type": "pass",
+      "message": "✓ Mobile Scanner Component: components/mobile/mobile-scanner.tsx"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.276Z",
+      "type": "fail",
+      "message": "✗ React Native App Config: mobile/package.json (missing)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.276Z",
+      "type": "fail",
+      "message": "✗ React Native App Entry: mobile/App.tsx (missing)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.276Z",
+      "type": "info",
+      "message": "\u001b[1m=== 6. Enterprise Features ===\u001b[0m"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.276Z",
+      "type": "pass",
+      "message": "✓ Enterprise Components: components/enterprise"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.276Z",
+      "type": "pass",
+      "message": "✓ Enterprise Account Management: components/enterprise/account-management.tsx"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.276Z",
+      "type": "pass",
+      "message": "✓ Enterprise Billing Dashboard: components/enterprise/billing-dashboard.tsx"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.276Z",
+      "type": "pass",
+      "message": "✓ Bulk Payment Processing: components/enterprise/bulk-payments.tsx"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.277Z",
+      "type": "pass",
+      "message": "✓ Enterprise API: app/api/enterprise"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.277Z",
+      "type": "pass",
+      "message": "✓ Corporate Account Management: app/api/enterprise/accounts/route.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.277Z",
+      "type": "pass",
+      "message": "✓ Enterprise Billing: app/api/enterprise/billing/route.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.277Z",
+      "type": "pass",
+      "message": "✓ Bulk Payment API: app/api/enterprise/bulk-payments/route.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.277Z",
+      "type": "fail",
+      "message": "✗ Multi-tenant Support (pattern not found)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.278Z",
+      "type": "pass",
+      "message": "✓ Corporate Account Features"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.278Z",
+      "type": "pass",
+      "message": "✓ Enterprise Dashboard Page: app/enterprise/page.tsx"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.282Z",
+      "type": "fail",
+      "message": "✗ Enterprise Billing System (pattern not found)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.282Z",
+      "type": "info",
+      "message": "\u001b[1m=== 7. Advanced API Management ===\u001b[0m"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.283Z",
+      "type": "pass",
+      "message": "✓ API Gateway Service: services/api-gateway"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.283Z",
+      "type": "pass",
+      "message": "✓ API Gateway Implementation: services/api-gateway/src/index.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.283Z",
+      "type": "pass",
+      "message": "✓ API Management Components: components/api-management"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.284Z",
+      "type": "pass",
+      "message": "✓ API Dashboard: components/api-management/api-dashboard.tsx"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.284Z",
+      "type": "pass",
+      "message": "✓ Rate Limiting UI: components/api-management/rate-limiting.tsx"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.284Z",
+      "type": "pass",
+      "message": "✓ OpenAPI Documentation: docs/api/openapi.yaml"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.284Z",
+      "type": "pass",
+      "message": "✓ API Documentation Endpoint: app/api/docs/route.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.284Z",
+      "type": "fail",
+      "message": "✗ Rate Limiting (pattern not found)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.285Z",
+      "type": "fail",
+      "message": "✗ API Monitoring (pattern not found)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.287Z",
+      "type": "pass",
+      "message": "✓ API Versioning"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.287Z",
+      "type": "pass",
+      "message": "✓ API Versioning Implementation: app/api/v1/route.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.288Z",
+      "type": "pass",
+      "message": "✓ Service Discovery"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.289Z",
+      "type": "pass",
+      "message": "✓ Health Check Endpoint: app/api/health/route.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.291Z",
+      "type": "info",
+      "message": "\u001b[1m=== 8. Performance Optimization ===\u001b[0m"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.292Z",
+      "type": "pass",
+      "message": "✓ Redis Caching"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.293Z",
+      "type": "fail",
+      "message": "✗ Compression Configuration (pattern not found)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.293Z",
+      "type": "fail",
+      "message": "✗ Database Indexing (pattern not found)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.293Z",
+      "type": "pass",
+      "message": "✓ Performance Monitoring: app/api/_lib/performance-monitor.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.293Z",
+      "type": "fail",
+      "message": "✗ CDN Configuration (pattern not found)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.293Z",
+      "type": "pass",
+      "message": "✓ Asset Links: public/.well-known/assetlinks.json"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.293Z",
+      "type": "pass",
+      "message": "✓ Image Optimization"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.293Z",
+      "type": "fail",
+      "message": "✗ Bundle Optimization (pattern not found)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.293Z",
+      "type": "fail",
+      "message": "✗ Bundle Analysis (pattern not found)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.293Z",
+      "type": "pass",
+      "message": "✓ Performance Metrics API: app/api/performance/metrics/route.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.294Z",
+      "type": "fail",
+      "message": "✗ Performance Monitoring (pattern not found)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.294Z",
+      "type": "info",
+      "message": "\u001b[1m=== 9. Scalability Improvements ===\u001b[0m"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.295Z",
+      "type": "pass",
+      "message": "✓ Docker Compose for Scaling: docker-compose.yml"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.295Z",
+      "type": "pass",
+      "message": "✓ Kubernetes Deployment: kubernetes/deployment.yaml"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.295Z",
+      "type": "fail",
+      "message": "✗ Load Balancing (pattern not found)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.296Z",
+      "type": "pass",
+      "message": "✓ Load Balancer Configuration: nginx.conf"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.296Z",
+      "type": "pass",
+      "message": "✓ Horizontal Pod Autoscaler: kubernetes/hpa.yaml"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.297Z",
+      "type": "pass",
+      "message": "✓ Service Replication"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.299Z",
+      "type": "fail",
+      "message": "✗ Database Sharding (pattern not found)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.300Z",
+      "type": "pass",
+      "message": "✓ Database Router Service: services/database-router/src/index.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.301Z",
+      "type": "fail",
+      "message": "✗ Circuit Breaker Pattern (pattern not found)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.301Z",
+      "type": "fail",
+      "message": "✗ SAGA Pattern (pattern not found)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.301Z",
+      "type": "fail",
+      "message": "✗ Redis Clustering (pattern not found)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.301Z",
+      "type": "pass",
+      "message": "✓ Distributed Cache Service: services/cache-service/src/index.ts"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.303Z",
+      "type": "info",
+      "message": "\u001b[1m=== PHASE 3 VALIDATION SUMMARY ===\u001b[0m"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.307Z",
+      "type": "pass",
+      "message": "Microservices: 100% (18/18)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.307Z",
+      "type": "pass",
+      "message": "Analytics: 100% (12/12)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.308Z",
+      "type": "pass",
+      "message": "Fraud Detection: 91% (10/11)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.308Z",
+      "type": "warn",
+      "message": "Compliance: 79% (11/14)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.308Z",
+      "type": "warn",
+      "message": "Mobile App: 78% (7/9)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.308Z",
+      "type": "warn",
+      "message": "Enterprise: 83% (10/12)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.308Z",
+      "type": "pass",
+      "message": "Api Management: 85% (11/13)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.308Z",
+      "type": "fail",
+      "message": "Performance: 45% (5/11)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.308Z",
+      "type": "warn",
+      "message": "Scalability: 58% (7/12)"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.308Z",
+      "type": "info",
+      "message": "\nTotal Checks: 112"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.308Z",
+      "type": "pass",
+      "message": "Passed: 91"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.308Z",
+      "type": "fail",
+      "message": "Failed: 21"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.308Z",
+      "type": "info",
+      "message": "Warnings: 0"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.308Z",
+      "type": "fail",
+      "message": "Overall Score: 81%"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.308Z",
+      "type": "info",
+      "message": "\u001b[31m\u001b[1m✗ PHASE 3 VALIDATION FAILED\u001b[0m"
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.308Z",
+      "type": "info",
+      "message": "Score 81% is below the required 85% threshold."
+    },
+    {
+      "timestamp": "2025-08-25T11:00:02.308Z",
+      "type": "info",
+      "message": "Please address the failed checks before proceeding to Phase 4."
+    }
+  ]
+}
