@@ -24,6 +24,7 @@ import {
   Home,
   Receipt
 } from "lucide-react"
+import QRCodeGenerator from "@/components/qr-code-generator"
 
 interface TicketData {
   qrId: string
@@ -49,6 +50,8 @@ export default function PaymentConfirmationPage() {
   const [transactionId] = useState(`TXN-${Date.now()}`)
   const [showTicket, setShowTicket] = useState(false)
   const [shareSuccess, setShareSuccess] = useState(false)
+  const [downloadSuccess, setDownloadSuccess] = useState(false)
+  const [boardingQRData, setBoardingQRData] = useState<string>("")
 
   useEffect(() => {
     // Extract ticket data from URL parameters first
@@ -70,13 +73,17 @@ export default function PaymentConfirmationPage() {
     setIsLoading(false)
     setShowTicket(true)
 
+    // Generate boarding QR code data
+    const qrData = `PAYPASS_TICKET:${ticketData.ticketNumber}:${Date.now()}:${ticketData.validUntil}`
+    setBoardingQRData(qrData)
+
     // Only refresh user data if user is logged in
     if (user) {
       refreshUserData()
     }
   }, [searchParams, user, refreshUserData])
 
-  const handleDownloadTicket = () => {
+  const handleDownloadTicket = async () => {
     if (!ticketData) return
 
     // Create a printable version of the ticket
@@ -102,15 +109,31 @@ export default function PaymentConfirmationPage() {
       Scan this ticket for boarding
     `
 
-    const blob = new Blob([ticketContent], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `ticket-${ticketData.ticketNumber}.txt`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
+    try {
+      const blob = new Blob([ticketContent], { type: 'text/plain' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `ticket-${ticketData.ticketNumber}.txt`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+      
+      setDownloadSuccess(true)
+      setTimeout(() => setDownloadSuccess(false), 3000)
+    } catch (error) {
+      console.error('Download failed:', error)
+      // Fallback for mobile devices
+      if (navigator.share) {
+        const shareData = {
+          title: 'PayPass Ticket',
+          text: ticketContent,
+          url: window.location.href
+        }
+        await navigator.share(shareData)
+      }
+    }
   }
 
   const handleShareTicket = async () => {
@@ -136,6 +159,13 @@ export default function PaymentConfirmationPage() {
       }
     } catch (error) {
       console.error('Share failed:', error)
+      // Handle "Share canceled" error gracefully
+      if (error instanceof Error && error.message.includes('canceled')) {
+        // User canceled the share, don't show error
+        return
+      }
+      // For other errors, show a user-friendly message
+      alert('Sharing is not available on this device. Ticket information copied to clipboard.')
     }
   }
 
@@ -284,12 +314,17 @@ export default function PaymentConfirmationPage() {
                   </div>
                 </div>
 
-                {/* QR Code Placeholder */}
+                {/* QR Code for Boarding */}
                 <div className="text-center pt-4 border-t">
-                  <div className="w-32 h-32 mx-auto bg-gray-100 rounded-lg flex items-center justify-center mb-2">
-                    <QrCode className="w-16 h-16 text-gray-400" />
-                  </div>
+                  {boardingQRData && (
+                    <QRCodeGenerator 
+                      data={boardingQRData} 
+                      size={128} 
+                      className="mx-auto mb-2"
+                    />
+                  )}
                   <p className="text-xs text-gray-500">Scan for boarding</p>
+                  <p className="text-xs text-blue-600 mt-1">Valid until: {ticketData.validUntil}</p>
                 </div>
               </CardContent>
             </Card>
@@ -297,9 +332,13 @@ export default function PaymentConfirmationPage() {
 
           {/* Action Buttons */}
           <div className="space-y-3">
-            <Button onClick={handleDownloadTicket} className="w-full" variant="outline">
+            <Button 
+              onClick={handleDownloadTicket} 
+              className="w-full" 
+              variant={downloadSuccess ? "default" : "outline"}
+            >
               <Download className="w-4 h-4 mr-2" />
-              Download Ticket
+              {downloadSuccess ? "Downloaded Successfully!" : "Download Ticket"}
             </Button>
             
             <Button 
