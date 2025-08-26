@@ -20,7 +20,9 @@ import {
   AlertTriangle,
   TrendingUp,
   DollarSign,
-  Clock
+  Clock,
+  MessageCircle,
+  Send
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -58,6 +60,9 @@ export default function PayForFriendPage() {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
+  const [whatsappContacts, setWhatsappContacts] = useState<any[]>([]);
+  const [syncingContacts, setSyncingContacts] = useState(false);
+  const [showWhatsAppSync, setShowWhatsAppSync] = useState(false);
 
   // Mock user data - in real app, this would come from auth context
   useEffect(() => {
@@ -163,6 +168,80 @@ export default function PayForFriendPage() {
     }
   };
 
+  // WhatsApp integration functions
+  const handleWhatsAppSync = async () => {
+    setSyncingContacts(true);
+    try {
+      // In a real app, this would integrate with WhatsApp Business API
+      // For demo purposes, we'll simulate syncing contacts
+      const mockWhatsAppContacts = [
+        { number: "+263771234567", name: "John Doe", isWhatsAppUser: true },
+        { number: "+263772345678", name: "Jane Smith", isWhatsAppUser: true },
+        { number: "+263773456789", name: "Mike Johnson", isWhatsAppUser: true },
+      ];
+
+      const response = await fetch('/api/whatsapp/contacts/sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          contacts: mockWhatsAppContacts,
+          autoCreateFriendNetwork: true,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        setWhatsappContacts(result.contacts);
+        toast.success(`Synced ${result.stats.totalContacts} WhatsApp contacts successfully!`);
+        
+        // Reload friends list to show new connections
+        await loadFriends();
+      } else {
+        throw new Error('Failed to sync contacts');
+      }
+    } catch (error) {
+      toast.error("Failed to sync WhatsApp contacts. Please try again.");
+      console.error('WhatsApp sync error:', error);
+    } finally {
+      setSyncingContacts(false);
+      setShowWhatsAppSync(false);
+    }
+  };
+
+  const sendWhatsAppPaymentRequest = async (friend: Friend, amount: number, currency: string, message: string) => {
+    try {
+      const response = await fetch('/api/whatsapp/payment-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          to: friend.recipient.phone,
+          amount,
+          currency,
+          message,
+          friendNetworkId: friend.id,
+        }),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        toast.success("Payment request sent via WhatsApp!");
+        return result;
+      } else {
+        throw new Error('Failed to send WhatsApp payment request');
+      }
+    } catch (error) {
+      toast.error("Failed to send WhatsApp payment request.");
+      console.error('WhatsApp payment request error:', error);
+      throw error;
+    }
+  };
+
   const filteredFriends = friends.filter(friend =>
     friend.recipient.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     friend.nickname?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -217,6 +296,59 @@ export default function PayForFriendPage() {
               Verified
             </Badge>
           )}
+          
+          {/* WhatsApp Sync Button */}
+          <Dialog open={showWhatsAppSync} onOpenChange={setShowWhatsAppSync}>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200">
+                <MessageCircle className="w-4 h-4 mr-2" />
+                Sync WhatsApp
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Sync WhatsApp Contacts</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <p className="text-gray-600">
+                  Import your WhatsApp contacts to easily send payment requests through WhatsApp. 
+                  This will create friend networks for existing PayPass users in your contacts.
+                </p>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <h4 className="font-medium text-blue-900 mb-2">Benefits:</h4>
+                  <ul className="text-sm text-blue-800 space-y-1">
+                    <li>• Send payment requests via WhatsApp</li>
+                    <li>• Instant notifications to friends</li>
+                    <li>• Auto-create trusted friend networks</li>
+                    <li>• Seamless payment experience</li>
+                  </ul>
+                </div>
+                <div className="flex space-x-2">
+                  <Button 
+                    onClick={handleWhatsAppSync} 
+                    disabled={syncingContacts}
+                    className="flex-1"
+                  >
+                    {syncingContacts ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Syncing...
+                      </>
+                    ) : (
+                      <>
+                        <MessageCircle className="w-4 h-4 mr-2" />
+                        Sync Contacts
+                      </>
+                    )}
+                  </Button>
+                  <Button variant="outline" onClick={() => setShowWhatsAppSync(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
           <Dialog open={showAddFriend} onOpenChange={setShowAddFriend}>
             <DialogTrigger asChild>
               <Button>
@@ -331,9 +463,22 @@ export default function PayForFriendPage() {
               {filteredFriends.map((friend) => (
                 <FriendNetworkCard
                   key={friend.id}
-                  friend={friend}
+                  friend={{
+                    ...friend,
+                    whatsappEnabled: true, // In real app, this would be determined by WhatsApp contact sync
+                  }}
                   onSendPayment={handleSendPayment}
                   onViewDetails={handleViewDetails}
+                  onSendWhatsAppRequest={async (friendId) => {
+                    const friendData = friends.find(f => f.id === friendId);
+                    if (friendData) {
+                      try {
+                        await sendWhatsAppPaymentRequest(friendData, 50, "USD", "Quick payment request via WhatsApp");
+                      } catch (error) {
+                        // Error already handled in sendWhatsAppPaymentRequest
+                      }
+                    }
+                  }}
                 />
               ))}
             </div>

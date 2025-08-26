@@ -277,8 +277,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> 5369374451513e9b5f7afd9dc5a8e42ac51c60c6

@@ -59,7 +59,6 @@ export default function ProofOfPaymentPage() {
 
   const handleShare = async () => {
     try {
-<<<<<<< HEAD
       if (!receiptData) return
       if (typeof navigator !== "undefined" && (navigator as any).share) {
         await (navigator as any).share({
@@ -78,40 +77,6 @@ export default function ProofOfPaymentPage() {
     } catch (err: any) {
       console.error("Error sharing:", err)
       alert("Unable to share on this device")
-=======
-      // Check if Web Share API is supported
-      if (navigator.share) {
-        await navigator.share({
-          title: `PayPass Receipt - ${receiptData?.provider}`,
-          text: `Receipt for ${receiptData?.provider} payment of $${receiptData?.amount.toFixed(2)}`,
-          url: window.location.href,
-        })
-      } else {
-        // Fallback for browsers that don't support Web Share API
-        if (navigator.clipboard) {
-          const shareText = `PayPass Receipt - ${receiptData?.provider}\nAmount: $${receiptData?.amount.toFixed(2)}\nTransaction ID: ${receiptData?.transactionId}\nDate: ${new Date(receiptData?.date || "").toLocaleString()}`
-          await navigator.clipboard.writeText(shareText)
-          alert("Receipt details copied to clipboard!")
-        } else {
-          alert("Sharing not supported on this device. You can take a screenshot instead.")
-        }
-      }
-    } catch (error) {
-      console.error("Error sharing:", error)
-      // Fallback: copy to clipboard or show alternative
-      try {
-        if (navigator.clipboard && receiptData) {
-          const shareText = `PayPass Receipt - ${receiptData.provider}\nAmount: $${receiptData.amount.toFixed(2)}\nTransaction ID: ${receiptData.transactionId}\nDate: ${new Date(receiptData.date).toLocaleString()}`
-          await navigator.clipboard.writeText(shareText)
-          alert("Receipt details copied to clipboard!")
-        } else {
-          alert("Unable to share. You can take a screenshot of this receipt instead.")
-        }
-      } catch (clipboardError) {
-        console.error("Clipboard error:", clipboardError)
-        alert("Unable to share or copy. You can take a screenshot of this receipt instead.")
-      }
->>>>>>> origin/main
     }
   }
 

@@ -7,13 +7,14 @@
 import { db } from "./drizzle";
 import { notifications, users } from "../../../shared/schema";
 import { eq } from "drizzle-orm";
+import WhatsAppService from "./whatsapp-service";
 
 export interface NotificationTemplate {
   id: string;
   type: 'payment' | 'security' | 'system' | 'marketing';
   title: string;
   message: string;
-  defaultChannels: ('push' | 'sms' | 'email' | 'in_app')[];
+  defaultChannels: ('push' | 'sms' | 'email' | 'in_app' | 'whatsapp')[];
   priority: 'low' | 'normal' | 'high' | 'urgent';
   variables: string[]; // Variables that can be replaced in template
 }
@@ -22,7 +23,7 @@ export interface NotificationContext {
   userId: string;
   templateId: string;
   variables: Record<string, any>;
-  channels?: ('push' | 'sms' | 'email' | 'in_app')[];
+  channels?: ('push' | 'sms' | 'email' | 'in_app' | 'whatsapp')[];
   priority?: 'low' | 'normal' | 'high' | 'urgent';
   scheduledFor?: Date;
   relatedEntityId?: string;
@@ -47,7 +48,7 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
     type: 'payment',
     title: 'Money Received',
     message: 'You have received {amount} {currency} from {sender}.',
-    defaultChannels: ['push', 'sms', 'in_app'],
+    defaultChannels: ['push', 'sms', 'in_app', 'whatsapp'],
     priority: 'high',
     variables: ['amount', 'currency', 'sender'],
   },
@@ -57,7 +58,7 @@ export const NOTIFICATION_TEMPLATES: Record<string, NotificationTemplate> = {
     type: 'payment',
     title: 'International Payment Sent',
     message: 'Your payment to {recipient} in {country} is being processed. Expected delivery: {eta}',
-    defaultChannels: ['push', 'email', 'in_app'],
+    defaultChannels: ['push', 'email', 'in_app', 'whatsapp'],
     priority: 'normal',
     variables: ['recipient', 'country', 'eta'],
   },
@@ -243,7 +244,7 @@ export class NotificationService {
     templateId: string,
     variables: Record<string, any>,
     options?: {
-      channels?: ('push' | 'sms' | 'email' | 'in_app')[];
+      channels?: ('push' | 'sms' | 'email' | 'in_app' | 'whatsapp')[];
       priority?: 'low' | 'normal' | 'high' | 'urgent';
       scheduledFor?: Date;
     }
@@ -306,10 +307,10 @@ export class NotificationService {
 
     // Override based on urgency
     if (options?.urgency === 'urgent') {
-      channels = ['push', 'sms', 'email', 'in_app'];
+      channels = ['push', 'sms', 'email', 'in_app', 'whatsapp'];
       priority = 'urgent';
     } else if (options?.urgency === 'high') {
-      channels = ['push', 'sms', 'in_app'];
+      channels = ['push', 'sms', 'in_app', 'whatsapp'];
       priority = 'high';
     }
 
@@ -343,13 +344,13 @@ export class NotificationService {
    * Get user notification preferences (mock implementation)
    */
   private static async getUserNotificationPreferences(userId: string): Promise<{
-    enabledChannels: ('push' | 'sms' | 'email' | 'in_app')[];
+    enabledChannels: ('push' | 'sms' | 'email' | 'in_app' | 'whatsapp')[];
     quietHours: { start: string; end: string };
     frequency: 'all' | 'important_only' | 'minimal';
   }> {
     // In production, this would fetch from user settings
     return {
-      enabledChannels: ['push', 'sms', 'email', 'in_app'],
+      enabledChannels: ['push', 'sms', 'email', 'in_app', 'whatsapp'],
       quietHours: { start: '22:00', end: '08:00' },
       frequency: 'all',
     };
@@ -411,10 +412,55 @@ export class NotificationService {
       relatedEntityType: 'mobile_money_transaction',
     });
   }
+
+  /**
+   * WhatsApp-specific notification methods
+   */
+  static async sendWhatsAppNotification(userId: string, notification: {
+    title: string;
+    message: string;
+    type: string;
+    data?: any;
+  }): Promise<boolean> {
+    try {
+      const whatsappService = new WhatsAppService();
+      return await whatsappService.sendNotificationViaWhatsApp(userId, notification);
+    } catch (error) {
+      console.error('[NotificationService] WhatsApp notification error:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Send payment notification specifically via WhatsApp
+   */
+  static async notifyPaymentViaWhatsApp(userId: string, templateId: string, variables: Record<string, any>): Promise<string> {
+    return this.sendTemplatedNotification({
+      userId,
+      templateId,
+      variables,
+      channels: ['whatsapp'], // WhatsApp only
+    });
+  }
+
+  /**
+   * Send cross-border payment notification via WhatsApp
+   */
+  static async notifyCrossBorderPaymentViaWhatsApp(
+    userId: string, 
+    recipientName: string, 
+    amount: number, 
+    currency: string, 
+    country: string, 
+    eta: string
+  ): Promise<string> {
+    return this.sendTemplatedNotification({
+      userId,
+      templateId: 'cross_border_initiated',
+      variables: { recipient: recipientName, country, eta, amount, currency },
+      channels: ['whatsapp'],
+    });
+  }
 }
 
-<<<<<<< HEAD
 export default NotificationService;
-=======
-export default NotificationService;
->>>>>>> 5369374451513e9b5f7afd9dc5a8e42ac51c60c6

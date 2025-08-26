@@ -1,424 +1,338 @@
 "use client"
 
-<<<<<<< HEAD
-import { useEffect, useState } from "react"
-import { useAuth } from "@/components/auth-provider"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Users, Send } from "lucide-react"
-=======
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import Link from "next/link"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
 import { useAuth } from "@/components/auth-provider"
-import { ArrowLeft, Send, User, DollarSign, MessageSquare, CheckCircle, AlertCircle } from "lucide-react"
->>>>>>> origin/main
+import { ArrowLeft, Send, CreditCard, Smartphone, DollarSign, AlertCircle } from "lucide-react"
+import Link from "next/link"
 
-interface Contact {
+interface PaymentMethod {
   id: string
+  type: "wallet" | "ecocash" | "telecash" | "bank"
   name: string
-  phone: string
+  icon: any
+  balance?: number
+  accountNumber?: string
 }
 
-export default function SendMoneyPage() {
-  const { user, refreshUserData } = useAuth()
+export default function SendMoney() {
   const router = useRouter()
-  const [selectedContact, setSelectedContact] = useState<Contact | null>(null)
+  const { user } = useAuth()
+  const [recipient, setRecipient] = useState("")
   const [amount, setAmount] = useState("")
-  const [note, setNote] = useState("")
-<<<<<<< HEAD
-  const [selectedUser, setSelectedUser] = useState<any>(null)
-  const [transactionId, setTransactionId] = useState("")
-  const [showSuccess, setShowSuccess] = useState(false)
-  const [error, setError] = useState("")
-  const [contacts, setContacts] = useState<Array<{ id: string; fullName: string; phone: string; email?: string }>>([])
-  const [loadingContacts, setLoadingContacts] = useState(false)
-
-  useEffect(() => {
-    const load = async () => {
-      if (!user) return
-      setLoadingContacts(true)
-      try {
-        const currentUserId = user.id
-        const [mockRes, usersRes] = await Promise.all([
-          fetch("/api/contacts/mock"),
-          fetch(`/api/users/search?q=${encodeURIComponent(" ")}&excludeUserId=${currentUserId}`),
-        ])
-        const ensureJson = async (res: Response) => {
-          if (!res.ok) throw new Error(await res.text())
-          const ct = res.headers.get("content-type") || ""
-          if (!ct.includes("application/json")) throw new Error(await res.text())
-          return res.json()
-        }
-        const mockData = await ensureJson(mockRes)
-        const usersData = await ensureJson(usersRes)
-        const mockAsUsers = (mockData.contacts || []).map((c: any) => ({ id: c.id, fullName: c.name, phone: c.phone, email: c.email }))
-        const systemUsers = usersData.users || []
-        setContacts([...systemUsers, ...mockAsUsers].filter((c: any) => c.id !== currentUserId))
-      } catch (e: any) {
-        setError(e?.message || "Failed to load contacts")
-      } finally {
-        setLoadingContacts(false)
-      }
-    }
-    load()
-  }, [user])
-
-  const handleSendMoney = async (e?: React.FormEvent) => {
-    e?.preventDefault()
-    setError("")
-    if (!user) {
-      setError("You must be logged in")
-      return
-    }
-    if (!selectedUser || !amount) {
-      setError("Please select a recipient and enter amount")
-      return
-    }
-
-    try {
-      const token = localStorage.getItem("auth_token") || ""
-      const response = await fetch("/api/money/send", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          senderId: user.id,
-          recipientId: selectedUser,
-          amount: Number.parseFloat(amount),
-          description: note || "Wallet transfer",
-        }),
-      })
-
-      if (!response.ok) {
-        const text = await response.text()
-        const maybe = text.trim().startsWith("{") ? JSON.parse(text) : null
-        throw new Error(maybe?.error || text || `HTTP ${response.status}`)
-      }
-
-      const contentType = response.headers.get("content-type") || ""
-      if (!contentType.includes("application/json")) {
-        const text = await response.text()
-        throw new Error(text || "Server returned invalid response format")
-      }
-
-      const data = await response.json()
-      if (data.success) {
-        await refreshUserData()
-        setTransactionId(data.transactionId)
-        setShowSuccess(true)
-        setAmount("")
-        setNote("")
-        setSelectedUser(null)
-        setError("")
-      } else {
-        setError(data.error || "Failed to send money")
-      }
-    } catch (err: any) {
-      setError(err?.message || "Failed to send money")
-=======
-  const [contacts, setContacts] = useState<Contact[]>([])
-  const [isLoading, setIsLoading] = useState(false)
+  const [currency, setCurrency] = useState("USD")
+  const [paymentMethod, setPaymentMethod] = useState("wallet")
+  const [description, setDescription] = useState("")
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
-  const [transactionId, setTransactionId] = useState("")
+
+  // Available payment methods
+  const paymentMethods: PaymentMethod[] = [
+    {
+      id: "wallet",
+      type: "wallet",
+      name: "PayPass Wallet",
+      icon: CreditCard,
+      balance: user?.walletBalance || 0,
+    },
+    {
+      id: "ecocash",
+      type: "ecocash",
+      name: "EcoCash",
+      icon: Smartphone,
+      accountNumber: "**** 1234",
+    },
+    {
+      id: "telecash",
+      type: "telecash",
+      name: "TeleCash",
+      icon: Smartphone,
+      accountNumber: "**** 5678",
+    },
+  ]
 
   useEffect(() => {
     if (!user) {
       router.push("/")
-      return
     }
-    fetchContacts()
   }, [user, router])
 
-  const fetchContacts = async () => {
-    try {
-      const response = await fetch("/api/contacts/mock")
-      const data = await response.json()
-      if (data.success) {
-        setContacts(data.contacts || [])
-      }
-    } catch (error) {
-      console.error("Error fetching contacts:", error)
->>>>>>> origin/main
-    }
-  }
-
-  const handleSendMoney = async () => {
-    if (!selectedContact || !amount) {
-      setError("Please select a contact and enter an amount")
-      return
-    }
-
-    const amountNum = Number.parseFloat(amount)
-    if (isNaN(amountNum) || amountNum <= 0) {
-      setError("Please enter a valid amount")
-      return
-    }
-
-    if (amountNum > user.walletBalance) {
-      setError("Insufficient balance")
-      return
-    }
-
-    setIsLoading(true)
+  const handleSendMoney = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
     setError("")
+    setSuccess("")
 
     try {
-      const response = await fetch("/api/money/send", {
+      // Validate inputs
+      if (!recipient || !amount || !currency) {
+        throw new Error("Please fill in all required fields")
+      }
+
+      const numAmount = parseFloat(amount)
+      if (isNaN(numAmount) || numAmount <= 0) {
+        throw new Error("Please enter a valid amount")
+      }
+
+      if (paymentMethod === "wallet" && numAmount > (user?.walletBalance || 0)) {
+        throw new Error("Insufficient wallet balance")
+      }
+
+      // Send money request
+      const response = await fetch("/api/transactions/send", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
         },
         body: JSON.stringify({
-          recipientId: selectedContact.id,
-          amount: amountNum,
-          description: note || `Money transfer to ${selectedContact.name}`,
+          recipientPhone: recipient,
+          amount: numAmount,
+          currency,
+          paymentMethod,
+          description: description || "Money transfer",
+          userId: user?.id,
         }),
       })
 
       const data = await response.json()
 
-      if (data.success) {
-        setSuccess(`Successfully sent $${amountNum.toFixed(2)} to ${selectedContact.name}`)
-        setTransactionId(data.transactionId)
-        setAmount("")
-        setNote("")
-        setSelectedContact(null)
-
-        // Refresh user data to get updated balance
-        await refreshUserData()
-      } else {
-        setError(data.error || "Failed to send money")
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to send money")
       }
-    } catch (error) {
-      console.error("Send money error:", error)
-      setError("Failed to send money. Please try again.")
+
+      if (data.success) {
+        setSuccess(`Successfully sent ${currency} ${amount} to ${recipient}`)
+        setRecipient("")
+        setAmount("")
+        setDescription("")
+        
+        // Redirect to transactions page after a delay
+        setTimeout(() => {
+          router.push("/transactions")
+        }, 2000)
+      } else {
+        throw new Error(data.error || "Transaction failed")
+      }
+    } catch (err: any) {
+      console.error("Send money error:", err)
+      setError(err.message || "Failed to send money")
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
   if (!user) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    )
+    return null
   }
 
   return (
-<<<<<<< HEAD
-    <div className="min-h-screen bg-gray-50">
-      <div className="w-full max-w-md mx-auto bg-white min-h-screen shadow">
-        <div className="px-6 py-6">
-          {error && (
-            <Alert className="mb-4 border-red-200 bg-red-50">
-=======
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="w-full max-w-md mx-auto bg-white min-h-screen shadow-xl">
+    <div className="min-h-screen bg-gray-50 p-4">
+      <div className="max-w-2xl mx-auto">
         {/* Header */}
-        <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-8 text-white">
-          <div className="flex items-center mb-4">
+        <div className="flex items-center mb-6">
             <Link href="/dashboard">
-              <Button variant="ghost" size="sm" className="text-white hover:bg-white/20 p-2">
+            <Button variant="ghost" size="sm" className="mr-4">
                 <ArrowLeft className="w-4 h-4" />
               </Button>
             </Link>
-            <h1 className="text-xl font-bold ml-2">Send Money</h1>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Send Money</h1>
+            <p className="text-gray-600">Transfer money quickly and securely</p>
           </div>
-          <p className="text-green-100 text-sm">Transfer money to your contacts</p>
         </div>
 
-        <div className="px-6 py-6">
-          {error && (
-            <Alert className="mb-4 border-red-200 bg-red-50">
-              <AlertCircle className="h-4 w-4 text-red-600" />
->>>>>>> origin/main
-              <AlertDescription className="text-red-800">{error}</AlertDescription>
-            </Alert>
-          )}
-
-<<<<<<< HEAD
-          {showSuccess && (
-            <Alert className="mb-4 border-green-200 bg-green-50">
-              <AlertDescription className="text-green-800">Transaction successful: {transactionId}</AlertDescription>
-            </Alert>
-          )}
-
-          <Card className="mb-4">
-            <CardContent className="p-4 space-y-3">
-              <div>
-                <label className="block text-sm mb-1">Amount ($)</label>
-                <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" />
-              </div>
-              <div>
-                <label className="block text-sm mb-1">Note</label>
-                <Input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Optional" />
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="mb-4">
-            <CardContent className="p-4">
-              <div className="mb-2 font-medium flex items-center"><Users className="w-4 h-4 mr-2" /> Select Contact</div>
-              {loadingContacts ? (
-                <div className="text-sm text-gray-600">Loading contacts...</div>
-              ) : contacts.length ? (
-                <div className="space-y-2 max-h-60 overflow-y-auto">
-                  {contacts.map((c) => (
-                    <div
-                      key={c.id}
-                      onClick={() => setSelectedUser(c.id)}
-                      className={`p-3 border rounded cursor-pointer ${selectedUser === c.id ? "bg-blue-50 border-blue-300" : "hover:bg-gray-50"}`}
-                    >
-                      <div className="text-sm font-medium">{c.fullName}</div>
-                      <div className="text-xs text-gray-600">{c.phone}</div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-sm text-gray-600">No contacts. Add some in Manage Contacts.</div>
-              )}
-              <div className="mt-3">
-                <Link href="/manage-contacts">
-                  <Button variant="outline" className="bg-transparent">Manage Contacts</Button>
-                </Link>
-=======
-          {success && (
-            <Alert className="mb-4 border-green-200 bg-green-50">
-              <CheckCircle className="h-4 w-4 text-green-600" />
-              <AlertDescription className="text-green-800">
-                {success}
-                {transactionId && <div className="mt-2 text-xs">Transaction ID: {transactionId}</div>}
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* Balance Display */}
+        {/* Main Form */}
           <Card className="mb-6">
-            <CardContent className="p-4">
-              <div className="text-center">
-                <p className="text-sm text-gray-600">Available Balance</p>
-                <p className="text-2xl font-bold text-gray-900">${user.walletBalance.toFixed(2)}</p>
->>>>>>> origin/main
-              </div>
-            </CardContent>
-          </Card>
-
-<<<<<<< HEAD
-          <Button onClick={(e) => handleSendMoney(e)} className="w-full">
-            <Send className="w-4 h-4 mr-2" /> Send Money
-=======
-          {/* Contact Selection */}
-          <Card className="mb-6">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center">
-                <User className="w-5 h-5 mr-2" />
-                Select Contact
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Send className="w-5 h-5 mr-2" />
+              Send Money
               </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {contacts.map((contact) => (
-                <div
-                  key={contact.id}
-                  onClick={() => setSelectedContact(contact)}
-                  className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                    selectedContact?.id === contact.id
-                      ? "border-green-500 bg-green-50"
-                      : "border-gray-200 hover:border-gray-300"
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-gray-900">{contact.name}</p>
-                      <p className="text-sm text-gray-600">{contact.phone}</p>
-                    </div>
-                    {selectedContact?.id === contact.id && <CheckCircle className="w-5 h-5 text-green-600" />}
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          {/* Amount Input */}
-          <Card className="mb-6">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center">
-                <DollarSign className="w-5 h-5 mr-2" />
-                Amount
-              </CardTitle>
+            <CardDescription>
+              Send money to friends, family, or businesses
+            </CardDescription>
             </CardHeader>
             <CardContent>
-              <div>
-                <Label htmlFor="amount">Amount ($)</Label>
+            <form onSubmit={handleSendMoney} className="space-y-6">
+              {/* Recipient */}
+              <div className="space-y-2">
+                <Label htmlFor="recipient">Recipient Phone Number</Label>
+                <Input
+                  id="recipient"
+                  type="tel"
+                  placeholder="+263 77 123 4567"
+                  value={recipient}
+                  onChange={(e) => setRecipient(e.target.value)}
+                  required
+                />
+              </div>
+
+              {/* Amount and Currency */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="amount">Amount</Label>
                 <Input
                   id="amount"
                   type="number"
                   step="0.01"
                   min="0.01"
-                  max={user.walletBalance}
                   placeholder="0.00"
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                />
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="currency">Currency</Label>
+                  <Select value={currency} onValueChange={setCurrency}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USD">USD ($)</SelectItem>
+                      <SelectItem value="ZWL">ZWL (Z$)</SelectItem>
+                      <SelectItem value="EUR">EUR (€)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Payment Method */}
+              <div className="space-y-2">
+                <Label>Payment Method</Label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {paymentMethods.map((method) => (
+                    <Card
+                      key={method.id}
+                      className={`cursor-pointer transition-all ${
+                        paymentMethod === method.id
+                          ? "ring-2 ring-blue-500 bg-blue-50"
+                          : "hover:bg-gray-50"
+                      }`}
+                      onClick={() => setPaymentMethod(method.id)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center space-x-3">
+                          <method.icon className="w-5 h-5 text-gray-600" />
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium">{method.name}</p>
+                            {method.balance !== undefined && (
+                              <p className="text-xs text-gray-500">
+                                Balance: {currency} {method.balance.toFixed(2)}
+                              </p>
+                            )}
+                            {method.accountNumber && (
+                              <p className="text-xs text-gray-500">{method.accountNumber}</p>
+                            )}
+                          </div>
               </div>
             </CardContent>
           </Card>
+                  ))}
+                </div>
+              </div>
 
-          {/* Note Input */}
-          <Card className="mb-6">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg flex items-center">
-                <MessageSquare className="w-5 h-5 mr-2" />
-                Note (Optional)
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div>
-                <Label htmlFor="note">Add a note</Label>
+              {/* Description */}
+              <div className="space-y-2">
+                <Label htmlFor="description">Description (Optional)</Label>
                 <Input
-                  id="note"
-                  placeholder="What's this for?"
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
+                  id="description"
+                  placeholder="What's this payment for?"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
                 />
+              </div>
+
+              {/* Error/Success Messages */}
+              {error && (
+                <Alert variant="destructive">
+                  <AlertCircle className="h-4 w-4" />
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+
+              {success && (
+                <Alert className="border-green-200 bg-green-50">
+                  <AlertDescription className="text-green-800">{success}</AlertDescription>
+                </Alert>
+              )}
+
+              {/* Summary */}
+              {amount && recipient && (
+                <Card className="border-blue-200 bg-blue-50">
+                  <CardContent className="p-4">
+                    <h3 className="font-medium text-blue-900 mb-2">Transaction Summary</h3>
+                    <div className="space-y-1 text-sm text-blue-800">
+                      <div className="flex justify-between">
+                        <span>Amount:</span>
+                        <span>{currency} {amount}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Recipient:</span>
+                        <span>{recipient}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Method:</span>
+                        <span>{paymentMethods.find(m => m.id === paymentMethod)?.name}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Fee:</span>
+                        <span>FREE</span>
+                      </div>
+                      <div className="border-t border-blue-300 pt-1 mt-2">
+                        <div className="flex justify-between font-medium">
+                          <span>Total:</span>
+                          <span>{currency} {amount}</span>
+                        </div>
+                      </div>
               </div>
             </CardContent>
           </Card>
+              )}
 
-          {/* Send Button */}
+              {/* Submit Button */}
           <Button
-            onClick={handleSendMoney}
-            disabled={isLoading || !selectedContact || !amount}
-            className="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700"
-            size="lg"
-          >
-            {isLoading ? (
-              <div className="flex items-center">
+                type="submit"
+                className="w-full"
+                disabled={loading || !recipient || !amount}
+              >
+                {loading ? (
+                  <>
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                 Sending...
-              </div>
-            ) : (
-              <div className="flex items-center">
-                <Send className="w-4 h-4 mr-2" />
-                Send Money
-              </div>
-            )}
->>>>>>> origin/main
+                  </>
+                ) : (
+                  <>
+                    <DollarSign className="w-4 h-4 mr-2" />
+                    Send {currency} {amount || "0.00"}
+                  </>
+                )}
           </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Quick Send */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Quick Send</CardTitle>
+            <CardDescription>Send to recent recipients</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8 text-gray-500">
+              <p>No recent recipients</p>
+              <p className="text-sm">Your recent sends will appear here</p>
         </div>
+          </CardContent>
+        </Card>
       </div>
     </div>
   )

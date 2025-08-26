@@ -1,20 +1,15 @@
-<<<<<<< HEAD
 import { storage as memoryStorage } from "./storage/storage-memory"
 
 // Only import NeonStorage if DATABASE_URL is available
 let NeonStorage: any = null
 if (process.env.DATABASE_URL) {
   try {
-    const { NeonStorage: NeonStorageClass } = require("./storage/storage-neon")
-    NeonStorage = NeonStorageClass
+    const { storage: neonStorage } = require("./storage/storage-neon")
+    NeonStorage = neonStorage
   } catch (error) {
     console.warn("Neon storage not available:", error)
   }
 }
-=======
-import { storage as neonStorage } from "./storage/storage-neon"
-import { storage as memoryStorage } from "./storage/storage-memory"
->>>>>>> origin/main
 
 // Define all interfaces
 export interface User {
@@ -100,10 +95,9 @@ export interface MonthlyExpense {
 }
 
 // Use Neon storage if DATABASE_URL is available, otherwise use memory storage
-<<<<<<< HEAD
 const useNeonStorage = !!process.env.DATABASE_URL && NeonStorage
 
-export const storage = useNeonStorage ? new NeonStorage() : memoryStorage
+export const storage = useNeonStorage ? NeonStorage : memoryStorage
 
 // Re-export everything from memory storage
 export * from "./storage/storage-memory"
@@ -131,35 +125,22 @@ export async function searchUsers(query: string, excludeUserId?: string) {
 
 
 
-=======
-const useNeonStorage = !!process.env.DATABASE_URL
 
-export const storage = useNeonStorage ? neonStorage : memoryStorage
-
->>>>>>> origin/main
-// Re-export all storage functions for convenience
-export const {
-  ensureSeeded,
-  createUser,
-  getUserById,
-  getUserByPhone,
-  updateUserWalletBalance,
-  createTransaction,
-  getUserTransactions,
-  getTransactionById,
-  createPaymentRequest,
-  getPaymentRequestById,
-  updatePaymentRequestStatus,
-<<<<<<< HEAD
-  createNotification,
-  getUserNotifications,
-  markNotificationAsRead,
-=======
-  getPendingPaymentRequests,
-  createNotification,
-  getUserNotifications,
-  markNotificationAsRead,
-  recordMonthlyExpense,
-  getMonthlyExpenses,
->>>>>>> origin/main
-} = storage
+// Export functions that maintain 'this' context
+export const ensureSeeded = () => storage.ensureSeeded()
+export const createUser = (userData: any) => storage.createUser(userData)
+export const getUserById = (id: string) => storage.getUserById(id)
+export const getUserByPhone = (phone: string) => storage.getUserByPhone(phone)
+export const updateUserWalletBalance = (userId: string, newBalance: number) => storage.updateUserWalletBalance(userId, newBalance)
+export const createTransaction = (transaction: any) => storage.createTransaction(transaction)
+export const getUserTransactions = (userId: string, limit?: number) => storage.getUserTransactions(userId, limit)
+export const getTransactionById = (id: string) => storage.getTransactionById(id)
+export const createPaymentRequest = (request: any) => storage.createPaymentRequest(request)
+export const getPaymentRequestById = (id: string) => storage.getPaymentRequestById(id)
+export const updatePaymentRequestStatus = (id: string, status: string, linkedTransactionId?: string) => storage.updatePaymentRequestStatus(id, status, linkedTransactionId)
+export const getPendingPaymentRequests = (userId: string) => storage.getPendingPaymentRequests(userId)
+export const createNotification = (notification: any) => storage.createNotification(notification)
+export const getUserNotifications = (userId: string, limit?: number) => storage.getUserNotifications(userId, limit)
+export const markNotificationAsRead = (id: string) => storage.markNotificationAsRead(id)
+export const recordMonthlyExpense = (expense: any) => storage.recordMonthlyExpense(expense)
+export const getMonthlyExpenses = (userId: string, month: number, year: number) => storage.getMonthlyExpenses(userId, month, year)

@@ -593,6 +593,92 @@ export const insertPerformanceMetricSchema = createInsertSchema(performanceMetri
   createdAt: true,
 });
 
+// WhatsApp Integration Tables
+export const whatsappContacts = pgTable("whatsapp_contacts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  whatsappNumber: varchar("whatsapp_number", { length: 20 }).notNull(),
+  displayName: varchar("display_name", { length: 100 }),
+  isVerified: boolean("is_verified").default(false),
+  trustScore: decimal("trust_score", { precision: 3, scale: 2 }).default("0.00"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const whatsappConversations = pgTable("whatsapp_conversations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id).notNull(),
+  whatsappNumber: varchar("whatsapp_number", { length: 20 }).notNull(),
+  conversationType: varchar("conversation_type", { length: 20 }).default("individual"), // 'individual', 'group'
+  lastMessageAt: timestamp("last_message_at").defaultNow(),
+  context: text("context").default("{}"), // JSON context
+  status: varchar("status", { length: 20 }).default("active"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const whatsappPaymentSessions = pgTable("whatsapp_payment_sessions", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  conversationId: varchar("conversation_id").references(() => whatsappConversations.id).notNull(),
+  paymentIntent: text("payment_intent").notNull(), // JSON payment data
+  sessionStatus: varchar("session_status", { length: 20 }).default("pending"),
+  expiresAt: timestamp("expires_at").notNull(),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const whatsappMessages = pgTable("whatsapp_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  conversationId: varchar("conversation_id").references(() => whatsappConversations.id).notNull(),
+  messageId: varchar("message_id", { length: 100 }).notNull(), // WhatsApp message ID
+  direction: varchar("direction", { length: 10 }).notNull(), // 'inbound', 'outbound'
+  messageType: varchar("message_type", { length: 20 }).notNull(), // 'text', 'interactive', 'template'
+  content: text("content").notNull(), // JSON message content
+  processedAt: timestamp("processed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const whatsappTemplates = pgTable("whatsapp_templates", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  templateName: varchar("template_name", { length: 100 }).notNull().unique(),
+  templateId: varchar("template_id", { length: 100 }).notNull(), // WhatsApp template ID
+  category: varchar("category", { length: 50 }).notNull(),
+  language: varchar("language", { length: 10 }).default("en"),
+  components: text("components").notNull(), // JSON components
+  status: varchar("status", { length: 20 }).default("active"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// WhatsApp Relations
+export const whatsappContactRelations = relations(whatsappContacts, ({ one }) => ({
+  user: one(users, {
+    fields: [whatsappContacts.userId],
+    references: [users.id],
+  }),
+}));
+
+export const whatsappConversationRelations = relations(whatsappConversations, ({ one, many }) => ({
+  user: one(users, {
+    fields: [whatsappConversations.userId],
+    references: [users.id],
+  }),
+  paymentSessions: many(whatsappPaymentSessions),
+  messages: many(whatsappMessages),
+}));
+
+export const whatsappPaymentSessionRelations = relations(whatsappPaymentSessions, ({ one }) => ({
+  conversation: one(whatsappConversations, {
+    fields: [whatsappPaymentSessions.conversationId],
+    references: [whatsappConversations.id],
+  }),
+}));
+
+export const whatsappMessageRelations = relations(whatsappMessages, ({ one }) => ({
+  conversation: one(whatsappConversations, {
+    fields: [whatsappMessages.conversationId],
+    references: [whatsappConversations.id],
+  }),
+}));
+
 // Enums for better type safety
 export const UserTypeEnum = z.enum(['user', 'operator', 'merchant', 'partner', 'admin']);
 export const CurrencyEnum = z.enum(['USD', 'ZWL', 'EUR', 'GBP', 'ZAR']);
@@ -613,3 +699,53 @@ export type RiskLevel = z.infer<typeof RiskLevelEnum>;
 export type MobileMoneyProvider = z.infer<typeof MobileMoneyProviderEnum>;
 export type NotificationType = z.infer<typeof NotificationTypeEnum>;
 export type NotificationPriority = z.infer<typeof NotificationPriorityEnum>;
+
+// WhatsApp Types
+export type WhatsappContact = typeof whatsappContacts.$inferSelect;
+export type InsertWhatsappContact = typeof whatsappContacts.$inferInsert;
+
+export type WhatsappConversation = typeof whatsappConversations.$inferSelect;
+export type InsertWhatsappConversation = typeof whatsappConversations.$inferInsert;
+
+export type WhatsappPaymentSession = typeof whatsappPaymentSessions.$inferSelect;
+export type InsertWhatsappPaymentSession = typeof whatsappPaymentSessions.$inferInsert;
+
+export type WhatsappMessage = typeof whatsappMessages.$inferSelect;
+export type InsertWhatsappMessage = typeof whatsappMessages.$inferInsert;
+
+export type WhatsappTemplate = typeof whatsappTemplates.$inferSelect;
+export type InsertWhatsappTemplate = typeof whatsappTemplates.$inferInsert;
+
+// WhatsApp Insert Schemas
+export const insertWhatsappContactSchema = createInsertSchema(whatsappContacts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertWhatsappConversationSchema = createInsertSchema(whatsappConversations).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertWhatsappPaymentSessionSchema = createInsertSchema(whatsappPaymentSessions).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertWhatsappMessageSchema = createInsertSchema(whatsappMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertWhatsappTemplateSchema = createInsertSchema(whatsappTemplates).omit({
+  id: true,
+  createdAt: true,
+});
+
+// WhatsApp-specific enums
+export const WhatsappMessageTypeEnum = z.enum(['text', 'interactive', 'template', 'image', 'document']);
+export const WhatsappSessionStatusEnum = z.enum(['pending', 'active', 'completed', 'expired', 'cancelled']);
+
+export type WhatsappMessageType = z.infer<typeof WhatsappMessageTypeEnum>;
+export type WhatsappSessionStatus = z.infer<typeof WhatsappSessionStatusEnum>;

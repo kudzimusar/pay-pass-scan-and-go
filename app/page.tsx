@@ -1,8 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
-import type React from "react"
-<<<<<<< HEAD
-=======
+
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -28,405 +25,243 @@ function normalizePhoneNumber(phone: string): string[] {
   }
 
   // Strategy 2: If it starts with 0, replace with +263
-  if (cleaned.startsWith("0") && cleaned.length >= 10) {
-    formats.push("+263" + cleaned.substring(1))
+  if (cleaned.startsWith("0") && cleaned.length === 10) {
+    formats.push("+263" + cleaned.slice(1))
   }
 
-  // Strategy 3: If it's 9 digits starting with 7, add +263
-  if (cleaned.length === 9 && cleaned.startsWith("7")) {
+  // Strategy 3: If it's 9 digits, assume it's missing the 0
+  if (cleaned.length === 9) {
     formats.push("+263" + cleaned)
   }
 
-  // Strategy 4: If it's 10 digits starting with 77, remove first digit and add +263
-  if (cleaned.length === 10 && cleaned.startsWith("77")) {
-    formats.push("+263" + cleaned.substring(1))
+  // Strategy 4: If it's 12 digits starting with 263
+  if (cleaned.length === 12 && cleaned.startsWith("263")) {
+    formats.push("+" + cleaned)
   }
 
-  // Strategy 5: Try original input as is
-  if (phone.startsWith("+")) {
-    formats.push(phone)
-  }
-
-  // Strategy 6: Add +263 to any remaining format
-  if (!formats.some((f) => f.includes(cleaned))) {
+  // Strategy 5: Add the original cleaned number with +263 prefix
+  if (!cleaned.startsWith("263")) {
     formats.push("+263" + cleaned)
   }
 
-  // Remove duplicates
-  return [...new Set(formats)]
+  console.log("Generated formats:", formats)
+  return formats
 }
->>>>>>> origin/main
 
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Badge } from "@/components/ui/badge"
-import { Eye, EyeOff, Smartphone, Shield, AlertCircle, CheckCircle } from "lucide-react"
-
-export default function LoginPage() {
+export default function Home() {
   const router = useRouter()
-  const { user, login, isLoading: authLoading } = useAuth()
+  const { login, user } = useAuth()
   const [phone, setPhone] = useState("")
   const [pin, setPin] = useState("")
-  const [showPin, setShowPin] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [showPin, setShowPin] = useState(false)
 
-<<<<<<< HEAD
-  // Check if user is already logged in
-  useEffect(() => {
-    const token = localStorage.getItem("auth_token")
-    if (token) {
-      router.push("/dashboard")
-    }
-  }, [router])
-
-  const formatPhoneNumber = (value: string) => {
-    // Remove all non-digit characters
-    const digits = value.replace(/\D/g, "")
-
-    // Format as needed - just return the digits for now
-    return digits
-  }
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const formatted = formatPhoneNumber(e.target.value)
-    setPhone(formatted)
-  }
-
-  const handleSubmit = async (e: React.FormEvent) => {
-=======
   // Redirect if already logged in
   useEffect(() => {
-    if (!authLoading && user) {
-      console.log("User already logged in, redirecting to dashboard")
+    if (user) {
       router.push("/dashboard")
     }
-  }, [user, authLoading, router])
-
-  // Don't render if still checking auth or user is logged in
-  if (authLoading || user) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-        <div className="w-full max-w-md mx-auto bg-white min-h-screen shadow-xl">
-          <div className="flex items-center justify-center min-h-screen">
-            <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading...</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    )
-  }
+  }, [user, router])
 
   const handleLogin = async (e: React.FormEvent) => {
->>>>>>> origin/main
     e.preventDefault()
+    setLoading(true)
     setError("")
-    setIsLoading(true)
 
     try {
-      console.log("Attempting login with phone:", phone)
-
-      // Get all possible phone number formats
+      // Try multiple phone number formats
       const phoneFormats = normalizePhoneNumber(phone)
-      console.log("Trying phone formats:", phoneFormats)
-
-<<<<<<< HEAD
-      console.log("Login response status:", response.status)
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        console.error("Login error:", errorData)
-        throw new Error(errorData.error || `HTTP ${response.status}`)
-      }
-
-      const data = await response.json()
-      console.log("Login successful:", data.user?.fullName)
-
-      if (data.success && data.token) {
-        // Store auth token and user data
-        localStorage.setItem("auth_token", data.token)
-        localStorage.setItem("user_data", JSON.stringify(data.user))
-
-        // Redirect to dashboard
-        router.push("/dashboard")
-      } else {
-        throw new Error(data.error || "Login failed")
-      }
-    } catch (error) {
-      console.error("Login error:", error)
-      setError(error instanceof Error ? error.message : "Connection error. Please try again.")
-=======
-      let loginSuccessful = false
+      let success = false
       let lastError = ""
 
-      // Try each phone format until one works
       for (const phoneFormat of phoneFormats) {
         try {
-          console.log("Trying phone format:", phoneFormat)
-
-          const response = await fetch("/api/auth/login", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ phone: phoneFormat, pin }),
-          })
-
-          console.log("Response status for", phoneFormat, ":", response.status)
-
-          if (response.ok) {
-            const data = await response.json()
-            console.log("Login response data:", data)
-
-            if (data.success && data.user && data.token) {
-              console.log("Login successful with format:", phoneFormat)
-              login(data.token, data.user)
-              router.push("/dashboard")
-              loginSuccessful = true
-              break
-            }
-          } else {
-            const errorData = await response.json()
-            lastError = errorData.error || "Login failed"
-            console.log("Login failed for", phoneFormat, ":", lastError)
-          }
-        } catch (formatError) {
-          console.log("Error trying format", phoneFormat, ":", formatError)
-          lastError = "Connection error"
+          console.log("Trying login with phone format:", phoneFormat)
+          await login(phoneFormat, pin)
+          success = true
+          break
+        } catch (err: any) {
+          console.log("Login failed for format:", phoneFormat, "Error:", err.message)
+          lastError = err.message
+          continue
         }
       }
 
-      if (!loginSuccessful) {
-        setError(lastError || "Invalid phone number or PIN. Please check your credentials.")
+      if (!success) {
+        throw new Error(lastError || "Login failed with all phone number formats")
       }
-    } catch (error) {
-      console.error("Login error:", error)
-      setError("Unable to connect to server. Please check your internet connection.")
->>>>>>> origin/main
+
+      // Success - redirect handled by auth provider
+    } catch (err: any) {
+      console.error("Login error:", err)
+      setError(err.message || "Login failed. Please check your credentials.")
     } finally {
-      setIsLoading(false)
+      setLoading(false)
     }
   }
 
+  const quickLoginData = [
+    { phone: "+263771234567", pin: "1234", name: "John Doe (Diaspora User)" },
+    { phone: "+263772345678", pin: "2345", name: "Jane Smith (Local User)" },
+    { phone: "+263773456789", pin: "3456", name: "Mike Johnson (Merchant)" },
+  ]
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-teal-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-6">
-        {/* Logo and Header */}
-        <div className="text-center space-y-2">
-          <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Smartphone className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900">PayPass</h1>
-          <p className="text-gray-600">Secure mobile payments made simple</p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            PayPass
+          </h1>
+          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+            Seamless payments for everyone, everywhere. Send money to friends and family across borders with ease.
+          </p>
         </div>
 
-        {/* Demo Credentials Card */}
-        <Card className="border-blue-200 bg-blue-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-medium text-blue-900 flex items-center">
-              <CheckCircle className="w-4 h-4 mr-2" />
-              Demo Credentials
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-blue-700">Phone:</span>
-                <Badge variant="secondary" className="font-mono">
-                  +263771234567
-                </Badge>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-blue-700">PIN:</span>
-                <Badge variant="secondary" className="font-mono">
-                  1234
-                </Badge>
-              </div>
-            </div>
-            <p className="text-xs text-blue-600 mt-2">Use these credentials to explore the demo</p>
-          </CardContent>
-        </Card>
-
-        {/* Login Form */}
-        <Card className="shadow-lg">
-          <CardHeader>
-            <CardTitle>Sign In</CardTitle>
-            <CardDescription>Enter your phone number and PIN to continue</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {/* Phone Number Input */}
-              <div className="space-y-2">
-                <label htmlFor="phone" className="text-sm font-medium text-gray-700">
-                  Phone Number
-                </label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="771234567 or +263771234567"
-                  value={phone}
-                  onChange={handlePhoneChange}
-                  className="text-lg"
-                  required
-                />
-                <p className="text-xs text-gray-500">Enter your phone number with or without country code</p>
-              </div>
-
-              {/* PIN Input */}
-              <div className="space-y-2">
-                <label htmlFor="pin" className="text-sm font-medium text-gray-700">
-                  PIN
-                </label>
-                <div className="relative">
-                  <Input
-                    id="pin"
-                    type={showPin ? "text" : "password"}
-                    placeholder="Enter your 4-digit PIN"
-                    value={pin}
-                    onChange={(e) => setPin(e.target.value)}
-                    className="text-lg pr-10"
-                    maxLength={4}
-                    required
-                  />
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
-                    onClick={() => setShowPin(!showPin)}
-                  >
-                    {showPin ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </Button>
-                </div>
-              </div>
-
-              {/* Error Alert */}
-              {error && (
-                <Alert className="border-red-200 bg-red-50">
-                  <AlertCircle className="h-4 w-4 text-red-600" />
-                  <AlertDescription className="text-red-800">{error}</AlertDescription>
-                </Alert>
-              )}
-
-<<<<<<< HEAD
-              {/* Submit Button */}
-              <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Signing In...
-                  </div>
-                ) : (
-                  "Sign In"
-                )}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-
-        {/* Security Notice */}
-        <Card className="border-green-200 bg-green-50">
-          <CardContent className="pt-4">
-            <div className="flex items-start space-x-3">
-              <Shield className="w-5 h-5 text-green-600 mt-0.5" />
-              <div>
-                <h3 className="text-sm font-medium text-green-900">Secure & Private</h3>
-                <p className="text-xs text-green-700 mt-1">
-                  Your data is encrypted and stored securely. We never share your personal information.
-                </p>
-=======
+        <div className="grid lg:grid-cols-2 gap-8 items-start">
+          {/* Login Form */}
+          <Card className="w-full max-w-md mx-auto">
+            <CardHeader>
+              <CardTitle className="text-2xl text-center">Welcome Back</CardTitle>
+              <CardDescription className="text-center">
+                Sign in to your PayPass account
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
               <form onSubmit={handleLogin} className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="phone">Phone Number</Label>
                   <Input
                     id="phone"
+                    data-testid="phone"
                     type="tel"
-                    placeholder="772160634"
+                    placeholder="+263 77 123 4567"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     required
                   />
-                  <p className="text-xs text-gray-500">
-                    Enter your phone number (e.g., 772160634, 0772160634, or +263772160634)
-                  </p>
                 </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="pin">PIN</Label>
                   <div className="relative">
                     <Input
                       id="pin"
+                      data-testid="pin"
                       type={showPin ? "text" : "password"}
-                      placeholder="Enter your PIN"
+                      placeholder="Enter your 4-digit PIN"
                       value={pin}
                       onChange={(e) => setPin(e.target.value)}
-                      maxLength={6}
+                      maxLength={4}
                       required
                     />
                     <button
                       type="button"
-                      className="absolute inset-y-0 right-0 pr-3 flex items-center"
                       onClick={() => setShowPin(!showPin)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
                     >
-                      {showPin ? (
-                        <EyeOff className="h-4 w-4 text-gray-400" />
-                      ) : (
-                        <Eye className="h-4 w-4 text-gray-400" />
-                      )}
+                      {showPin ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                     </button>
                   </div>
                 </div>
 
-                <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Signing in...
-                    </>
-                  ) : (
-                    "Sign In"
-                  )}
+                {error && (
+                  <Alert variant="destructive">
+                    <AlertCircle className="h-4 w-4" />
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+
+                <Button
+                  type="submit"
+                  data-testid="login-button"
+                  className="w-full"
+                  disabled={loading}
+                >
+                  {loading ? "Signing in..." : "Sign In"}
                 </Button>
               </form>
 
-              <div className="mt-6 text-center space-y-2">
+              <div className="mt-6 text-center">
                 <p className="text-sm text-gray-600">
                   Don't have an account?{" "}
                   <Link href="/signup" className="text-blue-600 hover:underline">
-                    Sign up
+                    Sign up here
                   </Link>
                 </p>
-                <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-                  <p className="text-xs text-blue-800 font-medium">Demo Accounts Available:</p>
-                  <div className="text-xs text-blue-600 mt-1 space-y-1">
-                    <p>
-                      Phone: <span className="font-mono">772160634</span> PIN: <span className="font-mono">1234</span>
-                    </p>
-                    <p>
-                      Phone: <span className="font-mono">0772160634</span> PIN: <span className="font-mono">1234</span>
-                    </p>
-                    <p>
-                      Phone: <span className="font-mono">+263772160634</span> PIN:{" "}
-                      <span className="font-mono">1234</span>
-                    </p>
-                  </div>
-                </div>
->>>>>>> origin/main
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
 
-        {/* Footer Links */}
+          {/* Features & Quick Login */}
+          <div className="space-y-6">
+            {/* Quick Login */}
+            <Card className="border-green-200 bg-green-50">
+              <CardHeader>
+                <CardTitle className="text-green-800">Quick Demo Login</CardTitle>
+                <CardDescription className="text-green-700">
+                  Try PayPass with these demo accounts
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {quickLoginData.map((demo, index) => (
+                    <div key={index} className="flex items-start space-x-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-green-800">{demo.name}</p>
+                        <p className="text-xs text-green-600">
+                          Phone: {demo.phone} | PIN: {demo.pin}
+                        </p>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setPhone(demo.phone)
+                          setPin(demo.pin)
+                        }}
+                        className="shrink-0 border-green-300 text-green-700 hover:bg-green-100"
+                      >
+                        Use
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Features */}
+            <div className="grid grid-cols-2 gap-4">
+              <Card className="text-center p-4">
+                <Users className="h-8 w-8 mx-auto mb-2 text-blue-600" />
+                <h3 className="font-semibold text-sm">Pay for Friends</h3>
+                <p className="text-xs text-gray-600 mt-1">Send money to family abroad</p>
+              </Card>
+              <Card className="text-center p-4">
+                <QrCode className="h-8 w-8 mx-auto mb-2 text-green-600" />
+                <h3 className="font-semibold text-sm">QR Payments</h3>
+                <p className="text-xs text-gray-600 mt-1">Quick scan and pay</p>
+              </Card>
+              <Card className="text-center p-4">
+                <CreditCard className="h-8 w-8 mx-auto mb-2 text-purple-600" />
+                <h3 className="font-semibold text-sm">Multi-Currency</h3>
+                <p className="text-xs text-gray-600 mt-1">USD, ZWL, EUR support</p>
+              </Card>
+              <Card className="text-center p-4">
+                <Smartphone className="h-8 w-8 mx-auto mb-2 text-orange-600" />
+                <h3 className="font-semibold text-sm">Mobile Money</h3>
+                <p className="text-xs text-gray-600 mt-1">EcoCash integration</p>
+              </Card>
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
         <div className="text-center space-y-2">
           <div className="flex justify-center space-x-4 text-sm text-gray-600">
             <button className="hover:text-blue-600">Need Help?</button>
-            <span>•</span>
+            <button className="hover:text-blue-600">Contact Support</button>
             <button className="hover:text-blue-600">Privacy Policy</button>
           </div>
           <p className="text-xs text-gray-500">© 2024 PayPass. All rights reserved.</p>

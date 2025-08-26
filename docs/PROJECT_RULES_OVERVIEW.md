@@ -27,6 +27,17 @@ This comprehensive project rules document provides the complete foundation for d
 - **[validate-phase.js](../scripts/validate-phase.js)** - Phase completion validation script
 - **[package.json](../package.json)** - Enhanced with comprehensive scripts for validation, testing, and phase management
 
+### 📋 **MANDATORY ITERATION DOCUMENTATION**
+- **[iterations/](../iterations/)** - Required documentation for all significant changes
+- **[AGENTS.md](../AGENTS.md)** - Contains detailed iteration documentation requirements
+- **Iteration Reports** - Must be created for system restorations, feature implementations, and architectural changes
+
+#### **Iteration Documentation Rules**
+1. **Mandatory for:** System-wide changes, authentication/payment modifications, API changes, configuration updates
+2. **Format:** `[Type]_[Description]_Completion.md` in `/iterations/` directory
+3. **Required Sections:** Objective, files modified, verification results, compliance checklist, post-completion tasks
+4. **Purpose:** Team reference, change tracking, technical debt documentation, compliance verification
+
 ---
 
 ## Quick Start Guide

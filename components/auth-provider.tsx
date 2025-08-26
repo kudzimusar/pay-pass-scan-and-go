@@ -1,32 +1,30 @@
 "use client"
 
-import type React from "react"
-import { createContext, useContext, useEffect, useState, useCallback } from "react"
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react"
 import { useRouter } from "next/navigation"
 
-interface User {
+// Define User interface
+export interface User {
   id: string
   fullName: string
   phone: string
   email?: string
   walletBalance: number
-  biometricEnabled?: boolean
+  biometricEnabled: boolean
+  joinedDate: Date
+  paypassUsername: string
 }
 
+// Define AuthContext interface
 interface AuthContextType {
   user: User | null
   token: string | null
   isLoading: boolean
-  login: (token: string, userData: User) => void
+  login: (phone: string, pin: string) => Promise<void>
   signup: (fullName: string, phone: string, pin: string, biometricEnabled?: boolean) => Promise<void>
   logout: () => void
   refreshUserData: () => Promise<void>
-<<<<<<< HEAD
-  isLoading: boolean
-  signup?: (fullName: string, phone: string, pin: string, biometricEnabled?: boolean) => Promise<void>
-=======
   updateBalance: (newBalance: number) => void
->>>>>>> origin/main
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -44,20 +42,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const storedToken = localStorage.getItem("auth_token")
         const storedUser = localStorage.getItem("user_data")
 
-        console.log("Initializing auth - Token exists:", !!storedToken, "User exists:", !!storedUser)
-
         if (storedToken && storedUser) {
-          const userData = JSON.parse(storedUser)
-          console.log("Restored user from storage:", userData.fullName)
           setToken(storedToken)
-          setUser(userData)
-
-          // Refresh user data from server
-          await refreshUserDataInternal(storedToken)
+          setUser(JSON.parse(storedUser))
         }
       } catch (error) {
         console.error("Error initializing auth:", error)
-        // Clear invalid data
         localStorage.removeItem("auth_token")
         localStorage.removeItem("user_data")
       } finally {
@@ -68,97 +58,106 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     initAuth()
   }, [])
 
-<<<<<<< HEAD
-  const login = useCallback((token: string, userData: User) => {
-    console.log("Logging in user:", userData)
-    localStorage.setItem("auth_token", token)
-    localStorage.setItem("user_data", JSON.stringify(userData))
-    setUser(userData)
-    setIsLoading(false)
-  }, [])
+  // Login function
+  const login = useCallback(async (phone: string, pin: string) => {
+    console.log("Login attempt for:", phone)
+    setIsLoading(true)
 
+    try {
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ phone, pin }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Login failed")
+      }
+
+      if (data.success && data.user && data.token) {
+        setToken(data.token)
+        setUser(data.user)
+        localStorage.setItem("auth_token", data.token)
+        localStorage.setItem("user_data", JSON.stringify(data.user))
+        console.log("Login successful for:", data.user.fullName)
+        router.push("/dashboard")
+      } else {
+        throw new Error(data.error || "Invalid login response")
+      }
+    } catch (error) {
+      console.error("Login error:", error)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
+  }, [router])
+
+  // Signup function
+  const signup = useCallback(async (fullName: string, phone: string, pin: string, biometricEnabled = false) => {
+    console.log("Signup attempt for:", fullName, phone)
+    setIsLoading(true)
+
+    try {
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          fullName,
+          phone,
+          pin,
+          biometricEnabled,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        throw new Error(data.error || "Signup failed")
+      }
+
+      if (data.success && data.user && data.token) {
+        setToken(data.token)
+        setUser(data.user)
+        localStorage.setItem("auth_token", data.token)
+        localStorage.setItem("user_data", JSON.stringify(data.user))
+        console.log("Signup successful for:", data.user.fullName)
+        router.push("/dashboard")
+      } else {
+        throw new Error(data.error || "Invalid signup response")
+      }
+    } catch (error) {
+      console.error("Signup error:", error)
+      throw error
+    } finally {
+    setIsLoading(false)
+    }
+  }, [router])
+
+  // Logout function
   const logout = useCallback(() => {
     console.log("Logging out user")
     localStorage.removeItem("auth_token")
     localStorage.removeItem("user_data")
     setUser(null)
+    setToken(null)
     setIsLoading(false)
-  }, [])
+    router.push("/")
+  }, [router])
 
-  const signup = useCallback(
-    async (fullName: string, phone: string, pin: string, biometricEnabled?: boolean) => {
-      const payload = { fullName, phone, pin, biometricEnabled: !!biometricEnabled }
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      })
-
-      if (!res.ok) {
-        // Read as text first to avoid JSON parse errors on non-JSON responses
-        const text = await res.text()
-        try {
-          const maybeJson = text.trim().startsWith("{") ? JSON.parse(text) : null
-          throw new Error(maybeJson?.error || `Signup failed (${res.status})`)
-        } catch (e) {
-          // If JSON parsing of error body fails, use raw text
-          throw new Error(text || `Signup failed (${res.status})`)
-        }
-      }
-
-      const contentType = res.headers.get("content-type") || ""
-      if (!contentType.includes("application/json")) {
-        const text = await res.text()
-        throw new Error(text || "Server returned invalid response format")
-      }
-
-      const data = await res.json()
-      if (!data?.token || !data?.user) {
-        throw new Error(data?.error || "Invalid signup response")
-      }
-
-      // Persist and set auth
-      localStorage.setItem("auth_token", data.token)
-      localStorage.setItem("user_data", JSON.stringify(data.user))
-      setUser(data.user)
-    },
-    [],
-  )
-
-  // Initial auth check
-=======
-  // Auto-sync balance every 30 seconds
->>>>>>> origin/main
-  useEffect(() => {
+  // Refresh user data
+  const refreshUserData = useCallback(async () => {
     if (!token || !user) return
 
-    const interval = setInterval(() => {
-      refreshUserDataInternal(token)
-    }, 30000)
-
-    return () => clearInterval(interval)
-  }, [token, user])
-
-  // Sync when page becomes visible
-  useEffect(() => {
-    if (!token || !user) return
-
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        refreshUserDataInternal(token)
-      }
-    }
-
-    document.addEventListener("visibilitychange", handleVisibilityChange)
-    return () => document.removeEventListener("visibilitychange", handleVisibilityChange)
-  }, [token, user])
-
-  const refreshUserDataInternal = async (authToken: string) => {
     try {
-      console.log("Refreshing user data...")
       const response = await fetch("/api/user/profile", {
         headers: {
-          Authorization: `Bearer ${authToken}`,
+          Authorization: `Bearer ${token}`,
         },
       })
 
@@ -175,81 +174,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error("Error refreshing user data:", error)
     }
-  }
+  }, [token, user])
 
-  const login = useCallback((authToken: string, userData: User) => {
-    console.log("AuthProvider login called for:", userData.fullName)
-    setToken(authToken)
-    setUser(userData)
-    localStorage.setItem("auth_token", authToken)
-    localStorage.setItem("user_data", JSON.stringify(userData))
-  }, [])
-
-  const signup = useCallback(
-    async (fullName: string, phone: string, pin: string, biometricEnabled = false) => {
-      console.log("AuthProvider signup called for:", fullName, phone)
-
-      try {
-        const response = await fetch("/api/auth/register", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            fullName,
-            phone,
-            pin,
-            biometricEnabled,
-          }),
-        })
-
-        const data = await response.json()
-        console.log("Signup response:", data)
-
-        if (!response.ok) {
-          throw new Error(data.error || "Signup failed")
-        }
-
-        if (data.user && data.token) {
-          console.log("Signup successful, logging in user:", data.user.fullName)
-          login(data.token, data.user)
-        } else {
-          throw new Error("Invalid signup response")
-        }
-      } catch (error) {
-        console.error("Signup error:", error)
-        throw error
-      }
-    },
-    [login],
-  )
-
-  const logout = useCallback(() => {
-    console.log("Logging out user")
-    setToken(null)
-    setUser(null)
-    localStorage.removeItem("auth_token")
-    localStorage.removeItem("user_data")
-    router.push("/")
-  }, [router])
-
-  const refreshUserData = useCallback(async () => {
-    if (token) {
-      await refreshUserDataInternal(token)
-    }
-  }, [token])
-
-  const updateBalance = useCallback(
-    (newBalance: number) => {
+  // Update balance function
+  const updateBalance = useCallback((newBalance: number) => {
       if (user) {
         const updatedUser = { ...user, walletBalance: newBalance }
         setUser(updatedUser)
         localStorage.setItem("user_data", JSON.stringify(updatedUser))
-        console.log("Balance updated to:", newBalance)
-      }
-    },
-    [user],
-  )
+    }
+  }, [user])
+
+  // Auto-refresh user data every 30 seconds
+  useEffect(() => {
+    if (!token || !user) return
+
+    const interval = setInterval(() => {
+      refreshUserData()
+    }, 30000)
+
+    return () => clearInterval(interval)
+  }, [token, user, refreshUserData])
 
   const value: AuthContextType = {
     user,
@@ -259,12 +204,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     signup,
     logout,
     refreshUserData,
-<<<<<<< HEAD
-    isLoading,
-    signup,
-=======
     updateBalance,
->>>>>>> origin/main
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

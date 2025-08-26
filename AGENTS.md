@@ -12,6 +12,8 @@ These instructions guide AI agents to work effectively, efficiently, and profess
 4. **Follow Standards**: Apply all code standards, security requirements, and architectural patterns
 5. **Track Progress**: Use todo lists to manage complex implementations and mark completion
 6. **Validate Work**: Run validation commands and fix issues autonomously
+7. **Execute Commands Independently**: Run system commands without waiting for user approval when resolving, fixing, or enhancing tasks
+8. **Complete Tasks End-to-End**: Work through entire problem resolution cycles without interruption
 
 ## 🎯 Core Principles
 
@@ -20,6 +22,9 @@ These instructions guide AI agents to work effectively, efficiently, and profess
 - Gather information independently before asking for clarification
 - Use parallel tool calls whenever possible for maximum efficiency
 - Complete tasks thoroughly before moving to the next item
+- **Execute system commands autonomously** when resolving, fixing, or enhancing tasks
+- **Work through complete problem resolution cycles** without waiting for user approval
+- **Run validation and testing commands** independently to ensure quality
 
 ### 2. Maintain High Code Quality
 - Follow language-specific best practices and conventions
@@ -120,6 +125,47 @@ These instructions guide AI agents to work effectively, efficiently, and profess
 - Implement loading states for async operations
 - Ensure accessibility compliance
 
+## 📋 **MANDATORY ITERATION DOCUMENTATION**
+
+### **Critical Requirement**
+**EVERY SIGNIFICANT CHANGE SESSION MUST CREATE AN ITERATION REPORT**
+
+All agents must create comprehensive documentation for:
+- System restorations
+- Feature implementations  
+- Bug fixes affecting multiple files
+- Architecture changes
+- Database schema modifications
+- API endpoint additions/changes
+
+### **Iteration Report Requirements**
+1. **Create `/iterations/` directory** if not exists
+2. **Generate descriptive filename:** `[Type]_[Description]_Completion.md`
+   - Examples: `System_Restoration_Completion.md`, `WhatsApp_Integration_Completion.md`
+3. **Include mandatory sections:**
+   - Objective and scope
+   - Files modified with before/after code snippets
+   - Testing and verification results
+   - Compliance with project standards
+   - Known issues and temporary configurations
+   - Post-completion tasks
+   - Success metrics
+
+### **Documentation Standards**
+- Use clear, technical language for team reference
+- Include specific code examples showing changes
+- Provide verification commands and expected outputs
+- Document any temporary configurations or technical debt
+- List specific files modified with line-by-line changes where critical
+- Include compliance checklist against PLAN.md and project standards
+
+### **When to Create Iteration Reports**
+- ✅ **ALWAYS:** System-wide changes, restorations, or major features
+- ✅ **ALWAYS:** Changes affecting authentication, payments, or core functionality  
+- ✅ **ALWAYS:** Database schema or API endpoint modifications
+- ✅ **ALWAYS:** Configuration file changes (next.config.js, package.json, etc.)
+- ⚠️ **CONDITIONAL:** Minor bug fixes affecting single files may skip if trivial
+
 ## 🔍 Debugging and Problem Solving
 
 ### Investigation Process
@@ -128,12 +174,14 @@ These instructions guide AI agents to work effectively, efficiently, and profess
 3. Review recent changes and git history
 4. Search for similar patterns in codebase
 5. Test potential solutions incrementally
+6. **Document findings in iteration report if changes are significant**
 
 ### Error Handling
 - Provide clear error messages
 - Implement graceful fallbacks
 - Log appropriate debugging information
 - Document known issues and workarounds
+- **Include error resolution in iteration documentation**
 
 ## 📚 Language-Specific Guidelines
 

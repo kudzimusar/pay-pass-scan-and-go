@@ -128,17 +128,12 @@ export default function DashboardPage() {
     try {
       console.log("Fetching monthly expenses for user:", userId)
       const response = await fetch(`/api/expenses/monthly?userId=${userId}`)
-<<<<<<< HEAD
-      if (!response.ok) {
-        const text = await response.text()
-        throw new Error(text || `HTTP ${response.status}`)
-      }
-=======
 
       console.log("Monthly expenses response status:", response.status)
 
       if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`)
+        const text = await response.text()
+        throw new Error(text || `HTTP ${response.status}`)
       }
 
       // Check if response is JSON
@@ -148,8 +143,6 @@ export default function DashboardPage() {
         console.error("Non-JSON response from monthly expenses API:", text)
         throw new Error("Server returned invalid response format")
       }
-
->>>>>>> origin/main
       const data = await response.json()
       console.log("Monthly expenses data:", data)
 
@@ -183,24 +176,17 @@ export default function DashboardPage() {
         }),
       })
 
-<<<<<<< HEAD
-      let data: any = null
       if (!response.ok) {
         const text = await response.text()
+        let data: any = null
         try {
           data = text.trim().startsWith("{") ? JSON.parse(text) : null
         } catch {}
         setError(data?.error || text || `Failed to ${action} request: HTTP ${response.status}`)
         return
       }
-      data = await response.json()
-=======
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`)
-      }
 
       const data = await response.json()
->>>>>>> origin/main
 
       if (data.success) {
         // Refresh pending requests and user data

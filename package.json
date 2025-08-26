@@ -15,21 +15,7 @@
     "db:studio": "drizzle-kit studio",
     "neon:init": "node scripts/init-neon.js",
     "start": "next start",
-<<<<<<< HEAD
-    "_comment_validation": "=== PHASE VALIDATION & QUALITY GATES ===",
-    "validate:current": "node scripts/validate-phase1.js",
-    "validate:phase1": "node scripts/validate-phase1.js",
-    "validate:phase2": "CURRENT_PHASE=2 node scripts/validate-phase.js",
-    "validate:phase3": "node scripts/validate-phase3.js",
-    "validate:phase4": "node scripts/validate-phase4.js",
-    "validate:all": "npm run validate:code && npm run validate:security && npm run validate:performance",
-    "validate:code": "npm run lint && npm run type-check && npm run format:check",
-    "validate:security": "npm run security:check && npm run security:scan",
-    "validate:performance": "npm run test:performance",
-=======
     "lint": "next lint",
-    
-    "_comment_validation": "=== PHASE VALIDATION & QUALITY GATES ===",
     "validate:current": "node scripts/validate-phase3.js",
     "validate:phase1": "node scripts/validate-phase1.js",
     "validate:phase2": "node scripts/validate-phase2.js",
@@ -38,9 +24,6 @@
     "validate:code": "npm run type-check && npm run lint",
     "validate:security": "npm run security:check",
     "validate:performance": "npm run test:performance",
-    
->>>>>>> 5369374451513e9b5f7afd9dc5a8e42ac51c60c6
-    "_comment_testing": "=== TESTING SCRIPTS ===",
     "test": "jest",
     "test:unit": "jest --testMatch='**/*.test.{ts,tsx}' --coverage",
     "test:integration": "jest --testMatch='**/*.spec.{ts,tsx}'",
@@ -54,79 +37,36 @@
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage --watchAll=false",
     "test:ci": "jest --ci --coverage --watchAll=false --maxWorkers=2",
-<<<<<<< HEAD
-=======
-    
->>>>>>> 5369374451513e9b5f7afd9dc5a8e42ac51c60c6
-    "_comment_performance": "=== PERFORMANCE TESTING ===",
     "test:performance": "node scripts/performance-test.js",
     "test:performance:full": "npm run test:load && npm run test:lighthouse",
     "test:load": "artillery run performance/load-test.yml",
     "test:lighthouse": "lighthouse http://localhost:3000 --output=json --output-path=lighthouse/results.json",
     "benchmark": "node scripts/benchmark.js",
-<<<<<<< HEAD
-=======
-    
->>>>>>> 5369374451513e9b5f7afd9dc5a8e42ac51c60c6
-    "_comment_security": "=== SECURITY & COMPLIANCE ===",
     "security:check": "npm audit --audit-level=moderate",
     "security:audit": "npm audit && snyk test",
     "security:fix": "npm audit fix",
-<<<<<<< HEAD
-    "security:scan": "semgrep --config=p/security-audit --config=p/secrets",
-    "_comment_code_quality": "=== CODE QUALITY ===",
-=======
-    "validate:security": "npm run security:check && npm run security:scan",
-    "security:scan": "semgrep --config=p/security-audit --config=p/secrets",
+
     
-    "_comment_code_quality": "=== CODE QUALITY ===",
-    "validate:code": "npm run lint && npm run type-check && npm run format:check",
->>>>>>> 5369374451513e9b5f7afd9dc5a8e42ac51c60c6
     "type-check": "tsc --noEmit",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
     "lint:fix": "next lint --fix",
     "validate:code-standards": "node scripts/validate-code-standards.js",
-<<<<<<< HEAD
-=======
-    
->>>>>>> 5369374451513e9b5f7afd9dc5a8e42ac51c60c6
-    "_comment_database": "=== DATABASE MANAGEMENT ===",
     "db:reset": "npm run db:drop && npm run db:migrate",
     "db:drop": "drizzle-kit drop",
     "db:seed": "node scripts/seed-database.js",
     "db:backup": "node scripts/backup-database.js",
     "db:validate": "node scripts/validate-schema.js",
-<<<<<<< HEAD
-=======
-    
->>>>>>> 5369374451513e9b5f7afd9dc5a8e42ac51c60c6
-    "_comment_documentation": "=== DOCUMENTATION ===",
     "docs:generate": "typedoc --out docs/api src/",
     "docs:validate": "node scripts/validate-docs.js",
     "docs:serve": "http-server docs -p 8080",
-<<<<<<< HEAD
-=======
-    
->>>>>>> 5369374451513e9b5f7afd9dc5a8e42ac51c60c6
-    "_comment_deployment": "=== DEPLOYMENT & CI/CD ===",
     "build:production": "NODE_ENV=production npm run build",
     "deploy:staging": "npm run validate:current && npm run build:production && node scripts/deploy-staging.js",
     "deploy:production": "npm run validate:current && npm run build:production && node scripts/deploy-production.js",
     "health:check": "node scripts/health-check.js",
-<<<<<<< HEAD
-=======
-    
->>>>>>> 5369374451513e9b5f7afd9dc5a8e42ac51c60c6
-    "_comment_phase_management": "=== PHASE MANAGEMENT ===",
     "phase:status": "node scripts/phase-status.js",
     "phase:advance": "node scripts/advance-phase.js",
     "phase:rollback": "node scripts/rollback-phase.js",
-<<<<<<< HEAD
-=======
-    
->>>>>>> 5369374451513e9b5f7afd9dc5a8e42ac51c60c6
-    "_comment_cleanup": "=== CLEANUP & MAINTENANCE ===",
     "clean": "rm -rf .next dist node_modules/.cache",
     "clean:all": "npm run clean && rm -rf node_modules",
     "setup": "npm install && npm run db:migrate && npm run db:seed",
@@ -141,11 +81,7 @@
       "estimatedDuration": "8-12 weeks"
     },
     "2": {
-<<<<<<< HEAD
       "name": "Core Features",
-=======
-      "name": "Core Features", 
->>>>>>> 5369374451513e9b5f7afd9dc5a8e42ac51c60c6
       "description": "Full feature implementation, advanced security, performance optimization",
       "completionThreshold": 85,
       "estimatedDuration": "10-14 weeks"
@@ -296,8 +232,6 @@
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
     "typescript": "^5",
-    
-    "_comment": "=== TESTING & VALIDATION DEPENDENCIES ===",
     "jest": "^29.7.0",
     "@types/jest": "^29.5.12",
     "ts-jest": "^29.1.2",
@@ -305,16 +239,10 @@
     "@testing-library/jest-dom": "^6.4.2",
     "@testing-library/user-event": "^14.5.2",
     "jest-environment-jsdom": "^29.7.0",
-    
-    "_comment2": "=== E2E TESTING ===",
     "@playwright/test": "^1.41.2",
     "playwright": "^1.41.2",
-    
-    "_comment3": "=== PERFORMANCE TESTING ===",
     "artillery": "^2.0.4",
     "lighthouse": "^11.4.0",
-    
-    "_comment4": "=== CODE QUALITY & FORMATTING ===",
     "prettier": "^3.2.5",
     "@typescript-eslint/eslint-plugin": "^6.19.1",
     "@typescript-eslint/parser": "^6.19.1",
@@ -322,22 +250,18 @@
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-security": "^2.1.0",
     
-    "_comment5": "=== SECURITY TOOLS ===",
     "snyk": "^1.1275.0",
-    "semgrep": "^1.56.0",
+
     
-    "_comment6": "=== DOCUMENTATION ===",
     "typedoc": "^0.25.7",
     "http-server": "^14.1.1",
     
-    "_comment7": "=== GIT HOOKS & VALIDATION ===",
     "husky": "^9.0.10",
     "lint-staged": "^15.2.1",
     "commitizen": "^4.3.0",
     "@commitlint/cli": "^18.6.0",
     "@commitlint/config-conventional": "^18.6.0",
     
-    "_comment8": "=== UTILITIES ===",
     "chalk": "^5.3.0",
     "inquirer": "^9.2.12",
     "ora": "^8.0.1",

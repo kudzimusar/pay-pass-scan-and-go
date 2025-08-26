@@ -45,7 +45,6 @@ export default function SignupPage() {
     setLoading(true)
 
     try {
-<<<<<<< HEAD
       if (signup) {
         await signup(name, phone, pin, biometricEnabled)
       }
@@ -55,37 +54,6 @@ export default function SignupPage() {
       // Normalize common non-JSON parse errors
       const m = e?.message || "Signup failed"
       setMsg(m.includes("Unexpected token") || m.includes("JSON") ? "Signup failed. Please try again." : m)
-=======
-      // Validation
-      if (!name.trim()) {
-        throw new Error("Full name is required")
-      }
-
-      if (!phone.trim()) {
-        throw new Error("Phone number is required")
-      }
-
-      if (pin.length < 4) {
-        throw new Error("PIN must be at least 4 digits")
-      }
-
-      if (pin !== confirmPin) {
-        throw new Error("PINs do not match")
-      }
-
-      // Normalize phone number
-      const normalizedPhone = normalizePhoneForSignup(phone)
-      console.log("Signup with normalized phone:", normalizedPhone)
-
-      await signup(name.trim(), normalizedPhone, pin, biometricEnabled)
-
-      // Success - user will be automatically logged in and redirected
-      console.log("Signup successful, redirecting to dashboard")
-      router.push("/dashboard")
-    } catch (e: any) {
-      console.error("Signup error:", e)
-      setError(e?.message || "Signup failed. Please try again.")
->>>>>>> origin/main
     } finally {
       setLoading(false)
     }

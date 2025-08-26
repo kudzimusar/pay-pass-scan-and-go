@@ -1,11 +1,6 @@
-<<<<<<< HEAD
 import { NextResponse } from "next/server"
 import { ensureSeeded, getUserById } from "../../_lib/storage"
 import { verifyToken } from "../../_lib/auth"
-=======
-import { type NextRequest, NextResponse } from "next/server"
-import { getUserById } from "../_lib/storage"
->>>>>>> origin/main
 
 export async function GET(request: NextRequest) {
   try {
@@ -62,7 +57,6 @@ export async function GET(request: NextRequest) {
 
     const response = {
       success: true,
-<<<<<<< HEAD
       user: {
         id: user.id,
         fullName: user.fullName,
@@ -71,14 +65,9 @@ export async function GET(request: NextRequest) {
         walletBalance: user.walletBalance,
         role: "user",
       },
-    })
-=======
-      user: userWithoutPin,
     }
 
-    console.log("Returning user profile response")
     return NextResponse.json(response)
->>>>>>> origin/main
   } catch (error) {
     console.error("=== USER PROFILE API ERROR ===")
     console.error("Error details:", error)

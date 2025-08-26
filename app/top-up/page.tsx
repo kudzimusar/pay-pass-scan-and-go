@@ -1,20 +1,7 @@
 "use client"
 
-<<<<<<< HEAD
 import { useState } from "react"
 import { useAuth } from "@/components/auth-provider"
-=======
-import { useState, useEffect } from "react"
-import { useRouter } from "next/navigation"
-import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useAuth } from "@/components/auth-provider"
-import { ArrowLeft, CreditCard, Smartphone, Building, CheckCircle, AlertCircle, Plus } from "lucide-react"
->>>>>>> origin/main
 
 export default function TopUpPage() {
   const { user, refreshUserData } = useAuth()
@@ -55,7 +42,6 @@ export default function TopUpPage() {
   ]
 
   const handleTopUp = async () => {
-<<<<<<< HEAD
     setError("")
     setSuccess("")
     const amt = Number.parseFloat(amount)
@@ -97,58 +83,6 @@ export default function TopUpPage() {
       }
     } catch (e: any) {
       setError(e?.message || "Top-up failed. Please try again.")
-=======
-    if (!amount) {
-      setError("Please enter an amount")
-      return
-    }
-
-    const amountNum = Number.parseFloat(amount)
-    if (isNaN(amountNum) || amountNum <= 0) {
-      setError("Please enter a valid amount")
-      return
-    }
-
-    if (selectedMethod === "mobile_money" && !phoneNumber) {
-      setError("Please enter your mobile money number")
-      return
-    }
-
-    setIsLoading(true)
-    setError("")
-
-    try {
-      const response = await fetch("/api/wallet/topup", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-        },
-        body: JSON.stringify({
-          amount: amountNum,
-          method: selectedMethod,
-          phoneNumber: selectedMethod === "mobile_money" ? phoneNumber : undefined,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (data.success) {
-        setSuccess(`Successfully added $${amountNum.toFixed(2)} to your wallet!`)
-        setAmount("")
-        setPhoneNumber("")
-
-        // Refresh user data to get updated balance
-        await refreshUserData()
-      } else {
-        setError(data.error || "Top-up failed. Please try again.")
-      }
-    } catch (error) {
-      console.error("Top-up error:", error)
-      setError("Top-up failed. Please try again.")
-    } finally {
-      setIsLoading(false)
->>>>>>> origin/main
     }
   }
 

@@ -1,89 +1,162 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { useAuth } from "@/components/auth-provider"
-import { useRouter } from "next/navigation"
+import { useState, useRef } from "react"
 import Link from "next/link"
-import { ArrowLeft, QrCode, Camera, Home, History, User, AlertCircle, CheckCircle } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Separator } from "@/components/ui/separator"
+import {
+  ArrowLeft,
+  Camera,
+  MapPin,
+  Clock,
+  DollarSign,
+  Bus,
+  Navigation,
+  Zap,
+  CheckCircle,
+  Smartphone,
+  QrCode,
+  CreditCard,
+} from "lucide-react"
+
+interface RouteStation {
+  id: string
+  name: string
+  order: number
+  estimatedTime: number
+  distance: number
+}
+
+interface RouteInfo {
+  id: string
+  name: string
+  operator: string
+  busNumber: string
+  currentStation: string
+  stations: RouteStation[]
+  baseFare: number
+  peakHourMultiplier: number
+  isPeakHour: boolean
+}
+
+interface FareCalculation {
+  baseFare: number
+  distanceFare: number
+  peakSurcharge: number
+  totalFare: number
+  currency: "USD" | "ZWL"
+}
 
 export default function QRScannerPage() {
-  const { user } = useAuth()
-  const router = useRouter()
-  const [selectedDemo, setSelectedDemo] = useState<string | null>(null)
+  const [scannerActive, setScannerActive] = useState(false)
+  const [routeInfo, setRouteInfo] = useState<RouteInfo | null>(null)
+  const [selectedStation, setSelectedStation] = useState<RouteStation | null>(null)
+  const [fareCalculation, setFareCalculation] = useState<FareCalculation | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
-  const [error, setError] = useState("")
-  const [success, setSuccess] = useState("")
+  const [scanStep, setScanStep] = useState<"scan" | "select" | "confirm" | "payment">("scan")
+  const videoRef = useRef<HTMLVideoElement>(null)
 
-  useEffect(() => {
-    if (!user) {
-      router.push("/")
-    }
-  }, [user, router])
-
-  const demoQRCodes = [
-    {
-      id: "bus_ticket_250",
-      title: "Bus Ticket - Route 1A",
-      description: "City Center to Avondale",
-      amount: 2.5,
-      type: "bus_ticket",
-      merchant: "City Transport",
-    },
-    {
-      id: "grocery_1575",
-      title: "Grocery Payment",
-      description: "SuperMart Weekly Shopping",
-      amount: 15.75,
-      type: "grocery",
-      merchant: "SuperMart",
-    },
-    {
-      id: "electricity_4520",
-      title: "Electricity Bill",
-      description: "ZESA Monthly Bill",
-      amount: 45.2,
-      type: "electricity",
-      merchant: "ZESA Holdings",
-    },
-    {
-      id: "water_2850",
-      title: "Water Bill",
-      description: "Harare Water Monthly",
-      amount: 28.5,
-      type: "water",
-      merchant: "Harare Water",
-    },
-  ]
-
-  const handleQRCodeSelect = (qrCode: any) => {
-    setSelectedDemo(qrCode.id)
-    setError("")
-
-    // Check balance before proceeding
-    if (!user) {
-      setError("Please sign in first")
-      return
-    }
-
-    if (user.walletBalance < qrCode.amount) {
-      setError(
-        `Insufficient balance. You need $${(qrCode.amount - user.walletBalance).toFixed(2)} more to complete this payment.`,
-      )
-      return
-    }
-
-    // Navigate to payment confirmation
-    router.push(
-      `/payment-confirmation?qrId=${qrCode.id}&amount=${qrCode.amount}&merchant=${encodeURIComponent(qrCode.merchant)}&description=${encodeURIComponent(qrCode.description)}&type=${qrCode.type}`,
-    )
+  // Mock route data - in real app this would come from QR scan
+  const mockRouteData: RouteInfo = {
+    id: "route-001",
+    name: "Harare CBD - Borrowdale",
+    operator: "ZUPCO Express",
+    busNumber: "ZE-4521",
+    currentStation: "Harare CBD",
+    stations: [
+      { id: "st-001", name: "Harare CBD", order: 1, estimatedTime: 0, distance: 0 },
+      { id: "st-002", name: "Avondale", order: 2, estimatedTime: 15, distance: 8.5 },
+      { id: "st-003", name: "Mount Pleasant", order: 3, estimatedTime: 25, distance: 12.3 },
+      { id: "st-004", name: "Borrowdale", order: 4, estimatedTime: 35, distance: 18.7 },
+      { id: "st-005", name: "Borrowdale Village", order: 5, estimatedTime: 40, distance: 21.2 },
+    ],
+    baseFare: 1.5,
+    peakHourMultiplier: 1.5,
+    isPeakHour: true,
   }
 
-  if (!user) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="animate-pulse text-gray-500">Loading...</div>
-      </div>
-    )
+  const startScanner = async () => {
+    setScannerActive(true)
+    setIsProcessing(true)
+
+    // Simulate QR code scanning
+    setTimeout(() => {
+      setRouteInfo(mockRouteData)
+      setScanStep("select")
+      setIsProcessing(false)
+    }, 2000)
+  }
+
+  const selectStation = (station: RouteStation) => {
+    setSelectedStation(station)
+
+    // Calculate fare based on distance and peak hours
+    const distanceFare = station.distance * 0.15 // $0.15 per km
+    const baseFare = mockRouteData.baseFare
+    const peakSurcharge = mockRouteData.isPeakHour ? (baseFare + distanceFare) * 0.5 : 0
+    const totalFare = baseFare + distanceFare + peakSurcharge
+
+    setFareCalculation({
+      baseFare,
+      distanceFare,
+      peakSurcharge,
+      totalFare,
+      currency: "USD",
+    })
+
+    setScanStep("confirm")
+  }
+
+  const confirmPayment = () => {
+    setScanStep("payment")
+    setIsProcessing(true)
+
+    // Simulate payment processing
+    setTimeout(() => {
+      setIsProcessing(false)
+      // Navigate to payment confirmation with ticket data
+      const ticketData = {
+        qrId: routeInfo?.id || "route-001",
+        amount: fareCalculation?.totalFare || 0,
+        merchant: routeInfo?.operator || "ZUPCO Express",
+        description: `${routeInfo?.currentStation} → ${selectedStation?.name}`,
+        type: "bus_ticket",
+        ticketNumber: `TKT-${Date.now()}`,
+        routeName: routeInfo?.name,
+        departureTime: new Date().toLocaleTimeString(),
+        validUntil: new Date(Date.now() + 24 * 60 * 60 * 1000).toLocaleString(), // 24 hours
+        passengerName: "Demo Passenger",
+        seatNumber: Math.floor(Math.random() * 50) + 1
+      }
+      
+      // Navigate to payment confirmation with ticket data
+      const queryParams = new URLSearchParams({
+        qrId: ticketData.qrId,
+        amount: ticketData.amount.toString(),
+        merchant: encodeURIComponent(ticketData.merchant),
+        description: encodeURIComponent(ticketData.description),
+        type: ticketData.type,
+        ticketNumber: ticketData.ticketNumber,
+        routeName: encodeURIComponent(ticketData.routeName),
+        departureTime: encodeURIComponent(ticketData.departureTime),
+        validUntil: encodeURIComponent(ticketData.validUntil),
+        passengerName: encodeURIComponent(ticketData.passengerName),
+        seatNumber: ticketData.seatNumber.toString()
+      })
+      
+      window.location.href = `/payment-confirmation?${queryParams.toString()}`
+    }, 3000)
+  }
+
+  const resetScanner = () => {
+    setScannerActive(false)
+    setRouteInfo(null)
+    setSelectedStation(null)
+    setFareCalculation(null)
+    setScanStep("scan")
   }
 
   return (
@@ -97,144 +170,189 @@ export default function QRScannerPage() {
               <ArrowLeft className="w-6 h-6" />
             </Link>
             <div>
-              <h1 className="text-2xl font-bold">Scan & Pay</h1>
-              <p className="text-blue-100">Quick QR code payments</p>
-            </div>
-          </div>
-
-          {/* Current Balance */}
-          <div className="bg-white/10 backdrop-blur-sm p-4 rounded-xl border border-white/20">
-            <div className="text-center">
-              <p className="text-blue-100 text-sm">Available Balance</p>
-              <p className="text-2xl font-bold">${user.walletBalance.toFixed(2)}</p>
+              <h1 className="text-2xl font-bold">QR Scanner</h1>
+              <p className="text-blue-100">Scan QR codes for payments and more</p>
             </div>
           </div>
         </div>
 
-        {/* Scanner Section */}
-        <div className="px-6 py-6 pb-24">
-          {error && (
-            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <div className="flex items-center">
-                <AlertCircle className="w-5 h-5 text-red-600 mr-2" />
-                <div>
-                  <p className="text-red-800 text-sm font-medium">{error}</p>
-                  {error.includes("Insufficient balance") && (
-                    <Link href="/top-up" className="text-red-600 text-sm underline mt-1 block">
-                      Top Up Wallet
-                    </Link>
-                  )}
+        {/* Main Content */}
+        <div className="p-6 space-y-6">
+          {scanStep === "scan" && (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <QrCode className="w-5 h-5" />
+                    Scan QR Code
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="text-center">
+                    <div className="w-48 h-48 mx-auto bg-gray-100 rounded-lg flex items-center justify-center mb-4">
+                      <Camera className="w-16 h-16 text-gray-400" />
                 </div>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Point your camera at a QR code to scan for payments, bus tickets, or other services
+                    </p>
               </div>
+
+                  <Button onClick={startScanner} className="w-full" size="lg" disabled={isProcessing}>
+                    {isProcessing ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Scanning...
+                      </>
+                    ) : (
+                      <>
+                        <Camera className="w-4 h-4 mr-2" />
+                        Start Scanning
+                      </>
+                    )}
+                  </Button>
+
+                  <div className="text-center">
+                    <p className="text-xs text-gray-500">
+                      For demo purposes, this will simulate scanning a bus ticket QR code
+                    </p>
+              </div>
+                </CardContent>
+              </Card>
             </div>
           )}
 
-          {success && (
-            <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-center">
-                <CheckCircle className="w-5 h-5 text-green-600 mr-2" />
-                <p className="text-green-800 text-sm">{success}</p>
-              </div>
-            </div>
-          )}
-
-          {/* Camera Scanner Placeholder */}
-          <div className="mb-8">
-            <div className="aspect-square bg-gray-100 rounded-2xl flex flex-col items-center justify-center border-2 border-dashed border-gray-300">
-              <Camera className="w-16 h-16 text-gray-400 mb-4" />
-              <p className="text-gray-600 text-center mb-2">Point camera at QR code</p>
-              <p className="text-gray-500 text-sm text-center">Camera access required for scanning</p>
+          {scanStep === "select" && routeInfo && (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Bus className="w-5 h-5" />
+                    Select Destination
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="bg-blue-50 p-4 rounded-lg">
+                      <h3 className="font-semibold text-blue-900">{routeInfo.name}</h3>
+                      <p className="text-sm text-blue-700">{routeInfo.operator} - {routeInfo.busNumber}</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <MapPin className="w-4 h-4 text-blue-600" />
+                        <span className="text-sm text-blue-700">From: {routeInfo.currentStation}</span>
             </div>
           </div>
 
-          {/* Demo QR Codes */}
-          <div className="mb-8">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Demo QR Codes</h3>
-            <p className="text-sm text-gray-600 mb-4">Try these sample payments to test the system</p>
+                    <Separator />
 
-            <div className="space-y-3">
-              {demoQRCodes.map((qrCode) => (
-                <div
-                  key={qrCode.id}
-                  onClick={() => handleQRCodeSelect(qrCode)}
-                  className={`p-4 border-2 rounded-xl cursor-pointer transition-all ${
-                    user.walletBalance >= qrCode.amount
-                      ? "border-gray-200 hover:border-blue-300 hover:shadow-md"
-                      : "border-red-200 bg-red-50 opacity-75"
-                  }`}
+                    <div className="space-y-2">
+                      <h4 className="font-medium">Available Stations:</h4>
+                      {routeInfo.stations.slice(1).map((station) => (
+                        <div
+                          key={station.id}
+                          onClick={() => selectStation(station)}
+                          className="p-3 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                        <QrCode className="w-6 h-6 text-blue-600" />
-                      </div>
                       <div>
-                        <h4 className="font-medium text-gray-900">{qrCode.title}</h4>
-                        <p className="text-sm text-gray-600">{qrCode.description}</p>
-                        <p className="text-xs text-gray-500">{qrCode.merchant}</p>
+                              <p className="font-medium">{station.name}</p>
+                              <div className="flex items-center gap-4 text-sm text-gray-600">
+                                <span className="flex items-center gap-1">
+                                  <Clock className="w-3 h-3" />
+                                  {station.estimatedTime} min
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Navigation className="w-3 h-3" />
+                                  {station.distance} km
+                                </span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p
-                        className={`font-bold text-lg ${
-                          user.walletBalance >= qrCode.amount ? "text-gray-900" : "text-red-600"
-                        }`}
-                      >
-                        ${qrCode.amount.toFixed(2)}
-                      </p>
-                      {user.walletBalance < qrCode.amount && <p className="text-xs text-red-600">Insufficient</p>}
-                    </div>
+                            <DollarSign className="w-4 h-4 text-gray-400" />
                   </div>
                 </div>
               ))}
             </div>
           </div>
-
-          {/* Instructions */}
-          <div className="space-y-4">
-            <div className="p-4 bg-blue-50 rounded-xl border border-blue-200">
-              <h3 className="font-medium text-blue-900 mb-2">💡 How to Use</h3>
-              <ul className="text-sm text-blue-700 space-y-1">
-                <li>• Point your camera at any QR code to scan</li>
-                <li>• Try the demo codes above to test payments</li>
-                <li>• Ensure you have sufficient balance</li>
-                <li>• Payments are instant and secure</li>
-              </ul>
+                </CardContent>
+              </Card>
             </div>
+          )}
 
-            <div className="p-4 bg-green-50 rounded-xl border border-green-200">
-              <h3 className="font-medium text-green-900 mb-2">🔒 Security</h3>
+          {scanStep === "confirm" && selectedStation && fareCalculation && (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CheckCircle className="w-5 h-5" />
+                    Confirm Payment
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div className="bg-green-50 p-4 rounded-lg">
+                      <h3 className="font-semibold text-green-900">Trip Summary</h3>
               <p className="text-sm text-green-700">
-                All QR payments are encrypted and processed securely. Your balance is protected with bank-level
-                security.
-              </p>
+                        {routeInfo?.currentStation} → {selectedStation.name}
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <h4 className="font-medium">Fare Breakdown:</h4>
+                      <div className="space-y-1 text-sm">
+                        <div className="flex justify-between">
+                          <span>Base Fare:</span>
+                          <span>${fareCalculation.baseFare.toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Distance Fare:</span>
+                          <span>${fareCalculation.distanceFare.toFixed(2)}</span>
+                        </div>
+                        {fareCalculation.peakSurcharge > 0 && (
+                          <div className="flex justify-between text-orange-600">
+                            <span>Peak Hour Surcharge:</span>
+                            <span>${fareCalculation.peakSurcharge.toFixed(2)}</span>
+                          </div>
+                        )}
+                        <Separator />
+                        <div className="flex justify-between font-semibold">
+                          <span>Total:</span>
+                          <span>${fareCalculation.totalFare.toFixed(2)}</span>
             </div>
           </div>
         </div>
 
-        {/* Bottom Navigation */}
-        <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-md bg-white border-t border-gray-200">
-          <div className="flex items-center justify-around py-2">
-            <Link href="/dashboard" className="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-600">
-              <Home className="w-5 h-5 mb-1" />
-              <span className="text-xs">Home</span>
-            </Link>
-            <Link href="/qr-scanner" className="flex flex-col items-center py-2 px-3 text-blue-600">
-              <QrCode className="w-5 h-5 mb-1" />
-              <span className="text-xs font-medium">Scan</span>
-            </Link>
-            <Link
-              href="/transactions"
-              className="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-600"
-            >
-              <History className="w-5 h-5 mb-1" />
-              <span className="text-xs">History</span>
-            </Link>
-            <Link href="/profile" className="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-600">
-              <User className="w-5 h-5 mb-1" />
-              <span className="text-xs">Profile</span>
-            </Link>
+                    <div className="flex gap-2">
+                      <Button variant="outline" onClick={resetScanner} className="flex-1">
+                        Cancel
+                      </Button>
+                      <Button onClick={confirmPayment} className="flex-1">
+                        <CreditCard className="w-4 h-4 mr-2" />
+                        Pay Now
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
+          {scanStep === "payment" && (
+            <div className="space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Zap className="w-5 h-5" />
+                    Processing Payment
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center space-y-4">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="text-gray-600">Processing your payment...</p>
+                    <p className="text-sm text-gray-500">Please wait while we complete your transaction</p>
+                  </div>
+                </CardContent>
+              </Card>
           </div>
+          )}
         </div>
       </div>
     </div>

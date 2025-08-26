@@ -2,7 +2,6 @@ import { type NextRequest, NextResponse } from "next/server"
 import { storage } from "../../_lib/storage"
 import { FinancialCore } from "../../_lib/financial-core"
 
-<<<<<<< HEAD
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     console.log("=== PAYMENT REQUEST RESPONSE API ===")
@@ -25,14 +24,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       return NextResponse.json({ success: false, error: "Invalid JSON in request body" }, { status: 400 })
     }
 
-=======
-export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    console.log("=== PAYMENT REQUEST RESPONSE API ===")
-
-    const requestId = params.id
-    const body = await request.json()
->>>>>>> origin/main
     const { action, userId } = body
 
     console.log("Request ID:", requestId)
@@ -73,7 +64,6 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
 
     console.log("Payment request found:", paymentRequest)
 
-<<<<<<< HEAD
       // Update request status
       console.log("Updating request status to accepted")
       const updatedRequest = await updatePaymentRequestStatus(requestId, "accepted", new Date())
@@ -87,18 +77,6 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
           warning: true,
         })
       }
-=======
-    // Verify the user is the recipient
-    if (paymentRequest.recipientId !== userId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "Unauthorized to respond to this request",
-        },
-        { status: 403 },
-      )
-    }
->>>>>>> origin/main
 
     // Check if already responded
     if (paymentRequest.status !== "pending") {
@@ -115,7 +93,6 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       // Simply update the request status
       await storage.updatePaymentRequestStatus(requestId, "declined")
 
-<<<<<<< HEAD
       // Decline the request
       const updatedRequest = await updatePaymentRequestStatus(requestId, "declined", new Date())
       if (!updatedRequest) {
@@ -139,9 +116,6 @@ export async function POST(request: NextRequest, { params }: { params: { id: str
       }
 
       console.log("Payment request declined successfully")
-=======
-      console.log("Payment request declined")
->>>>>>> origin/main
       return NextResponse.json({
         success: true,
         message: "Payment request declined",

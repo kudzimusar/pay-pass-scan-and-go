@@ -545,8 +545,4 @@ export const transactionPatternSchema = z.object({
     proxyDetected: z.boolean(),
     geolocationMatch: z.boolean(),
   }),
-<<<<<<< HEAD
 });
-=======
-});
->>>>>>> 5369374451513e9b5f7afd9dc5a8e42ac51c60c6

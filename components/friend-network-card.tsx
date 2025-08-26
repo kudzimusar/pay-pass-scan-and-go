@@ -14,7 +14,8 @@ import {
   Phone,
   MapPin,
   Calendar,
-  TrendingUp
+  TrendingUp,
+  MessageCircle
 } from "lucide-react";
 import { format } from "date-fns";
 
@@ -34,9 +35,11 @@ interface FriendNetworkCardProps {
       phone: string;
       countryCode: string;
     };
+    whatsappEnabled?: boolean;
   };
   onSendPayment: (friendId: string) => void;
   onViewDetails: (friendId: string) => void;
+  onSendWhatsAppRequest?: (friendId: string) => void;
 }
 
 const relationshipColors = {
@@ -51,7 +54,7 @@ const relationshipIcons = {
   business: "🏢",
 };
 
-export function FriendNetworkCard({ friend, onSendPayment, onViewDetails }: FriendNetworkCardProps) {
+export function FriendNetworkCard({ friend, onSendPayment, onViewDetails, onSendWhatsAppRequest }: FriendNetworkCardProps) {
   const monthlyLimit = parseFloat(friend.monthlyLimit);
   const totalSent = parseFloat(friend.totalSent);
   const remainingLimit = monthlyLimit - totalSent;
@@ -106,6 +109,12 @@ export function FriendNetworkCard({ friend, onSendPayment, onViewDetails }: Frie
                   <Badge variant="outline" className="text-green-600 border-green-200">
                     <Shield className="w-3 h-3 mr-1" />
                     Verified
+                  </Badge>
+                )}
+                {friend.whatsappEnabled && (
+                  <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
+                    <MessageCircle className="w-3 h-3 mr-1" />
+                    WhatsApp
                   </Badge>
                 )}
               </div>
@@ -189,24 +198,38 @@ export function FriendNetworkCard({ friend, onSendPayment, onViewDetails }: Frie
           </div>
 
           {/* Action Buttons */}
-          <div className="flex space-x-2 pt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onViewDetails(friend.id)}
-              className="flex-1"
-            >
-              View Details
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => onSendPayment(friend.id)}
-              className="flex-1"
-              disabled={remainingLimit <= 0}
-            >
-              <DollarSign className="w-4 h-4 mr-1" />
-              Send Money
-            </Button>
+          <div className="space-y-2 pt-2">
+            <div className="flex space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onViewDetails(friend.id)}
+                className="flex-1"
+              >
+                View Details
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => onSendPayment(friend.id)}
+                className="flex-1"
+                disabled={remainingLimit <= 0}
+              >
+                <DollarSign className="w-4 h-4 mr-1" />
+                Send Money
+              </Button>
+            </div>
+            {friend.whatsappEnabled && onSendWhatsAppRequest && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onSendWhatsAppRequest(friend.id)}
+                className="w-full bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                disabled={remainingLimit <= 0}
+              >
+                <MessageCircle className="w-4 h-4 mr-1" />
+                Send WhatsApp Request
+              </Button>
+            )}
           </div>
 
           {/* Connection Date */}
