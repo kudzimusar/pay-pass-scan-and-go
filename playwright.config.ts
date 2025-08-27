@@ -101,9 +101,9 @@ export default defineConfig({
     },
   ],
 
-  // Global setup and teardown
-  globalSetup: require.resolve('./e2e/global-setup'),
-  globalTeardown: require.resolve('./e2e/global-teardown'),
+  // Global setup and teardown - commented out for now
+  // globalSetup: './e2e/global-setup',
+  // globalTeardown: './e2e/global-teardown',
 
   // Run your local dev server before starting the tests
   webServer: {

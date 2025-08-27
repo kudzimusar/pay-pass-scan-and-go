@@ -82,7 +82,7 @@ const recipientCurrencyOptions = [
   { value: "ZWL", label: "Zimbabwe Dollar (ZWL)", flag: "🇿🇼" },
 ];
 
-export function CrossBorderPaymentForm({ friends, onSubmit, isLoading = false }: CrossBorderPaymentFormProps) {
+function CrossBorderPaymentFormComponent({ friends, onSubmit, isLoading = false }: CrossBorderPaymentFormProps) {
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [exchangeRate, setExchangeRate] = useState<ExchangeRate | null>(null);
   const [loadingRate, setLoadingRate] = useState(false);
@@ -168,9 +168,9 @@ export function CrossBorderPaymentForm({ friends, onSubmit, isLoading = false }:
     }
   };
 
-  const fees = calculateFees();
-  const recipientAmount = calculateRecipientAmount();
-  const totalAmount = senderAmount + fees.total;
+  const fees = React.useMemo(() => calculateFees(), [senderAmount]);
+  const recipientAmount = React.useMemo(() => calculateRecipientAmount(), [senderAmount, exchangeRate]);
+  const totalAmount = React.useMemo(() => senderAmount + fees.total, [senderAmount, fees.total]);
 
   // Check if selected friend has enough monthly limit
   const remainingLimit = selectedFriend 
@@ -179,19 +179,19 @@ export function CrossBorderPaymentForm({ friends, onSubmit, isLoading = false }:
   const exceedsLimit = selectedFriend && senderAmount > remainingLimit;
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center space-x-2">
-          <DollarSign className="w-6 h-6 text-green-600" />
+    <Card className="w-full max-w-2xl mx-auto" data-testid="payment-form">
+      <CardHeader className="p-4 sm:p-6">
+        <CardTitle className="flex items-center space-x-2 text-lg sm:text-xl">
+          <DollarSign className="w-5 h-5 sm:w-6 sm:h-6 text-green-600" />
           <span>Send Money to Friend</span>
         </CardTitle>
       </CardHeader>
 
-      <CardContent>
-        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-6">
+      <CardContent className="p-4 sm:p-6">
+        <form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-4 sm:space-y-6">
           {/* Recipient Selection */}
           <div className="space-y-2">
-            <Label htmlFor="recipient">Select Recipient</Label>
+            <Label htmlFor="recipient" className="text-sm sm:text-base">Select Recipient</Label>
             <Select
               value={selectedFriend?.id || ""}
               onValueChange={(value) => {
@@ -199,7 +199,7 @@ export function CrossBorderPaymentForm({ friends, onSubmit, isLoading = false }:
                 setSelectedFriend(friend || null);
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-12 sm:h-10 text-base sm:text-sm">
                 <SelectValue placeholder="Choose a friend or family member" />
               </SelectTrigger>
               <SelectContent>
@@ -218,8 +218,8 @@ export function CrossBorderPaymentForm({ friends, onSubmit, isLoading = false }:
             {selectedFriend && (
               <div className="mt-2 p-3 bg-gray-50 rounded-lg">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Monthly Limit</span>
-                  <span className="font-medium">
+                  <span className="text-xs sm:text-sm text-gray-600">Monthly Limit</span>
+                  <span className="font-medium text-xs sm:text-sm">
                     ${parseFloat(selectedFriend.totalSent).toFixed(2)} / ${parseFloat(selectedFriend.monthlyLimit).toFixed(2)}
                   </span>
                 </div>
@@ -232,9 +232,9 @@ export function CrossBorderPaymentForm({ friends, onSubmit, isLoading = false }:
           </div>
 
           {/* Amount and Currency */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="senderAmount">Amount to Send</Label>
+              <Label htmlFor="senderAmount" className="text-sm sm:text-base">Amount to Send</Label>
               <Input
                 id="senderAmount"
                 type="number"
@@ -243,19 +243,21 @@ export function CrossBorderPaymentForm({ friends, onSubmit, isLoading = false }:
                 max="10000"
                 {...register("senderAmount", { valueAsNumber: true })}
                 placeholder="0.00"
+                className="h-12 sm:h-10 text-base sm:text-sm"
+                data-testid="payment-amount-input"
               />
               {errors.senderAmount && (
-                <p className="text-sm text-red-600">{errors.senderAmount.message}</p>
+                <p className="text-xs sm:text-sm text-red-600">{errors.senderAmount.message}</p>
               )}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="senderCurrency">Your Currency</Label>
+              <Label htmlFor="senderCurrency" className="text-sm sm:text-base">Your Currency</Label>
               <Select
                 value={watchedValues.senderCurrency}
                 onValueChange={(value) => setValue("senderCurrency", value as any)}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-12 sm:h-10 text-base sm:text-sm" data-testid="sender-currency-select">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -271,11 +273,11 @@ export function CrossBorderPaymentForm({ friends, onSubmit, isLoading = false }:
 
           {/* Exchange Rate Display */}
           {exchangeRate && !loadingRate && (
-            <div className="p-4 bg-blue-50 rounded-lg">
+            <div className="p-4 bg-blue-50 rounded-lg" data-testid="exchange-rate-display">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <ArrowRight className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm font-medium">
+                  <span className="text-xs sm:text-sm font-medium" data-testid="exchange-rate-value">
                     1 {senderCurrency} = {parseFloat(exchangeRate.rate).toFixed(6)} {recipientCurrency}
                   </span>
                 </div>
@@ -285,12 +287,13 @@ export function CrossBorderPaymentForm({ friends, onSubmit, isLoading = false }:
                   size="sm"
                   onClick={() => fetchExchangeRate(senderCurrency, recipientCurrency)}
                   disabled={loadingRate}
+                  className="h-8 w-8 sm:h-9 sm:w-9"
                 >
                   <RefreshCw className={`w-4 h-4 ${loadingRate ? 'animate-spin' : ''}`} />
                 </Button>
               </div>
               {recipientAmount > 0 && (
-                <div className="mt-2 text-lg font-semibold text-blue-700">
+                <div className="mt-2 text-base sm:text-lg font-semibold text-blue-700" data-testid="recipient-amount">
                   Recipient receives: {recipientAmount.toFixed(2)} {recipientCurrency}
                 </div>
               )}
@@ -313,12 +316,12 @@ export function CrossBorderPaymentForm({ friends, onSubmit, isLoading = false }:
 
           {/* Recipient Currency */}
           <div className="space-y-2">
-            <Label htmlFor="recipientCurrency">Recipient Currency</Label>
+            <Label htmlFor="recipientCurrency" className="text-sm sm:text-base">Recipient Currency</Label>
             <Select
               value={watchedValues.recipientCurrency}
               onValueChange={(value) => setValue("recipientCurrency", value as any)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-12 sm:h-10 text-base sm:text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -333,12 +336,12 @@ export function CrossBorderPaymentForm({ friends, onSubmit, isLoading = false }:
 
           {/* Payment Method */}
           <div className="space-y-2">
-            <Label htmlFor="paymentMethod">Payment Method</Label>
+            <Label htmlFor="paymentMethod" className="text-sm sm:text-base">Payment Method</Label>
             <Select
               value={watchedValues.paymentMethod}
               onValueChange={(value) => setValue("paymentMethod", value as any)}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-12 sm:h-10 text-base sm:text-sm">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -356,39 +359,41 @@ export function CrossBorderPaymentForm({ friends, onSubmit, isLoading = false }:
 
           {/* Purpose */}
           <div className="space-y-2">
-            <Label htmlFor="purpose">Purpose of Payment</Label>
+            <Label htmlFor="purpose" className="text-sm sm:text-base">Purpose of Payment</Label>
             <Textarea
               id="purpose"
               {...register("purpose")}
               placeholder="e.g., Family support, medical expenses, education fees..."
               rows={3}
+              className="text-base sm:text-sm"
+              data-testid="payment-purpose-textarea"
             />
             {errors.purpose && (
-              <p className="text-sm text-red-600">{errors.purpose.message}</p>
+              <p className="text-xs sm:text-sm text-red-600">{errors.purpose.message}</p>
             )}
           </div>
 
           {/* Fee Breakdown */}
           {senderAmount > 0 && (
-            <div className="p-4 bg-gray-50 rounded-lg space-y-2">
-              <h3 className="font-semibold text-gray-800">Fee Breakdown</h3>
-              <div className="space-y-1 text-sm">
+            <div className="p-4 bg-gray-50 rounded-lg space-y-2" data-testid="fee-breakdown">
+              <h3 className="font-semibold text-gray-800 text-sm sm:text-base">Fee Breakdown</h3>
+              <div className="space-y-1 text-xs sm:text-sm">
                 <div className="flex justify-between">
                   <span>Amount to send:</span>
                   <span>{senderAmount.toFixed(2)} {senderCurrency}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Exchange fee (2%):</span>
-                  <span>{fees.exchangeFee.toFixed(2)} {senderCurrency}</span>
+                  <span data-testid="exchange-fee">{fees.exchangeFee.toFixed(2)} {senderCurrency}</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Transfer fee:</span>
-                  <span>{fees.transferFee.toFixed(2)} {senderCurrency}</span>
+                  <span data-testid="transfer-fee">{fees.transferFee.toFixed(2)} {senderCurrency}</span>
                 </div>
                 <Separator />
                 <div className="flex justify-between font-semibold">
                   <span>Total to deduct:</span>
-                  <span>{totalAmount.toFixed(2)} {senderCurrency}</span>
+                  <span data-testid="total-fees">{totalAmount.toFixed(2)} {senderCurrency}</span>
                 </div>
               </div>
             </div>
@@ -398,7 +403,7 @@ export function CrossBorderPaymentForm({ friends, onSubmit, isLoading = false }:
           {exceedsLimit && (
             <Alert variant="destructive">
               <AlertTriangle className="w-4 h-4" />
-              <AlertDescription>
+              <AlertDescription className="text-xs sm:text-sm">
                 This payment exceeds the monthly limit for this recipient. 
                 Remaining limit: ${remainingLimit.toFixed(2)}
               </AlertDescription>
@@ -410,8 +415,8 @@ export function CrossBorderPaymentForm({ friends, onSubmit, isLoading = false }:
             <Shield className="w-4 h-4" />
             <AlertDescription>
               <div className="space-y-1">
-                <p className="font-medium">Security Notice:</p>
-                <ul className="text-sm space-y-1">
+                <p className="font-medium text-sm sm:text-base">Security Notice:</p>
+                <ul className="text-xs sm:text-sm space-y-1">
                   <li>• All international payments are subject to fraud detection</li>
                   <li>• Payments over $1,000 require verified identity</li>
                   <li>• Estimated delivery time: 1-3 business days</li>
@@ -423,7 +428,7 @@ export function CrossBorderPaymentForm({ friends, onSubmit, isLoading = false }:
           {/* Submit Button */}
           <Button
             type="submit"
-            className="w-full"
+            className="w-full h-12 sm:h-10 text-base sm:text-sm"
             disabled={
               isLoading || 
               !selectedFriend || 
@@ -432,6 +437,7 @@ export function CrossBorderPaymentForm({ friends, onSubmit, isLoading = false }:
               !senderAmount ||
               senderAmount < 1
             }
+            data-testid="submit-payment-button"
           >
             {isLoading ? (
               <div className="flex items-center space-x-2">
@@ -450,3 +456,5 @@ export function CrossBorderPaymentForm({ friends, onSubmit, isLoading = false }:
     </Card>
   );
 }
+
+export const CrossBorderPaymentForm = React.memo(CrossBorderPaymentFormComponent);

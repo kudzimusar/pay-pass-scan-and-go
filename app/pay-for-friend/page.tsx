@@ -276,22 +276,22 @@ export default function PayForFriendPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 flex items-center space-x-2">
-            <Globe className="w-8 h-8 text-blue-600" />
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center space-x-2">
+            <Globe className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
             <span>Pay for your Friend</span>
           </h1>
-          <p className="text-gray-600 mt-1">
+          <p className="text-gray-600 mt-1 text-sm sm:text-base">
             Send money to friends and family back home with ease
           </p>
         </div>
         
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
           {user.kycStatus === "verified" && (
-            <Badge variant="outline" className="text-green-600 border-green-200">
+            <Badge variant="outline" className="text-green-600 border-green-200" data-testid="verified-badge">
               <Shield className="w-3 h-3 mr-1" />
               Verified
             </Badge>
@@ -300,8 +300,8 @@ export default function PayForFriendPage() {
           {/* WhatsApp Sync Button */}
           <Dialog open={showWhatsAppSync} onOpenChange={setShowWhatsAppSync}>
             <DialogTrigger asChild>
-              <Button variant="outline" className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200">
-                <MessageCircle className="w-4 h-4 mr-2" />
+              <Button variant="outline" className="h-12 sm:h-10 px-4 sm:px-3 text-base sm:text-sm bg-green-50 hover:bg-green-100 text-green-700 border-green-200 w-full sm:w-auto" data-testid="whatsapp-sync-button">
+                <MessageCircle className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
                 Sync WhatsApp
               </Button>
             </DialogTrigger>
@@ -351,8 +351,8 @@ export default function PayForFriendPage() {
 
           <Dialog open={showAddFriend} onOpenChange={setShowAddFriend}>
             <DialogTrigger asChild>
-              <Button>
-                <Plus className="w-4 h-4 mr-2" />
+              <Button className="h-12 sm:h-10 px-4 sm:px-3 text-base sm:text-sm w-full sm:w-auto" data-testid="add-friend-button">
+                <Plus className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
                 Add Friend
               </Button>
             </DialogTrigger>
@@ -385,50 +385,50 @@ export default function PayForFriendPage() {
       )}
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <Card className="p-3 sm:p-4">
+          <CardContent className="p-0">
             <div className="flex items-center space-x-2">
-              <Users className="w-5 h-5 text-blue-600" />
+              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
               <div>
-                <p className="text-sm text-gray-600">Total Friends</p>
-                <p className="text-2xl font-bold">{friends.length}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Total Friends</p>
+                <p className="text-lg sm:text-2xl font-bold">{friends.length}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
+        <Card className="p-3 sm:p-4">
+          <CardContent className="p-0">
             <div className="flex items-center space-x-2">
-              <DollarSign className="w-5 h-5 text-green-600" />
+              <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
               <div>
-                <p className="text-sm text-gray-600">Sent This Month</p>
-                <p className="text-2xl font-bold">${totalSentThisMonth.toFixed(2)}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Sent This Month</p>
+                <p className="text-lg sm:text-2xl font-bold">${totalSentThisMonth.toFixed(2)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
+        <Card className="p-3 sm:p-4">
+          <CardContent className="p-0">
             <div className="flex items-center space-x-2">
-              <TrendingUp className="w-5 h-5 text-purple-600" />
+              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
               <div>
-                <p className="text-sm text-gray-600">Monthly Limits</p>
-                <p className="text-2xl font-bold">${totalLimit.toFixed(2)}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Monthly Limits</p>
+                <p className="text-lg sm:text-2xl font-bold">${totalLimit.toFixed(2)}</p>
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardContent className="p-4">
+        <Card className="p-3 sm:p-4">
+          <CardContent className="p-0">
             <div className="flex items-center space-x-2">
-              <Clock className="w-5 h-5 text-orange-600" />
+              <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
               <div>
-                <p className="text-sm text-gray-600">Active Connections</p>
-                <p className="text-2xl font-bold">{friends.filter(f => f.isVerified).length}</p>
+                <p className="text-xs sm:text-sm text-gray-600">Active Connections</p>
+                <p className="text-lg sm:text-2xl font-bold">{friends.filter(f => f.isVerified).length}</p>
               </div>
             </div>
           </CardContent>
@@ -447,19 +447,23 @@ export default function PayForFriendPage() {
           {/* Search */}
           <div className="flex items-center space-x-4">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Label htmlFor="search-input" className="sr-only">Search friends</Label>
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
               <Input
+                id="search-input"
                 placeholder="Search friends..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 h-12 sm:h-10 text-base sm:text-sm"
+                data-testid="search-input"
+                aria-label="Search friends"
               />
             </div>
           </div>
 
           {/* Friends Grid */}
           {filteredFriends.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6" data-testid="friends-grid">
               {filteredFriends.map((friend) => (
                 <FriendNetworkCard
                   key={friend.id}
@@ -484,14 +488,14 @@ export default function PayForFriendPage() {
             </div>
           ) : (
             <Card>
-              <CardContent className="p-8 text-center">
-                <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">No friends found</h3>
-                <p className="text-gray-600 mb-4">
+              <CardContent className="p-6 sm:p-8 text-center">
+                <Users className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">No friends found</h3>
+                <p className="text-sm sm:text-base text-gray-600 mb-4">
                   {searchTerm ? "No friends match your search." : "Start by adding friends you want to send money to."}
                 </p>
-                <Button onClick={() => setShowAddFriend(true)}>
-                  <Plus className="w-4 h-4 mr-2" />
+                <Button onClick={() => setShowAddFriend(true)} className="h-12 sm:h-10 px-4 sm:px-3 text-base sm:text-sm w-full sm:w-auto">
+                  <Plus className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
                   Add Your First Friend
                 </Button>
               </CardContent>
@@ -509,10 +513,10 @@ export default function PayForFriendPage() {
 
         <TabsContent value="history">
           <Card>
-            <CardContent className="p-8 text-center">
-              <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Payment History</h3>
-              <p className="text-gray-600">
+            <CardContent className="p-6 sm:p-8 text-center">
+              <Clock className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">Payment History</h3>
+              <p className="text-sm sm:text-base text-gray-600">
                 Payment history feature coming soon. You'll be able to view all your cross-border transactions here.
               </p>
             </CardContent>
@@ -522,7 +526,7 @@ export default function PayForFriendPage() {
 
       {/* Payment Form Dialog */}
       <Dialog open={showPaymentForm} onOpenChange={setShowPaymentForm}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-auto">
           <DialogHeader>
             <DialogTitle>Send Money</DialogTitle>
           </DialogHeader>
