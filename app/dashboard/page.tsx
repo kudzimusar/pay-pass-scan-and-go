@@ -24,6 +24,10 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  Globe,
+  Home,
+  History,
+  User,
 } from "lucide-react"
 
 interface PaymentRequest {
@@ -330,25 +334,46 @@ export default function DashboardPage() {
         <div className="px-6 py-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
 
-          {/* Primary Action - Ask Friend to Pay */}
-          <Link href="/request-money">
-            <Card className="mb-4 bg-gradient-to-r from-blue-500 to-teal-500 text-white hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02]">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
-                      <Users className="w-6 h-6" />
+          {/* Primary Actions - Ask Friend to Pay and Pay for your Friend */}
+          <div className="space-y-4 mb-4">
+            <Link href="/request-money">
+              <Card className="bg-gradient-to-r from-blue-500 to-teal-500 text-white hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02]">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                        <Users className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-lg">Ask Friend to Pay</h4>
+                        <p className="text-blue-100 text-sm">Request money from contacts</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-semibold text-lg">Ask Friend to Pay</h4>
-                      <p className="text-blue-100 text-sm">Request money from contacts</p>
-                    </div>
+                    <ArrowUpRight className="w-5 h-5" />
                   </div>
-                  <ArrowUpRight className="w-5 h-5" />
-                </div>
-              </CardContent>
-            </Card>
-          </Link>
+                </CardContent>
+              </Card>
+            </Link>
+
+            <Link href="/pay-for-friend">
+              <Card className="bg-gradient-to-r from-green-500 to-emerald-500 text-white hover:shadow-lg transition-all duration-200 transform hover:scale-[1.02]">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+                        <Globe className="w-6 h-6" />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-lg">Pay for your Friend</h4>
+                        <p className="text-green-100 text-sm">Send money to family abroad via WhatsApp</p>
+                      </div>
+                    </div>
+                    <ArrowUpRight className="w-5 h-5" />
+                  </div>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
 
           {/* Other Actions Grid */}
           <div className="grid grid-cols-2 gap-4">
@@ -460,6 +485,9 @@ export default function DashboardPage() {
             <Link href="/transactions" className="text-blue-600 hover:underline">
               View All Transactions
             </Link>
+            <Link href="/pay-for-friend" className="text-blue-600 hover:underline">
+              Pay for your Friend
+            </Link>
             <Link href="/unpaid-transactions" className="text-blue-600 hover:underline">
               Unpaid Transactions
             </Link>
@@ -472,6 +500,32 @@ export default function DashboardPage() {
             <button onClick={handleLogout} className="text-red-600 hover:underline text-left col-span-2">
               Sign Out
             </button>
+          </div>
+        </div>
+
+        {/* Bottom Navigation */}
+        <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2 w-full max-w-sm bg-white border-t border-gray-200">
+          <div className="flex items-center justify-around py-2">
+            <Link href="/dashboard" className="flex flex-col items-center py-2 px-3 text-blue-600">
+              <Home className="w-5 h-5 mb-1" />
+              <span className="text-xs font-medium">Home</span>
+            </Link>
+            <Link href="/qr-scanner" className="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-600">
+              <QrCode className="w-5 h-5 mb-1" />
+              <span className="text-xs">Scan</span>
+            </Link>
+            <Link href="/pay-for-friend" className="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-600">
+              <Globe className="w-5 h-5 mb-1" />
+              <span className="text-xs">Pay Friend</span>
+            </Link>
+            <Link href="/transactions" className="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-600">
+              <History className="w-5 h-5 mb-1" />
+              <span className="text-xs">History</span>
+            </Link>
+            <Link href="/profile" className="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-600">
+              <User className="w-5 h-5 mb-1" />
+              <span className="text-xs">Profile</span>
+            </Link>
           </div>
         </div>
       </div>

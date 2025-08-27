@@ -17,6 +17,7 @@ import {
   TrendingDown,
   Calendar,
   Receipt,
+  Globe,
 } from "lucide-react"
 
 interface Transaction {
@@ -62,12 +63,6 @@ export default function TransactionsPage() {
         const text = await response.text()
         throw new Error(text || `HTTP ${response.status}`)
       }
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`)
-      }
-
       const data = await response.json()
       if (data.success) {
         setTransactions(data.transactions || [])
@@ -393,6 +388,10 @@ export default function TransactionsPage() {
             <Link href="/qr-scanner" className="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-600">
               <QrCode className="w-5 h-5 mb-1" />
               <span className="text-xs">Scan</span>
+            </Link>
+            <Link href="/pay-for-friend" className="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-600">
+              <Globe className="w-5 h-5 mb-1" />
+              <span className="text-xs">Pay Friend</span>
             </Link>
             <Link href="/transactions" className="flex flex-col items-center py-2 px-3 text-blue-600">
               <History className="w-5 h-5 mb-1" />
