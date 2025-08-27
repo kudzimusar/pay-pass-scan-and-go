@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { storage } from "../../_lib/storage"
-import { FinancialCore } from "../../_lib/financial-core"
+import { storage } from "../../../_lib/storage"
+import { FinancialCore } from "../../../_lib/financial-core"
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {

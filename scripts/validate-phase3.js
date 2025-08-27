@@ -2,10 +2,6 @@
 
 /**
  * PayPass Phase 3 Validation Script
-<<<<<<< HEAD
- * Validates completion of Phase 3 requirements according to PLAN.md
- * Focus: Microservices migration, advanced features, business expansion
-=======
  * 
  * Validates the implementation of Phase 3 requirements:
  * - Microservices Architecture Migration
@@ -17,26 +13,11 @@
  * - Advanced API Management
  * - Performance Optimization
  * - Scalability Improvements
->>>>>>> 5369374451513e9b5f7afd9dc5a8e42ac51c60c6
  */
 
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-<<<<<<< HEAD
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const rootDir = path.join(__dirname, '..');
-
-// ANSI color codes for console output
-const colors = {
-  green: '\x1b[32m',
-  red: '\x1b[31m',
-  yellow: '\x1b[33m',
-  blue: '\x1b[34m',
-  reset: '\x1b[0m',
-  bold: '\x1b[1m'
-=======
 import { execSync } from 'child_process';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -54,7 +35,6 @@ const colors = {
   magenta: '\x1b[35m',
   cyan: '\x1b[36m',
   white: '\x1b[37m',
->>>>>>> 5369374451513e9b5f7afd9dc5a8e42ac51c60c6
 };
 
 class Phase3Validator {
@@ -63,8 +43,9 @@ class Phase3Validator {
       passed: 0,
       failed: 0,
       warnings: 0,
-<<<<<<< HEAD
-      total: 0
+      total: 0,
+      details: [],
+      featureBreakdown: {},
     };
     this.report = [];
     this.categories = {
@@ -78,20 +59,13 @@ class Phase3Validator {
       performance: { passed: 0, total: 0 },
       scalability: { passed: 0, total: 0 }
     };
-=======
-      total: 0,
-      details: [],
-      featureBreakdown: {},
-    };
     this.startTime = new Date();
->>>>>>> 5369374451513e9b5f7afd9dc5a8e42ac51c60c6
   }
 
   log(message, type = 'info') {
     const timestamp = new Date().toISOString();
     const color = type === 'pass' ? colors.green : 
                   type === 'fail' ? colors.red : 
-<<<<<<< HEAD
                   type === 'warn' ? colors.yellow : colors.blue;
     
     console.log(`${color}[${type.toUpperCase()}]${colors.reset} ${message}`);
@@ -99,7 +73,7 @@ class Phase3Validator {
   }
 
   checkFile(filePath, description, category = null) {
-    const fullPath = path.join(rootDir, filePath);
+    const fullPath = path.join(projectRoot, filePath);
     const exists = fs.existsSync(fullPath);
     
     if (exists) {
@@ -117,7 +91,7 @@ class Phase3Validator {
   }
 
   checkDirectory(dirPath, description, category = null) {
-    const fullPath = path.join(rootDir, dirPath);
+    const fullPath = path.join(projectRoot, dirPath);
     const exists = fs.existsSync(fullPath) && fs.statSync(fullPath).isDirectory();
     
     if (exists) {
@@ -135,7 +109,7 @@ class Phase3Validator {
   }
 
   checkFileContent(filePath, searchPattern, description, category = null) {
-    const fullPath = path.join(rootDir, filePath);
+    const fullPath = path.join(projectRoot, filePath);
     
     if (!fs.existsSync(fullPath)) {
       this.log(`✗ ${description}: ${filePath} (file missing)`, 'fail');
@@ -502,7 +476,6 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 }
 
 export { Phase3Validator };
-=======
                   type === 'warning' ? colors.yellow : colors.reset;
     
     this.results.details.push({
@@ -1208,4 +1181,3 @@ export { Phase3Validator };
 // Run validation
 const validator = new Phase3Validator();
 validator.validatePhase3().catch(console.error);
->>>>>>> 5369374451513e9b5f7afd9dc5a8e42ac51c60c6
