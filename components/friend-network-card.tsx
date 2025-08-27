@@ -54,11 +54,14 @@ const relationshipIcons = {
   business: "🏢",
 };
 
-export function FriendNetworkCard({ friend, onSendPayment, onViewDetails, onSendWhatsAppRequest }: FriendNetworkCardProps) {
-  const monthlyLimit = parseFloat(friend.monthlyLimit);
-  const totalSent = parseFloat(friend.totalSent);
-  const remainingLimit = monthlyLimit - totalSent;
-  const usagePercentage = (totalSent / monthlyLimit) * 100;
+function FriendNetworkCardComponent({ friend, onSendPayment, onViewDetails, onSendWhatsAppRequest }: FriendNetworkCardProps) {
+  const [isLoading, setIsLoading] = useState(false);
+  
+  try {
+    const monthlyLimit = parseFloat(friend.monthlyLimit);
+    const totalSent = parseFloat(friend.totalSent);
+    const remainingLimit = monthlyLimit - totalSent;
+    const usagePercentage = (totalSent / monthlyLimit) * 100;
 
   const getInitials = (name: string) => {
     return name
@@ -176,7 +179,7 @@ export function FriendNetworkCard({ friend, onSendPayment, onViewDetails, onSend
           <Separator />
 
           {/* Payment History Summary */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
             <div className="flex items-center space-x-2">
               <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
               <div>
@@ -199,23 +202,29 @@ export function FriendNetworkCard({ friend, onSendPayment, onViewDetails, onSend
           </div>
 
           {/* Action Buttons */}
-          <div className="space-y-2 pt-2" data-testid="action-buttons">
+          <form className="space-y-2 pt-2" data-testid="action-buttons">
+            <Label htmlFor="view-details-button" className="sr-only">View friend details</Label>
+            <Label htmlFor="send-money-button" className="sr-only">Send money to friend</Label>
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
               <Button
+                id="view-details-button"
                 variant="outline"
                 size="sm"
                 onClick={() => onViewDetails(friend.id)}
                 className="flex-1 h-10 sm:h-9 text-xs sm:text-sm"
                 data-testid="view-details-button"
+                aria-label={`View details for ${friend.nickname || friend.recipient.fullName}`}
               >
                 View Details
               </Button>
               <Button
+                id="send-money-button"
                 size="sm"
                 onClick={() => onSendPayment(friend.id)}
                 className="flex-1 h-10 sm:h-9 text-xs sm:text-sm"
                 disabled={remainingLimit <= 0}
                 data-testid="send-money-button"
+                aria-label={`Send money to ${friend.nickname || friend.recipient.fullName}`}
               >
                 <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                 Send Money
@@ -229,12 +238,13 @@ export function FriendNetworkCard({ friend, onSendPayment, onViewDetails, onSend
                 className="w-full h-10 sm:h-9 text-xs sm:text-sm bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
                 disabled={remainingLimit <= 0}
                 data-testid="whatsapp-request-button"
+                aria-label={`Send WhatsApp payment request to ${friend.nickname || friend.recipient.fullName}`}
               >
                 <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                 Send WhatsApp Request
               </Button>
             )}
-          </div>
+          </form>
 
           {/* Connection Date */}
           <div className="text-xs text-gray-400 flex items-center justify-center">
@@ -245,4 +255,16 @@ export function FriendNetworkCard({ friend, onSendPayment, onViewDetails, onSend
       </CardContent>
     </Card>
   );
+  } catch (error) {
+    console.error('Error rendering FriendNetworkCard:', error);
+    return (
+      <Card className="p-4">
+        <CardContent>
+          <p className="text-red-600">Error loading friend information</p>
+        </CardContent>
+      </Card>
+    );
+  }
 }
+
+export const FriendNetworkCard = React.memo(FriendNetworkCardComponent);

@@ -276,7 +276,7 @@ export default function PayForFriendPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
         <div>
@@ -447,13 +447,16 @@ export default function PayForFriendPage() {
           {/* Search */}
           <div className="flex items-center space-x-4">
             <div className="relative flex-1 max-w-md">
+              <Label htmlFor="search-input" className="sr-only">Search friends</Label>
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
               <Input
+                id="search-input"
                 placeholder="Search friends..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10 h-12 sm:h-10 text-base sm:text-sm"
                 data-testid="search-input"
+                aria-label="Search friends"
               />
             </div>
           </div>

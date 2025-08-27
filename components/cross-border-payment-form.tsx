@@ -82,7 +82,7 @@ const recipientCurrencyOptions = [
   { value: "ZWL", label: "Zimbabwe Dollar (ZWL)", flag: "🇿🇼" },
 ];
 
-export function CrossBorderPaymentForm({ friends, onSubmit, isLoading = false }: CrossBorderPaymentFormProps) {
+function CrossBorderPaymentFormComponent({ friends, onSubmit, isLoading = false }: CrossBorderPaymentFormProps) {
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [exchangeRate, setExchangeRate] = useState<ExchangeRate | null>(null);
   const [loadingRate, setLoadingRate] = useState(false);
@@ -168,9 +168,9 @@ export function CrossBorderPaymentForm({ friends, onSubmit, isLoading = false }:
     }
   };
 
-  const fees = calculateFees();
-  const recipientAmount = calculateRecipientAmount();
-  const totalAmount = senderAmount + fees.total;
+  const fees = React.useMemo(() => calculateFees(), [senderAmount]);
+  const recipientAmount = React.useMemo(() => calculateRecipientAmount(), [senderAmount, exchangeRate]);
+  const totalAmount = React.useMemo(() => senderAmount + fees.total, [senderAmount, fees.total]);
 
   // Check if selected friend has enough monthly limit
   const remainingLimit = selectedFriend 
@@ -232,7 +232,7 @@ export function CrossBorderPaymentForm({ friends, onSubmit, isLoading = false }:
           </div>
 
           {/* Amount and Currency */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="senderAmount" className="text-sm sm:text-base">Amount to Send</Label>
               <Input
@@ -456,3 +456,5 @@ export function CrossBorderPaymentForm({ friends, onSubmit, isLoading = false }:
     </Card>
   );
 }
+
+export const CrossBorderPaymentForm = React.memo(CrossBorderPaymentFormComponent);
