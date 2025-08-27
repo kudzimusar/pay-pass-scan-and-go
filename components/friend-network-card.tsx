@@ -85,34 +85,34 @@ export function FriendNetworkCard({ friend, onSendPayment, onViewDetails, onSend
   };
 
   return (
-    <Card className="relative overflow-hidden transition-all duration-200 hover:shadow-lg">
-      <CardHeader className="pb-3">
+    <Card className="relative overflow-hidden transition-all duration-200 hover:shadow-lg" data-testid={`friend-card-${friend.nickname || friend.recipient.fullName}`}>
+      <CardHeader className="pb-3 p-4 sm:p-6">
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
-            <Avatar className="h-12 w-12">
-              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+            <Avatar className="h-10 w-10 sm:h-12 sm:w-12">
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold text-sm sm:text-base">
                 {getInitials(friend.recipient.fullName)}
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-lg font-semibold text-gray-900 truncate">
+              <CardTitle className="text-base sm:text-lg font-semibold text-gray-900 truncate">
                 {friend.nickname || friend.recipient.fullName}
               </CardTitle>
-              <div className="flex items-center space-x-2 mt-1">
+              <div className="flex flex-wrap items-center gap-1 sm:gap-2 mt-1">
                 <Badge 
                   variant="secondary" 
-                  className={relationshipColors[friend.relationship]}
+                  className={`${relationshipColors[friend.relationship]} text-xs sm:text-sm`}
                 >
                   {relationshipIcons[friend.relationship]} {friend.relationship}
                 </Badge>
                 {friend.isVerified && (
-                  <Badge variant="outline" className="text-green-600 border-green-200">
+                  <Badge variant="outline" className="text-green-600 border-green-200 text-xs sm:text-sm">
                     <Shield className="w-3 h-3 mr-1" />
                     Verified
                   </Badge>
                 )}
                 {friend.whatsappEnabled && (
-                  <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
+                  <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50 text-xs sm:text-sm">
                     <MessageCircle className="w-3 h-3 mr-1" />
                     WhatsApp
                   </Badge>
@@ -124,24 +124,25 @@ export function FriendNetworkCard({ friend, onSendPayment, onViewDetails, onSend
             variant="outline"
             size="sm"
             onClick={() => onSendPayment(friend.id)}
-            className="shrink-0"
+            className="shrink-0 h-8 sm:h-9 px-2 sm:px-3 text-xs sm:text-sm"
+            data-testid="send-money-button"
           >
-            <Send className="w-4 h-4 mr-1" />
+            <Send className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
             Send
           </Button>
         </div>
       </CardHeader>
 
-      <CardContent className="pt-0">
+      <CardContent className="pt-0 p-4 sm:p-6">
         <div className="space-y-4">
           {/* Contact Information */}
           <div className="space-y-2">
-            <div className="flex items-center text-sm text-gray-600">
-              <Phone className="w-4 h-4 mr-2" />
+            <div className="flex items-center text-xs sm:text-sm text-gray-600">
+              <Phone className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
               {formatPhoneNumber(friend.recipient.phone)}
             </div>
-            <div className="flex items-center text-sm text-gray-600">
-              <MapPin className="w-4 h-4 mr-2" />
+            <div className="flex items-center text-xs sm:text-sm text-gray-600">
+              <MapPin className="w-3 h-3 sm:w-4 sm:h-4 mr-2" />
               {friend.recipient.countryCode === "ZW" ? "Zimbabwe" : friend.recipient.countryCode}
             </div>
           </div>
@@ -150,13 +151,13 @@ export function FriendNetworkCard({ friend, onSendPayment, onViewDetails, onSend
 
           {/* Monthly Spending Limit */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center justify-between text-xs sm:text-sm">
               <span className="text-gray-600">Monthly Limit</span>
               <span className="font-medium">{formatCurrency(monthlyLimit)}</span>
             </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+            <div className="w-full bg-gray-200 rounded-full h-1.5 sm:h-2">
               <div
-                className={`h-2 rounded-full transition-all duration-300 ${
+                className={`h-1.5 sm:h-2 rounded-full transition-all duration-300 ${
                   usagePercentage > 80
                     ? "bg-red-500"
                     : usagePercentage > 60
@@ -175,16 +176,16 @@ export function FriendNetworkCard({ friend, onSendPayment, onViewDetails, onSend
           <Separator />
 
           {/* Payment History Summary */}
-          <div className="grid grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
             <div className="flex items-center space-x-2">
-              <TrendingUp className="w-4 h-4 text-gray-400" />
+              <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
               <div>
                 <p className="text-gray-600">Total Sent</p>
                 <p className="font-semibold">{formatCurrency(totalSent)}</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <Clock className="w-4 h-4 text-gray-400" />
+              <Clock className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
               <div>
                 <p className="text-gray-600">Last Payment</p>
                 <p className="font-semibold">
@@ -198,23 +199,25 @@ export function FriendNetworkCard({ friend, onSendPayment, onViewDetails, onSend
           </div>
 
           {/* Action Buttons */}
-          <div className="space-y-2 pt-2">
-            <div className="flex space-x-2">
+          <div className="space-y-2 pt-2" data-testid="action-buttons">
+            <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => onViewDetails(friend.id)}
-                className="flex-1"
+                className="flex-1 h-10 sm:h-9 text-xs sm:text-sm"
+                data-testid="view-details-button"
               >
                 View Details
               </Button>
               <Button
                 size="sm"
                 onClick={() => onSendPayment(friend.id)}
-                className="flex-1"
+                className="flex-1 h-10 sm:h-9 text-xs sm:text-sm"
                 disabled={remainingLimit <= 0}
+                data-testid="send-money-button"
               >
-                <DollarSign className="w-4 h-4 mr-1" />
+                <DollarSign className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                 Send Money
               </Button>
             </div>
@@ -223,10 +226,11 @@ export function FriendNetworkCard({ friend, onSendPayment, onViewDetails, onSend
                 variant="outline"
                 size="sm"
                 onClick={() => onSendWhatsAppRequest(friend.id)}
-                className="w-full bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
+                className="w-full h-10 sm:h-9 text-xs sm:text-sm bg-green-50 hover:bg-green-100 text-green-700 border-green-200"
                 disabled={remainingLimit <= 0}
+                data-testid="whatsapp-request-button"
               >
-                <MessageCircle className="w-4 h-4 mr-1" />
+                <MessageCircle className="w-3 h-3 sm:w-4 sm:h-4 mr-1" />
                 Send WhatsApp Request
               </Button>
             )}
