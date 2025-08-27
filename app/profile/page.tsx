@@ -24,6 +24,7 @@ import {
   MapPin,
   Calendar,
   UserCheck,
+  Globe,
 } from "lucide-react"
 
 export default function ProfilePage() {
@@ -326,6 +327,10 @@ export default function ProfilePage() {
             <Link href="/qr-scanner" className="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-600">
               <QrCode className="w-5 h-5 mb-1" />
               <span className="text-xs">Scan</span>
+            </Link>
+            <Link href="/pay-for-friend" className="flex flex-col items-center py-2 px-3 text-gray-600 hover:text-blue-600">
+              <Globe className="w-5 h-5 mb-1" />
+              <span className="text-xs">Pay Friend</span>
             </Link>
             <Link
               href="/transactions"
