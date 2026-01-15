@@ -87,25 +87,27 @@ All admins use PIN: `1234`
 
 ## API Endpoints
 
-### Authentication Endpoints
+### Authentication Endpoints (Enhanced)
 
 #### Regular Users
-- **Login**: `POST /api/auth/login`
+- **Login (PIN/Password)**: `POST /api/auth/login` (Legacy)
+- **Login (Enhanced)**: `POST /api/auth/login-enhanced` (Recommended)
+- **MFA Verification**: `POST /api/auth/mfa/verify-login` (Used after Enhanced Login if MFA is enabled)
 - **Register**: `POST /api/auth/register`
 
-#### Operators
+#### Operators (Legacy)
 - **Login**: `POST /api/auth/operator/login`
 - **Register**: `POST /api/auth/operator/register`
 
-#### Merchants
+#### Merchants (Legacy)
 - **Login**: `POST /api/auth/merchant/login`
 - **Register**: `POST /api/auth/merchant/register`
 
-#### Partners
+#### Partners (Legacy)
 - **Login**: `POST /api/auth/partner/login`
 - **Register**: `POST /api/auth/partner/register`
 
-#### Admins
+#### Admins (Legacy)
 - **Login**: `POST /api/auth/admin/login`
 - **Register**: `POST /api/auth/admin/register`
 
