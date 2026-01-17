@@ -63,12 +63,6 @@ export default function TransactionsPage() {
         throw new Error(text || `HTTP ${response.status}`)
       }
       const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`)
-      }
-
-      const data = await response.json()
       if (data.success) {
         setTransactions(data.transactions || [])
       }

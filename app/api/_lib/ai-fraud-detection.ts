@@ -87,7 +87,7 @@ export interface FraudAssessment {
 }
 
 // Machine Learning Models
-export class BaseMLModel {
+export abstract class BaseMLModel {
   protected config: MLFraudModel;
   
   constructor(config: MLFraudModel) {
@@ -346,7 +346,7 @@ export class AIFraudDetectionEngine {
             model = new NetworkAnalysisModel(config);
             break;
           default:
-            continue;
+            return;
         }
         
         this.models.set(config.modelId, model);
