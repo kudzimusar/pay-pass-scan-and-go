@@ -18,6 +18,7 @@ import TopUp from "@/pages/top-up";
 import TransactionHistory from "@/pages/transaction-history";
 import SendMoney from "@/pages/send-money";
 import PayBills from "@/pages/pay-bills";
+import PayForFriend from "@/pages/pay-for-friend";
 import Settings from "@/pages/settings";
 import OperatorDashboard from "@/pages/operator-dashboard";
 import OperatorLogin from "@/pages/operator-login";
@@ -43,6 +44,7 @@ function Router() {
       <Route path="/transactions" component={TransactionHistory} />
       <Route path="/send-money" component={SendMoney} />
       <Route path="/pay-bills" component={PayBills} />
+      <Route path="/pay-for-friend" component={PayForFriend} />
       <Route path="/settings" component={Settings} />
       <Route path="/operator" component={OperatorDashboard} />
       <Route path="/operator-login" component={OperatorLogin} />
