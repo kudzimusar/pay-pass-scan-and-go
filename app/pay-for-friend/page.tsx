@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -20,9 +19,11 @@ import {
   AlertTriangle,
   TrendingUp,
   DollarSign,
-  Clock,
   MessageCircle,
-  Send
+  Building2,
+  Filter,
+  LayoutGrid,
+  List
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -41,6 +42,7 @@ interface Friend {
     phone: string;
     countryCode: string;
   };
+  whatsappEnabled?: boolean;
 }
 
 interface User {
@@ -56,15 +58,12 @@ export default function PayForFriendPage() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
-  const [showAddFriend, setShowAddFriend] = useState(false);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
-  const [whatsappContacts, setWhatsappContacts] = useState<any[]>([]);
-  const [syncingContacts, setSyncingContacts] = useState(false);
-  const [showWhatsAppSync, setShowWhatsAppSync] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [activeTab, setActiveTab] = useState("all");
 
-  // Mock user data - in real app, this would come from auth context
   useEffect(() => {
     // Simulate loading user data
     setTimeout(() => {
@@ -78,13 +77,12 @@ export default function PayForFriendPage() {
       setLoading(false);
     }, 1000);
 
-    // Load friends list
     loadFriends();
   }, []);
 
   const loadFriends = async () => {
     try {
-      // Mock data - in real app, this would be an API call
+      // Mock data representing the diverse stakeholders
       const mockFriends: Friend[] = [
         {
           id: "friend-1",
@@ -101,41 +99,76 @@ export default function PayForFriendPage() {
             phone: "+263771234567",
             countryCode: "ZW",
           },
+          whatsappEnabled: true
+        },
+        {
+          id: "org-1",
+          relationship: "business",
+          nickname: "ZESA Holdings",
+          isVerified: true,
+          monthlyLimit: "500.00",
+          totalSent: "120.00",
+          lastPaymentAt: "2024-01-10T14:20:00Z",
+          createdAt: "2024-01-05T11:15:00Z",
+          recipient: {
+            id: "recipient-org-1",
+            fullName: "ZESA Utilities",
+            phone: "+263242123456",
+            countryCode: "ZW",
+          },
+        },
+        {
+          id: "org-2",
+          relationship: "business",
+          nickname: "ZUPCO Transport",
+          isVerified: true,
+          monthlyLimit: "300.00",
+          totalSent: "45.00",
+          lastPaymentAt: "2024-01-16T08:00:00Z",
+          createdAt: "2024-01-05T11:15:00Z",
+          recipient: {
+            id: "recipient-org-2",
+            fullName: "ZUPCO Public Transport",
+            phone: "+263242987654",
+            countryCode: "ZW",
+          },
+        },
+        {
+          id: "org-3",
+          relationship: "business",
+          nickname: "OK Zimbabwe",
+          isVerified: true,
+          monthlyLimit: "1000.00",
+          totalSent: "850.00",
+          lastPaymentAt: "2024-01-12T16:45:00Z",
+          createdAt: "2023-11-20T10:00:00Z",
+          recipient: {
+            id: "recipient-org-3",
+            fullName: "OK Supermarkets",
+            phone: "+263242555666",
+            countryCode: "ZW",
+          },
         },
         {
           id: "friend-2",
           relationship: "friend",
-          nickname: "Best Friend",
-          isVerified: true,
-          monthlyLimit: "1000.00",
-          totalSent: "125.00",
-          lastPaymentAt: "2024-01-10T14:20:00Z",
-          createdAt: "2024-01-05T11:15:00Z",
+          nickname: "Tinashe",
+          isVerified: false,
+          monthlyLimit: "200.00",
+          totalSent: "0.00",
+          createdAt: "2024-01-17T12:00:00Z",
           recipient: {
             id: "recipient-2",
-            fullName: "Tendai Mukamuri",
-            phone: "+263772345678",
+            fullName: "Tinashe Mutasa",
+            phone: "+263772111222",
             countryCode: "ZW",
           },
-        },
-        {
-          id: "friend-3",
-          relationship: "business",
-          isVerified: false,
-          monthlyLimit: "500.00",
-          totalSent: "0.00",
-          createdAt: "2024-01-20T16:45:00Z",
-          recipient: {
-            id: "recipient-3",
-            fullName: "Local Business Partner",
-            phone: "+263773456789",
-            countryCode: "ZW",
-          },
-        },
+          whatsappEnabled: true
+        }
       ];
       setFriends(mockFriends);
     } catch (error) {
-      toast.error("Failed to load friends list");
+      toast.error("Failed to load contacts");
     }
   };
 
@@ -144,18 +177,13 @@ export default function PayForFriendPage() {
     setShowPaymentForm(true);
   };
 
-  const handleViewDetails = (friendId: string) => {
-    // Navigate to friend details page
-    toast.info("Friend details view coming soon");
-  };
-
   const handlePaymentSubmit = async (paymentData: any) => {
     setPaymentLoading(true);
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 2000));
       
-      toast.success("Payment initiated successfully! Your friend will receive the money within 1-3 business days.");
+      toast.success("Payment processed successfully!");
       setShowPaymentForm(false);
       setSelectedFriendId(null);
       
@@ -168,94 +196,24 @@ export default function PayForFriendPage() {
     }
   };
 
-  // WhatsApp integration functions
-  const handleWhatsAppSync = async () => {
-    setSyncingContacts(true);
-    try {
-      // In a real app, this would integrate with WhatsApp Business API
-      // For demo purposes, we'll simulate syncing contacts
-      const mockWhatsAppContacts = [
-        { number: "+263771234567", name: "John Doe", isWhatsAppUser: true },
-        { number: "+263772345678", name: "Jane Smith", isWhatsAppUser: true },
-        { number: "+263773456789", name: "Mike Johnson", isWhatsAppUser: true },
-      ];
-
-      const response = await fetch('/api/whatsapp/contacts/sync', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({
-          contacts: mockWhatsAppContacts,
-          autoCreateFriendNetwork: true,
-        }),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        setWhatsappContacts(result.contacts);
-        toast.success(`Synced ${result.stats.totalContacts} WhatsApp contacts successfully!`);
-        
-        // Reload friends list to show new connections
-        await loadFriends();
-      } else {
-        throw new Error('Failed to sync contacts');
-      }
-    } catch (error) {
-      toast.error("Failed to sync WhatsApp contacts. Please try again.");
-      console.error('WhatsApp sync error:', error);
-    } finally {
-      setSyncingContacts(false);
-      setShowWhatsAppSync(false);
-    }
-  };
-
-  const sendWhatsAppPaymentRequest = async (friend: Friend, amount: number, currency: string, message: string) => {
-    try {
-      const response = await fetch('/api/whatsapp/payment-request', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({
-          to: friend.recipient.phone,
-          amount,
-          currency,
-          message,
-          friendNetworkId: friend.id,
-        }),
-      });
-
-      if (response.ok) {
-        const result = await response.json();
-        toast.success("Payment request sent via WhatsApp!");
-        return result;
-      } else {
-        throw new Error('Failed to send WhatsApp payment request');
-      }
-    } catch (error) {
-      toast.error("Failed to send WhatsApp payment request.");
-      console.error('WhatsApp payment request error:', error);
-      throw error;
-    }
-  };
-
-  const filteredFriends = friends.filter(friend =>
-    friend.recipient.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    friend.nickname?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredFriends = friends.filter(friend => {
+    const matchesSearch = (friend.recipient.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          friend.nickname?.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    if (activeTab === "all") return matchesSearch;
+    if (activeTab === "individuals") return matchesSearch && friend.relationship !== "business";
+    if (activeTab === "organizations") return matchesSearch && friend.relationship === "business";
+    return matchesSearch;
+  });
 
   const totalSentThisMonth = friends.reduce((sum, friend) => sum + parseFloat(friend.totalSent), 0);
-  const totalLimit = friends.reduce((sum, friend) => sum + parseFloat(friend.monthlyLimit), 0);
 
   if (loading) {
     return (
-      <div className="container mx-auto p-6">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-2 text-gray-600">Loading your account...</p>
+      <div className="flex items-center justify-center min-h-screen bg-gray-50">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="text-gray-600 font-medium">Syncing with PayPass Network...</p>
         </div>
       </div>
     );
@@ -264,11 +222,11 @@ export default function PayForFriendPage() {
   if (!user?.isInternational) {
     return (
       <div className="container mx-auto p-6">
-        <Alert variant="destructive">
-          <AlertTriangle className="w-4 h-4" />
-          <AlertDescription>
-            The "Pay for your Friend" feature is only available for international users. 
-            Please update your account settings to access cross-border payments.
+        <Alert variant="destructive" className="border-2">
+          <AlertTriangle className="w-5 h-5" />
+          <AlertDescription className="font-medium">
+            The "Pay for your Friend" feature is exclusively for international users. 
+            Please verify your international status in account settings to enable cross-border payments.
           </AlertDescription>
         </Alert>
       </div>
@@ -276,269 +234,160 @@ export default function PayForFriendPage() {
   }
 
   return (
-    <div className="container mx-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center space-x-2">
-            <Globe className="w-6 h-6 sm:w-8 sm:h-8 text-blue-600" />
-            <span>Pay for your Friend</span>
-          </h1>
-          <p className="text-gray-600 mt-1 text-sm sm:text-base">
-            Send money to friends and family back home with ease
-          </p>
-        </div>
-        
-        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2">
-          {user.kycStatus === "verified" && (
-            <Badge variant="outline" className="text-green-600 border-green-200" data-testid="verified-badge">
-              <Shield className="w-3 h-3 mr-1" />
-              Verified
-            </Badge>
-          )}
-          
-          {/* WhatsApp Sync Button */}
-          <Dialog open={showWhatsAppSync} onOpenChange={setShowWhatsAppSync}>
-            <DialogTrigger asChild>
-              <Button variant="outline" className="h-12 sm:h-10 px-4 sm:px-3 text-base sm:text-sm bg-green-50 hover:bg-green-100 text-green-700 border-green-200 w-full sm:w-auto" data-testid="whatsapp-sync-button">
-                <MessageCircle className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
-                Sync WhatsApp
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Sync WhatsApp Contacts</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4">
-                <p className="text-gray-600">
-                  Import your WhatsApp contacts to easily send payment requests through WhatsApp. 
-                  This will create friend networks for existing PayPass users in your contacts.
-                </p>
-                <div className="bg-blue-50 p-4 rounded-lg">
-                  <h4 className="font-medium text-blue-900 mb-2">Benefits:</h4>
-                  <ul className="text-sm text-blue-800 space-y-1">
-                    <li>• Send payment requests via WhatsApp</li>
-                    <li>• Instant notifications to friends</li>
-                    <li>• Auto-create trusted friend networks</li>
-                    <li>• Seamless payment experience</li>
-                  </ul>
+    <div className="min-h-screen bg-gray-50/50 pb-12">
+      {/* Hero Header */}
+      <div className="bg-white border-b shadow-sm">
+        <div className="container mx-auto px-4 py-8">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div className="space-y-2">
+              <div className="flex items-center space-x-3">
+                <div className="bg-blue-600 p-2 rounded-lg">
+                  <Globe className="w-6 h-6 text-white" />
                 </div>
-                <div className="flex space-x-2">
-                  <Button 
-                    onClick={handleWhatsAppSync} 
-                    disabled={syncingContacts}
-                    className="flex-1"
-                  >
-                    {syncingContacts ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Syncing...
-                      </>
-                    ) : (
-                      <>
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        Sync Contacts
-                      </>
-                    )}
-                  </Button>
-                  <Button variant="outline" onClick={() => setShowWhatsAppSync(false)}>
-                    Cancel
-                  </Button>
-                </div>
+                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
+                  Pay for your Friend
+                </h1>
               </div>
-            </DialogContent>
-          </Dialog>
-
-          <Dialog open={showAddFriend} onOpenChange={setShowAddFriend}>
-            <DialogTrigger asChild>
-              <Button className="h-12 sm:h-10 px-4 sm:px-3 text-base sm:text-sm w-full sm:w-auto" data-testid="add-friend-button">
-                <Plus className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
-                Add Friend
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add a Friend</DialogTitle>
-              </DialogHeader>
-              <p className="text-gray-600">
-                Feature coming soon! You'll be able to add friends by phone number.
+              <p className="text-gray-500 max-w-md">
+                Empowering the diaspora to support loved ones and pay organizations in Zimbabwe directly.
               </p>
-            </DialogContent>
-          </Dialog>
-        </div>
-      </div>
-
-      {/* KYC Warning */}
-      {user.kycStatus !== "verified" && (
-        <Alert variant="destructive">
-          <AlertTriangle className="w-4 h-4" />
-          <AlertDescription>
-            <div className="space-y-1">
-              <p className="font-medium">Identity Verification Required</p>
-              <p>Complete your identity verification to send payments over $1,000 and access all features.</p>
-              <Button variant="outline" size="sm" className="mt-2">
-                Complete Verification
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <div className="bg-blue-50 px-4 py-3 rounded-xl border border-blue-100">
+                <p className="text-[10px] uppercase tracking-wider font-bold text-blue-600">Monthly Support</p>
+                <p className="text-2xl font-black text-blue-900">${totalSentThisMonth.toFixed(2)}</p>
+              </div>
+              <Button className="h-12 px-6 bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200">
+                <Plus className="w-5 h-5 mr-2" />
+                Add Contact
               </Button>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
-        <Card className="p-3 sm:p-4">
-          <CardContent className="p-0">
-            <div className="flex items-center space-x-2">
-              <Users className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600" />
-              <div>
-                <p className="text-xs sm:text-sm text-gray-600">Total Friends</p>
-                <p className="text-lg sm:text-2xl font-bold">{friends.length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="p-3 sm:p-4">
-          <CardContent className="p-0">
-            <div className="flex items-center space-x-2">
-              <DollarSign className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
-              <div>
-                <p className="text-xs sm:text-sm text-gray-600">Sent This Month</p>
-                <p className="text-lg sm:text-2xl font-bold">${totalSentThisMonth.toFixed(2)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="p-3 sm:p-4">
-          <CardContent className="p-0">
-            <div className="flex items-center space-x-2">
-              <TrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
-              <div>
-                <p className="text-xs sm:text-sm text-gray-600">Monthly Limits</p>
-                <p className="text-lg sm:text-2xl font-bold">${totalLimit.toFixed(2)}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="p-3 sm:p-4">
-          <CardContent className="p-0">
-            <div className="flex items-center space-x-2">
-              <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-orange-600" />
-              <div>
-                <p className="text-xs sm:text-sm text-gray-600">Active Connections</p>
-                <p className="text-lg sm:text-2xl font-bold">{friends.filter(f => f.isVerified).length}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Main Content */}
-      <Tabs defaultValue="friends" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="friends">My Friends</TabsTrigger>
-          <TabsTrigger value="send">Send Money</TabsTrigger>
-          <TabsTrigger value="history">Payment History</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="friends" className="space-y-4">
-          {/* Search */}
-          <div className="flex items-center space-x-4">
-            <div className="relative flex-1 max-w-md">
-              <Label htmlFor="search-input" className="sr-only">Search friends</Label>
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
-              <Input
-                id="search-input"
-                placeholder="Search friends..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 h-12 sm:h-10 text-base sm:text-sm"
-                data-testid="search-input"
-                aria-label="Search friends"
-              />
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Friends Grid */}
-          {filteredFriends.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6" data-testid="friends-grid">
-              {filteredFriends.map((friend) => (
-                <FriendNetworkCard
-                  key={friend.id}
-                  friend={{
-                    ...friend,
-                    whatsappEnabled: true, // In real app, this would be determined by WhatsApp contact sync
-                  }}
-                  onSendPayment={handleSendPayment}
-                  onViewDetails={handleViewDetails}
-                  onSendWhatsAppRequest={async (friendId) => {
-                    const friendData = friends.find(f => f.id === friendId);
-                    if (friendData) {
-                      try {
-                        await sendWhatsAppPaymentRequest(friendData, 50, "USD", "Quick payment request via WhatsApp");
-                      } catch (error) {
-                        // Error already handled in sendWhatsAppPaymentRequest
-                      }
-                    }
-                  }}
-                />
-              ))}
+      <div className="container mx-auto px-4 py-8 space-y-8">
+        {/* Controls & Filters */}
+        <div className="flex flex-col lg:flex-row gap-4 items-center justify-between bg-white p-4 rounded-2xl shadow-sm border">
+          <div className="relative w-full lg:w-96">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Input 
+              placeholder="Search friends, family or organizations..." 
+              className="pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white transition-all"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="flex items-center gap-2 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full lg:w-auto">
+              <TabsList className="bg-gray-100 p-1 h-11">
+                <TabsTrigger value="all" className="px-4">All</TabsTrigger>
+                <TabsTrigger value="individuals" className="px-4">Individuals</TabsTrigger>
+                <TabsTrigger value="organizations" className="px-4">Organizations</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            
+            <Separator orientation="vertical" className="h-8 mx-2 hidden lg:block" />
+            
+            <div className="flex items-center bg-gray-100 p-1 rounded-lg h-11">
+              <Button 
+                variant={viewMode === "grid" ? "white" : "ghost"} 
+                size="sm" 
+                className="h-9 w-9 p-0"
+                onClick={() => setViewMode("grid")}
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </Button>
+              <Button 
+                variant={viewMode === "list" ? "white" : "ghost"} 
+                size="sm" 
+                className="h-9 w-9 p-0"
+                onClick={() => setViewMode("list")}
+              >
+                <List className="w-4 h-4" />
+              </Button>
             </div>
-          ) : (
-            <Card>
-              <CardContent className="p-6 sm:p-8 text-center">
-                <Users className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">No friends found</h3>
-                <p className="text-sm sm:text-base text-gray-600 mb-4">
-                  {searchTerm ? "No friends match your search." : "Start by adding friends you want to send money to."}
-                </p>
-                <Button onClick={() => setShowAddFriend(true)} className="h-12 sm:h-10 px-4 sm:px-3 text-base sm:text-sm w-full sm:w-auto">
-                  <Plus className="w-5 h-5 sm:w-4 sm:h-4 mr-2" />
-                  Add Your First Friend
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
+          </div>
+        </div>
 
-        <TabsContent value="send">
-          <CrossBorderPaymentForm
-            friends={friends}
-            onSubmit={handlePaymentSubmit}
-            isLoading={paymentLoading}
-          />
-        </TabsContent>
+        {/* Contacts Grid */}
+        {filteredFriends.length > 0 ? (
+          <div className={`grid gap-6 ${viewMode === "grid" ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3" : "grid-cols-1"}`}>
+            {filteredFriends.map((friend) => (
+              <FriendNetworkCard 
+                key={friend.id} 
+                friend={friend} 
+                onSendPayment={handleSendPayment}
+                onViewDetails={(id) => toast.info(`Viewing details for ${id}`)}
+                onSendWhatsAppRequest={(id) => toast.success(`WhatsApp request sent to ${id}`)}
+              />
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-200">
+            <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <Users className="w-8 h-8 text-gray-300" />
+            </div>
+            <h3 className="text-lg font-bold text-gray-900">No contacts found</h3>
+            <p className="text-gray-500">Try adjusting your search or filter to find what you're looking for.</p>
+            <Button variant="link" className="mt-2 text-blue-600" onClick={() => {setSearchTerm(""); setActiveTab("all");}}>
+              Clear all filters
+            </Button>
+          </div>
+        )}
 
-        <TabsContent value="history">
-          <Card>
-            <CardContent className="p-6 sm:p-8 text-center">
-              <Clock className="w-10 h-10 sm:w-12 sm:h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-base sm:text-lg font-semibold text-gray-900 mb-2">Payment History</h3>
-              <p className="text-sm sm:text-base text-gray-600">
-                Payment history feature coming soon. You'll be able to view all your cross-border transactions here.
-              </p>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-
-      {/* Payment Form Dialog */}
-      <Dialog open={showPaymentForm} onOpenChange={setShowPaymentForm}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto w-[95vw] sm:w-auto">
-          <DialogHeader>
-            <DialogTitle>Send Money</DialogTitle>
-          </DialogHeader>
-          {selectedFriendId && (
-            <CrossBorderPaymentForm
-              friends={friends.filter(f => f.id === selectedFriendId)}
+        {/* Payment Dialog */}
+        <Dialog open={showPaymentForm} onOpenChange={setShowPaymentForm}>
+          <DialogContent className="max-w-2xl p-0 overflow-hidden border-none bg-transparent shadow-none">
+            <CrossBorderPaymentForm 
+              friends={friends} 
               onSubmit={handlePaymentSubmit}
               isLoading={paymentLoading}
             />
-          )}
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+
+        {/* Quick Stats & Info */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white border-none shadow-xl">
+            <CardContent className="p-6 space-y-4">
+              <div className="bg-white/20 w-10 h-10 rounded-lg flex items-center justify-center">
+                <Shield className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">PayPass Secure</h3>
+                <p className="text-blue-100 text-sm">Every transaction is encrypted and monitored by our AI fraud detection system.</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border shadow-sm">
+            <CardContent className="p-6 space-y-4">
+              <div className="bg-green-50 w-10 h-10 rounded-lg flex items-center justify-center">
+                <Building2 className="w-6 h-6 text-green-600" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">Organization Network</h3>
+                <p className="text-gray-500 text-sm">We've partnered with 500+ Zimbabwean organizations for instant bill payments.</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white border shadow-sm">
+            <CardContent className="p-6 space-y-4">
+              <div className="bg-purple-50 w-10 h-10 rounded-lg flex items-center justify-center">
+                <MessageCircle className="w-6 h-6 text-purple-600" />
+              </div>
+              <div>
+                <h3 className="font-bold text-lg">WhatsApp Ready</h3>
+                <p className="text-gray-500 text-sm">Send payment requests and receipts directly through WhatsApp for easy tracking.</p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }
