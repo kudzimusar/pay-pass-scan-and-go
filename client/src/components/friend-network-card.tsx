@@ -1,259 +1,146 @@
-"use client";
-
-import React, { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React from "react";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Progress } from "@/components/ui/progress";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { CrossBorderPaymentForm } from "./cross-border-payment-form";
 import { 
-  Send, 
-  Shield, 
-  Clock, 
-  DollarSign, 
-  Phone,
-  MapPin,
-  Calendar,
-  TrendingUp,
-  MessageCircle,
-  Building2,
-  User2,
-  CheckCircle2,
-  AlertCircle,
-  ArrowUpRight
+  CheckCircle2, 
+  MessageCircle, 
+  Building2, 
+  MoreHorizontal,
+  MapPin
 } from "lucide-react";
-import { format } from "date-fns";
 
-interface FriendNetworkCardProps {
-  friend: {
-    id: string;
-    relationship: "family" | "friend" | "business";
-    nickname?: string;
-    isVerified: boolean;
-    monthlyLimit: string;
-    totalSent: string;
-    lastPaymentAt?: string;
-    createdAt: string;
-    recipient: {
-      id: string;
-      fullName: string;
-      phone: string;
-      countryCode: string;
-    };
-    whatsappEnabled?: boolean;
-  };
-  onSendPayment: (friendId: string) => void;
-  onViewDetails: (friendId: string) => void;
-  onSendWhatsAppRequest?: (friendId: string) => void;
+interface Friend {
+  id: string;
+  relationship: "family" | "friend" | "business";
+  name: string;
+  nickname?: string;
+  location: string;
+  isVerified: boolean;
+  hasWhatsApp: boolean;
+  monthlyLimit: number;
+  spentThisMonth: number;
+  lastTransaction?: string;
+  avatar?: string;
+  type: "individual" | "organization";
 }
 
-const relationshipStyles = {
-  family: {
-    color: "bg-green-100 text-green-800 border-green-200",
-    icon: <User2 className="w-3 h-3 mr-1" />,
-    label: "Family"
-  },
-  friend: {
-    color: "bg-blue-100 text-blue-800 border-blue-200",
-    icon: <User2 className="w-3 h-3 mr-1" />,
-    label: "Friend"
-  },
-  business: {
-    color: "bg-purple-100 text-purple-800 border-purple-200",
-    icon: <Building2 className="w-3 h-3 mr-1" />,
-    label: "Organization"
-  },
-};
+interface FriendNetworkCardProps {
+  friend: Friend;
+  viewMode: "grid" | "list";
+}
 
-export function FriendNetworkCard({ friend, onSendPayment, onViewDetails, onSendWhatsAppRequest }: FriendNetworkCardProps) {
-  const monthlyLimit = parseFloat(friend.monthlyLimit);
-  const totalSent = parseFloat(friend.totalSent);
-  const remainingLimit = monthlyLimit - totalSent;
-  const usagePercentage = (totalSent / monthlyLimit) * 100;
+export function FriendNetworkCard({ friend, viewMode }: FriendNetworkCardProps) {
+  const usagePercent = (friend.spentThisMonth / friend.monthlyLimit) * 100;
+  const isOverLimit = usagePercent >= 90;
 
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
+  if (viewMode === "list") {
+    return (
+      <Card className="card-native p-3">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-white font-bold text-lg ${
+              friend.type === "organization" ? "bg-slate-800" : "bg-primary"
+            }`}>
+              {friend.name.substring(0, 2).toUpperCase()}
+            </div>
+            {friend.isVerified && (
+              <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5">
+                <CheckCircle2 className="w-4 h-4 text-green-500 fill-green-50" />
+              </div>
+            )}
+          </div>
+          
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-slate-900 truncate">{friend.nickname || friend.name}</h3>
+            <p className="text-xs text-slate-500 truncate flex items-center gap-1">
+              <MapPin className="w-3 h-3" /> {friend.location}
+            </p>
+          </div>
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat("en-US", {
-      style: "currency",
-      currency: "USD",
-    }).format(amount);
-  };
-
-  const formatPhoneNumber = (phone: string) => {
-    if (phone.startsWith("+263")) {
-      return `+263 ${phone.slice(4, 6)} ${phone.slice(6, 9)} ${phone.slice(9)}`;
-    }
-    return phone;
-  };
-
-  const style = relationshipStyles[friend.relationship];
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button size="sm" className="rounded-xl bg-slate-900 hover:bg-slate-800 h-10 px-4">
+                Pay
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px] rounded-[2.5rem] p-0 overflow-hidden border-none">
+              <CrossBorderPaymentForm recipient={friend} />
+            </DialogContent>
+          </Dialog>
+        </div>
+      </Card>
+    );
+  }
 
   return (
-    <TooltipProvider>
-      <Card className="group relative overflow-hidden transition-all duration-300 hover:shadow-xl border-l-4 border-l-transparent hover:border-l-blue-500 bg-white" data-testid={`friend-card-${friend.id}`}>
-        <CardHeader className="pb-3 p-4 sm:p-5">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="relative">
-                <Avatar className="h-12 w-12 border-2 border-gray-100 group-hover:border-blue-100 transition-colors">
-                  <AvatarFallback className="bg-gradient-to-br from-blue-500 to-indigo-600 text-white font-bold text-sm">
-                    {getInitials(friend.recipient.fullName)}
-                  </AvatarFallback>
-                </Avatar>
-                {friend.isVerified && (
-                  <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5">
-                    <CheckCircle2 className="w-4 h-4 text-green-500 fill-white" />
-                  </div>
-                )}
+    <Card className="card-native p-5 space-y-4">
+      <div className="flex justify-between items-start">
+        <div className="flex gap-4">
+          <div className="relative">
+            <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center text-white font-bold text-2xl shadow-inner ${
+              friend.type === "organization" ? "bg-slate-800" : "bg-primary"
+            }`}>
+              {friend.name.substring(0, 2).toUpperCase()}
+            </div>
+            {friend.isVerified && (
+              <div className="absolute -bottom-1 -right-1 bg-white rounded-full p-0.5 shadow-sm">
+                <CheckCircle2 className="w-5 h-5 text-green-500 fill-green-50" />
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center space-x-2">
-                  <CardTitle className="text-base sm:text-lg font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
-                    {friend.nickname || friend.recipient.fullName}
-                  </CardTitle>
-                </div>
-                <div className="flex flex-wrap items-center gap-2 mt-1">
-                  <Badge variant="outline" className={`${style.color} text-[10px] uppercase tracking-wider font-bold py-0.5`}>
-                    {style.icon}
-                    {style.label}
-                  </Badge>
-                  {friend.whatsappEnabled && (
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-[10px] uppercase tracking-wider font-bold py-0.5">
-                      <MessageCircle className="w-3 h-3 mr-1" />
-                      WhatsApp
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </div>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => onViewDetails(friend.id)}
-                  className="h-8 w-8 rounded-full hover:bg-blue-50 hover:text-blue-600"
-                >
-                  <ArrowUpRight className="w-4 h-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>View Details</TooltipContent>
-            </Tooltip>
+            )}
           </div>
-        </CardHeader>
-
-        <CardContent className="pt-0 p-4 sm:p-5 space-y-4">
-          {/* Contact & Location */}
-          <div className="grid grid-cols-2 gap-2">
-            <div className="flex items-center text-xs text-gray-500 bg-gray-50 p-2 rounded-md">
-              <Phone className="w-3 h-3 mr-2 text-blue-500" />
-              <span className="truncate">{formatPhoneNumber(friend.recipient.phone)}</span>
+          
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-lg text-slate-900">{friend.nickname || friend.name}</h3>
+              {friend.type === "organization" && (
+                <Building2 className="w-4 h-4 text-slate-400" />
+              )}
             </div>
-            <div className="flex items-center text-xs text-gray-500 bg-gray-50 p-2 rounded-md">
-              <MapPin className="w-3 h-3 mr-2 text-red-500" />
-              <span>{friend.recipient.countryCode === "ZW" ? "Zimbabwe" : friend.recipient.countryCode}</span>
-            </div>
+            <p className="text-sm text-slate-500 flex items-center gap-1">
+              <MapPin className="w-3.5 h-3.5" /> {friend.location}
+            </p>
           </div>
+        </div>
+        
+        <Button variant="ghost" size="icon" className="rounded-full text-slate-400">
+          <MoreHorizontal className="w-6 h-6" />
+        </Button>
+      </div>
 
-          <Separator className="opacity-50" />
+      <div className="space-y-2">
+        <div className="flex justify-between text-xs font-bold uppercase tracking-wider">
+          <span className="text-slate-400">Monthly Budget</span>
+          <span className={isOverLimit ? "text-red-500" : "text-slate-900"}>
+            ${friend.spentThisMonth} / ${friend.monthlyLimit}
+          </span>
+        </div>
+        <Progress 
+          value={usagePercent} 
+          className="h-2.5 rounded-full bg-slate-100" 
+        />
+      </div>
 
-          {/* Budget Management */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-500 font-medium">Monthly Budget</span>
-              <span className="font-bold text-gray-900">{formatCurrency(monthlyLimit)}</span>
-            </div>
-            <div className="relative w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all duration-500 ease-out ${
-                  usagePercentage > 90
-                    ? "bg-red-500"
-                    : usagePercentage > 70
-                    ? "bg-orange-500"
-                    : "bg-green-500"
-                }`}
-                style={{ width: `${Math.min(usagePercentage, 100)}%` }}
-              />
-            </div>
-            <div className="flex items-center justify-between text-[10px] font-medium">
-              <span className={usagePercentage > 90 ? "text-red-600" : "text-gray-500"}>
-                Used: {formatCurrency(totalSent)} ({Math.round(usagePercentage)}%)
-              </span>
-              <span className="text-gray-500">
-                Left: {formatCurrency(remainingLimit)}
-              </span>
-            </div>
-          </div>
-
-          {/* Quick Stats */}
-          <div className="grid grid-cols-2 gap-4 py-2 bg-blue-50/30 rounded-lg px-3">
-            <div className="space-y-0.5">
-              <p className="text-[10px] text-gray-500 uppercase tracking-tight font-semibold">Total Sent</p>
-              <div className="flex items-center text-sm font-bold text-gray-900">
-                <TrendingUp className="w-3 h-3 mr-1 text-green-600" />
-                {formatCurrency(totalSent)}
-              </div>
-            </div>
-            <div className="space-y-0.5">
-              <p className="text-[10px] text-gray-500 uppercase tracking-tight font-semibold">Last Payment</p>
-              <div className="flex items-center text-sm font-bold text-gray-900">
-                <Clock className="w-3 h-3 mr-1 text-blue-600" />
-                {friend.lastPaymentAt 
-                  ? format(new Date(friend.lastPaymentAt), "MMM dd")
-                  : "None"
-                }
-              </div>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex flex-col space-y-2 pt-1">
-            <Button
-              onClick={() => onSendPayment(friend.id)}
-              className="w-full h-10 bg-blue-600 hover:bg-blue-700 text-white font-bold shadow-sm transition-all active:scale-[0.98]"
-              disabled={remainingLimit <= 0}
-            >
-              <DollarSign className="w-4 h-4 mr-2" />
-              Send Money
+      <div className="flex gap-3 pt-1">
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button className="flex-1 rounded-2xl h-12 font-bold bg-slate-900 hover:bg-slate-800 shadow-md shadow-slate-200">
+              Send Payment
             </Button>
-            
-            {friend.whatsappEnabled && onSendWhatsAppRequest && (
-              <Button
-                variant="outline"
-                onClick={() => onSendWhatsAppRequest(friend.id)}
-                className="w-full h-10 border-green-200 bg-green-50 text-green-700 hover:bg-green-100 hover:text-green-800 font-semibold"
-                disabled={remainingLimit <= 0}
-              >
-                <MessageCircle className="w-4 h-4 mr-2" />
-                WhatsApp Request
-              </Button>
-            )}
-          </div>
-
-          {/* Footer Info */}
-          <div className="flex items-center justify-between text-[10px] text-gray-400 pt-1">
-            <div className="flex items-center">
-              <Calendar className="w-3 h-3 mr-1" />
-              Added {format(new Date(friend.createdAt), "MMM yyyy")}
-            </div>
-            {remainingLimit <= 0 && (
-              <div className="flex items-center text-red-500 font-bold">
-                <AlertCircle className="w-3 h-3 mr-1" />
-                Limit Reached
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </TooltipProvider>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px] rounded-[2.5rem] p-0 overflow-hidden border-none">
+            <CrossBorderPaymentForm recipient={friend} />
+          </DialogContent>
+        </Dialog>
+        
+        {friend.hasWhatsApp && (
+          <Button variant="outline" size="icon" className="rounded-2xl h-12 w-12 border-slate-100 text-green-600 hover:bg-green-50 hover:text-green-700">
+            <MessageCircle className="w-6 h-6" />
+          </Button>
+        )}
+      </div>
+    </Card>
   );
 }

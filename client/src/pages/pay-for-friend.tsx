@@ -1,391 +1,248 @@
 import React, { useState, useEffect } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { FriendNetworkCard } from "@/components/friend-network-card";
 import { CrossBorderPaymentForm } from "@/components/cross-border-payment-form";
-import { Separator } from "@/components/ui/separator";
 import { 
   Users, 
   Plus, 
   Search, 
   Globe, 
   Shield, 
-  AlertTriangle,
   TrendingUp,
   DollarSign,
-  MessageCircle,
   Building2,
   LayoutGrid,
-  List
+  List,
+  ChevronLeft,
+  Bell,
+  Home,
+  Wallet,
+  Settings,
+  ArrowRight
 } from "lucide-react";
 import { toast } from "sonner";
 
 interface Friend {
   id: string;
   relationship: "family" | "friend" | "business";
+  name: string;
   nickname?: string;
+  location: string;
   isVerified: boolean;
-  monthlyLimit: string;
-  totalSent: string;
-  lastPaymentAt?: string;
-  createdAt: string;
-  recipient: {
-    id: string;
-    fullName: string;
-    phone: string;
-    countryCode: string;
-  };
-  whatsappEnabled?: boolean;
+  hasWhatsApp: boolean;
+  monthlyLimit: number;
+  spentThisMonth: number;
+  lastTransaction?: string;
+  avatar?: string;
+  type: "individual" | "organization";
 }
 
-interface User {
-  id: string;
-  fullName: string;
-  isInternational: boolean;
-  kycStatus: string;
-  countryCode: string;
-}
+const MOCK_FRIENDS: Friend[] = [
+  {
+    id: "1",
+    relationship: "family",
+    name: "Tinashe Musar",
+    nickname: "Brother",
+    location: "Harare, Zimbabwe",
+    isVerified: true,
+    hasWhatsApp: true,
+    monthlyLimit: 500,
+    spentThisMonth: 320,
+    lastTransaction: "2 days ago",
+    type: "individual"
+  },
+  {
+    id: "2",
+    relationship: "business",
+    name: "ZUPCO Transport",
+    location: "National, Zimbabwe",
+    isVerified: true,
+    hasWhatsApp: false,
+    monthlyLimit: 200,
+    spentThisMonth: 45,
+    lastTransaction: "1 week ago",
+    type: "organization"
+  },
+  {
+    id: "3",
+    relationship: "friend",
+    name: "Farai Gumbo",
+    nickname: "Farai",
+    location: "Bulawayo, Zimbabwe",
+    isVerified: false,
+    hasWhatsApp: true,
+    monthlyLimit: 150,
+    spentThisMonth: 0,
+    type: "individual"
+  },
+  {
+    id: "4",
+    relationship: "business",
+    name: "ZESA Holdings",
+    location: "Harare, Zimbabwe",
+    isVerified: true,
+    hasWhatsApp: false,
+    monthlyLimit: 300,
+    spentThisMonth: 120,
+    lastTransaction: "3 days ago",
+    type: "organization"
+  }
+];
 
 export default function PayForFriendPage() {
-  const [user, setUser] = useState<User | null>(null);
-  const [friends, setFriends] = useState<Friend[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [showPaymentForm, setShowPaymentForm] = useState(false);
-  const [selectedFriendId, setSelectedFriendId] = useState<string | null>(null);
-  const [paymentLoading, setPaymentLoading] = useState(false);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [isAddingFriend, setIsAddingFriend] = useState(false);
 
-  useEffect(() => {
-    // Simulate loading user data
-    setTimeout(() => {
-      setUser({
-        id: "user-123",
-        fullName: "John Diaspora",
-        isInternational: true,
-        kycStatus: "verified",
-        countryCode: "US",
-      });
-      setLoading(false);
-    }, 1000);
-
-    loadFriends();
-  }, []);
-
-  const loadFriends = async () => {
-    try {
-      // Mock data representing the diverse stakeholders
-      const mockFriends: Friend[] = [
-        {
-          id: "friend-1",
-          relationship: "family",
-          nickname: "Mom",
-          isVerified: true,
-          monthlyLimit: "2000.00",
-          totalSent: "450.00",
-          lastPaymentAt: "2024-01-15T10:30:00Z",
-          createdAt: "2023-12-01T09:00:00Z",
-          recipient: {
-            id: "recipient-1",
-            fullName: "Mary Diaspora",
-            phone: "+263771234567",
-            countryCode: "ZW",
-          },
-          whatsappEnabled: true
-        },
-        {
-          id: "org-1",
-          relationship: "business",
-          nickname: "ZESA Holdings",
-          isVerified: true,
-          monthlyLimit: "500.00",
-          totalSent: "120.00",
-          lastPaymentAt: "2024-01-10T14:20:00Z",
-          createdAt: "2024-01-05T11:15:00Z",
-          recipient: {
-            id: "recipient-org-1",
-            fullName: "ZESA Utilities",
-            phone: "+263242123456",
-            countryCode: "ZW",
-          },
-        },
-        {
-          id: "org-2",
-          relationship: "business",
-          nickname: "ZUPCO Transport",
-          isVerified: true,
-          monthlyLimit: "300.00",
-          totalSent: "45.00",
-          lastPaymentAt: "2024-01-16T08:00:00Z",
-          createdAt: "2024-01-05T11:15:00Z",
-          recipient: {
-            id: "recipient-org-2",
-            fullName: "ZUPCO Public Transport",
-            phone: "+263242987654",
-            countryCode: "ZW",
-          },
-        },
-        {
-          id: "org-3",
-          relationship: "business",
-          nickname: "OK Zimbabwe",
-          isVerified: true,
-          monthlyLimit: "1000.00",
-          totalSent: "850.00",
-          lastPaymentAt: "2024-01-12T16:45:00Z",
-          createdAt: "2023-11-20T10:00:00Z",
-          recipient: {
-            id: "recipient-org-3",
-            fullName: "OK Supermarkets",
-            phone: "+263242555666",
-            countryCode: "ZW",
-          },
-        },
-        {
-          id: "friend-2",
-          relationship: "friend",
-          nickname: "Tinashe",
-          isVerified: false,
-          monthlyLimit: "200.00",
-          totalSent: "0.00",
-          createdAt: "2024-01-17T12:00:00Z",
-          recipient: {
-            id: "recipient-2",
-            fullName: "Tinashe Mutasa",
-            phone: "+263772111222",
-            countryCode: "ZW",
-          },
-          whatsappEnabled: true
-        }
-      ];
-      setFriends(mockFriends);
-    } catch (error) {
-      toast.error("Failed to load contacts");
-    }
-  };
-
-  const handleSendPayment = (friendId: string) => {
-    setSelectedFriendId(friendId);
-    setShowPaymentForm(true);
-  };
-
-  const handlePaymentSubmit = async (paymentData: any) => {
-    setPaymentLoading(true);
-    try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      toast.success("Payment processed successfully!");
-      setShowPaymentForm(false);
-      setSelectedFriendId(null);
-      
-      // Reload friends to update totals
-      await loadFriends();
-    } catch (error) {
-      toast.error("Failed to process payment. Please try again.");
-    } finally {
-      setPaymentLoading(false);
-    }
-  };
-
-  const filteredFriends = friends.filter(friend => {
-    const matchesSearch = (friend.recipient.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          friend.nickname?.toLowerCase().includes(searchTerm.toLowerCase()));
-    
-    if (activeTab === "all") return matchesSearch;
-    if (activeTab === "individuals") return matchesSearch && friend.relationship !== "business";
-    if (activeTab === "organizations") return matchesSearch && friend.relationship === "business";
-    return matchesSearch;
+  const filteredFriends = MOCK_FRIENDS.filter(friend => {
+    const matchesSearch = friend.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                         friend.nickname?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesTab = activeTab === "all" || 
+                      (activeTab === "individuals" && friend.type === "individual") ||
+                      (activeTab === "organizations" && friend.type === "organization");
+    return matchesSearch && matchesTab;
   });
 
-  const totalSentThisMonth = friends.reduce((sum, friend) => sum + parseFloat(friend.totalSent), 0);
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-50">
-        <div className="text-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-600 font-medium">Syncing with PayPass Network...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (!user?.isInternational) {
-    return (
-      <div className="container mx-auto p-6">
-        <Alert variant="destructive" className="border-2">
-          <AlertTriangle className="w-5 h-5" />
-          <AlertDescription className="font-medium">
-            The "Pay for your Friend" feature is exclusively for international users. 
-            Please verify your international status in account settings to enable cross-border payments.
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
+  const totalMonthlySupport = MOCK_FRIENDS.reduce((acc, f) => acc + f.spentThisMonth, 0);
 
   return (
-    <div className="min-h-screen bg-gray-50/50 pb-12">
-      {/* Hero Header */}
-      <div className="bg-white border-b shadow-sm">
-        <div className="container mx-auto px-4 py-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <div className="space-y-2">
-              <div className="flex items-center space-x-3">
-                <div className="bg-blue-600 p-2 rounded-lg">
-                  <Globe className="w-6 h-6 text-white" />
-                </div>
-                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">
-                  Pay for your Friend
-                </h1>
-              </div>
-              <p className="text-gray-500 max-w-md">
-                Empowering the diaspora to support loved ones and pay organizations in Zimbabwe directly.
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              <div className="bg-blue-50 px-4 py-3 rounded-xl border border-blue-100">
-                <p className="text-[10px] uppercase tracking-wider font-bold text-blue-600">Monthly Support</p>
-                <p className="text-2xl font-black text-blue-900">${totalSentThisMonth.toFixed(2)}</p>
-              </div>
-              <Button className="h-12 px-6 bg-blue-600 hover:bg-blue-700 shadow-lg shadow-blue-200">
-                <Plus className="w-5 h-5 mr-2" />
-                Add Contact
-              </Button>
-            </div>
-          </div>
-        </div>
-      </div>
+    <div className="mobile-container">
+      {/* App Header */}
+      <header className="app-header flex items-center justify-between">
+        <Button variant="ghost" size="icon" className="rounded-full">
+          <ChevronLeft className="w-6 h-6" />
+        </Button>
+        <h1 className="text-lg font-bold">Pay for Friend</h1>
+        <Button variant="ghost" size="icon" className="rounded-full relative">
+          <Bell className="w-6 h-6" />
+          <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+        </Button>
+      </header>
 
-      <div className="container mx-auto px-4 py-8 space-y-8">
-        {/* Controls & Filters */}
-        <div className="flex flex-col lg:flex-row gap-4 items-center justify-between bg-white p-4 rounded-2xl shadow-sm border">
-          <div className="relative w-full lg:w-96">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+      <main className="app-content space-y-6">
+        {/* Hero Stats Card */}
+        <Card className="bg-primary text-white border-none rounded-[2.5rem] overflow-hidden shadow-lg shadow-primary/20">
+          <CardContent className="p-8 space-y-4">
+            <div className="flex justify-between items-start">
+              <div>
+                <p className="text-primary-foreground/80 text-sm font-medium uppercase tracking-wider">Monthly Support</p>
+                <h2 className="text-4xl font-black mt-1">${totalMonthlySupport.toFixed(2)}</h2>
+              </div>
+              <div className="bg-white/20 p-3 rounded-2xl backdrop-blur-md">
+                <TrendingUp className="w-6 h-6" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-sm bg-white/10 w-fit px-3 py-1.5 rounded-full backdrop-blur-sm">
+              <Globe className="w-4 h-4" />
+              <span>Supporting 4 loved ones in Zimbabwe</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Search & Filter Bar */}
+        <div className="space-y-4">
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
             <Input 
-              placeholder="Search friends, family or organizations..." 
-              className="pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white transition-all"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search friends or organizations..." 
+              className="input-native pl-12"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
 
-          <div className="flex items-center gap-2 w-full lg:w-auto overflow-x-auto pb-2 lg:pb-0">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full lg:w-auto">
-              <TabsList className="bg-gray-100 p-1 h-11">
-                <TabsTrigger value="all" className="px-4">All</TabsTrigger>
-                <TabsTrigger value="individuals" className="px-4">Individuals</TabsTrigger>
-                <TabsTrigger value="organizations" className="px-4">Organizations</TabsTrigger>
+          <div className="flex items-center justify-between gap-2">
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="bg-slate-100 p-1 rounded-2xl w-full h-12">
+                <TabsTrigger value="all" className="rounded-xl flex-1 data-[state=active]:bg-white data-[state=active]:shadow-sm">All</TabsTrigger>
+                <TabsTrigger value="individuals" className="rounded-xl flex-1 data-[state=active]:bg-white data-[state=active]:shadow-sm">People</TabsTrigger>
+                <TabsTrigger value="organizations" className="rounded-xl flex-1 data-[state=active]:bg-white data-[state=active]:shadow-sm">Orgs</TabsTrigger>
               </TabsList>
             </Tabs>
-            
-            <Separator orientation="vertical" className="h-8 mx-2 hidden lg:block" />
-            
-            <div className="flex items-center bg-gray-100 p-1 rounded-lg h-11">
-              <Button 
-                variant={viewMode === "grid" ? "white" : "ghost"} 
-                size="sm" 
-                className="h-9 w-9 p-0"
-                onClick={() => setViewMode("grid")}
-              >
-                <LayoutGrid className="w-4 h-4" />
-              </Button>
-              <Button 
-                variant={viewMode === "list" ? "white" : "ghost"} 
-                size="sm" 
-                className="h-9 w-9 p-0"
-                onClick={() => setViewMode("list")}
-              >
-                <List className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Contacts Grid */}
-        {filteredFriends.length > 0 ? (
-          <div className={`grid gap-6 ${viewMode === "grid" ? "grid-cols-1 md:grid-cols-2 xl:grid-cols-3" : "grid-cols-1"}`}>
-            {filteredFriends.map((friend) => (
-              <FriendNetworkCard 
-                key={friend.id} 
-                friend={friend} 
-                onSendPayment={handleSendPayment}
-                onViewDetails={(id) => toast.info(`Viewing details for ${id}`)}
-                onSendWhatsAppRequest={(id) => toast.success(`WhatsApp request sent to ${id}`)}
-              />
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-200">
-            <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Users className="w-8 h-8 text-gray-300" />
-            </div>
-            <h3 className="text-lg font-bold text-gray-900">No contacts found</h3>
-            <p className="text-gray-500">Try adjusting your search or filter to find what you're looking for.</p>
-            <Button variant="link" className="mt-2 text-blue-600" onClick={() => {setSearchTerm(""); setActiveTab("all");}}>
-              Clear all filters
+            <Button 
+              variant="outline" 
+              size="icon" 
+              className="rounded-2xl h-12 w-12 border-slate-100 shrink-0"
+              onClick={() => setViewMode(viewMode === "grid" ? "list" : "grid")}
+            >
+              {viewMode === "grid" ? <List className="w-5 h-5" /> : <LayoutGrid className="w-5 h-5" />}
             </Button>
           </div>
-        )}
-
-        {/* Payment Dialog */}
-        <Dialog open={showPaymentForm} onOpenChange={setShowPaymentForm}>
-          <DialogContent className="max-w-2xl p-0 overflow-hidden border-none bg-transparent shadow-none">
-            <CrossBorderPaymentForm 
-              friends={friends} 
-              onSubmit={handlePaymentSubmit}
-              isLoading={paymentLoading}
-            />
-          </DialogContent>
-        </Dialog>
-
-        {/* Quick Stats & Info */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="bg-gradient-to-br from-blue-600 to-indigo-700 text-white border-none shadow-xl">
-            <CardContent className="p-6 space-y-4">
-              <div className="bg-white/20 w-10 h-10 rounded-lg flex items-center justify-center">
-                <Shield className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg">PayPass Secure</h3>
-                <p className="text-blue-100 text-sm">Every transaction is encrypted and monitored by our AI fraud detection system.</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border shadow-sm">
-            <CardContent className="p-6 space-y-4">
-              <div className="bg-green-50 w-10 h-10 rounded-lg flex items-center justify-center">
-                <Building2 className="w-6 h-6 text-green-600" />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg">Organization Network</h3>
-                <p className="text-gray-500 text-sm">We've partnered with 500+ Zimbabwean organizations for instant bill payments.</p>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white border shadow-sm">
-            <CardContent className="p-6 space-y-4">
-              <div className="bg-purple-50 w-10 h-10 rounded-lg flex items-center justify-center">
-                <MessageCircle className="w-6 h-6 text-purple-600" />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg">WhatsApp Ready</h3>
-                <p className="text-gray-500 text-sm">Send payment requests and receipts directly through WhatsApp for easy tracking.</p>
-              </div>
-            </CardContent>
-          </Card>
         </div>
-      </div>
+
+        {/* Network Grid/List */}
+        <div className={viewMode === "grid" ? "grid grid-cols-1 gap-4" : "space-y-3"}>
+          {filteredFriends.map((friend) => (
+            <FriendNetworkCard 
+              key={friend.id} 
+              friend={friend} 
+              viewMode={viewMode}
+            />
+          ))}
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-2 gap-4 pt-2">
+          <Dialog open={isAddingFriend} onOpenChange={setIsAddingFriend}>
+            <DialogTrigger asChild>
+              <Button className="h-24 rounded-[2rem] flex-col gap-2 bg-slate-50 text-slate-900 hover:bg-slate-100 border-none shadow-none">
+                <div className="bg-white p-2 rounded-xl shadow-sm">
+                  <Plus className="w-6 h-6 text-primary" />
+                </div>
+                <span className="text-xs font-bold">Add New</span>
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px] rounded-[2.5rem]">
+              <DialogHeader>
+                <DialogTitle>Add to Network</DialogTitle>
+              </DialogHeader>
+              <div className="p-4 text-center space-y-4">
+                <p className="text-slate-500">Sync your contacts or add a Zimbabwean organization manually.</p>
+                <Button className="w-full rounded-2xl h-14">Sync Contacts</Button>
+                <Button variant="outline" className="w-full rounded-2xl h-14">Add Organization</Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Button className="h-24 rounded-[2rem] flex-col gap-2 bg-slate-50 text-slate-900 hover:bg-slate-100 border-none shadow-none">
+            <div className="bg-white p-2 rounded-xl shadow-sm">
+              <Shield className="w-6 h-6 text-green-500" />
+            </div>
+            <span className="text-xs font-bold">Verification</span>
+          </Button>
+        </div>
+      </main>
+
+      {/* App Navigation */}
+      <nav className="app-nav">
+        <Button variant="ghost" className="flex-col gap-1 h-auto py-1 text-slate-400">
+          <Home className="w-6 h-6" />
+          <span className="text-[10px] font-medium">Home</span>
+        </Button>
+        <Button variant="ghost" className="flex-col gap-1 h-auto py-1 text-primary">
+          <Users className="w-6 h-6" />
+          <span className="text-[10px] font-medium">Friends</span>
+        </Button>
+        <div className="relative -top-6">
+          <Button className="w-14 h-14 rounded-2xl shadow-lg shadow-primary/40 bg-primary">
+            <Plus className="w-8 h-8" />
+          </Button>
+        </div>
+        <Button variant="ghost" className="flex-col gap-1 h-auto py-1 text-slate-400">
+          <Wallet className="w-6 h-6" />
+          <span className="text-[10px] font-medium">Wallet</span>
+        </Button>
+        <Button variant="ghost" className="flex-col gap-1 h-auto py-1 text-slate-400">
+          <Settings className="w-6 h-6" />
+          <span className="text-[10px] font-medium">Settings</span>
+        </Button>
+      </nav>
     </div>
   );
 }
