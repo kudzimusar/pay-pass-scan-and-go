@@ -6,8 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { FriendNetworkCard } from "@/components/friend-network-card";
-import { CrossBorderPaymentForm } from "@/components/cross-border-payment-form";
+import { FriendNetworkCard } from "@/components/friend-network-card.tsx";
+import { CrossBorderPaymentForm } from "@/components/cross-border-payment-form.tsx";
 import { Separator } from "@/components/ui/separator";
 import { 
   Users, 
