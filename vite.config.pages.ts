@@ -19,7 +19,7 @@ export default defineConfig({
   
   root: path.resolve(import.meta.dirname, "client"),
   
-  base: process.env.VITE_PUBLIC_URL || "/pay-pass-scan-and-go/",
+  base: "./",
   
   build: {
     outDir: path.resolve(import.meta.dirname, "dist/public"),

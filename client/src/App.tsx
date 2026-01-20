@@ -1,4 +1,5 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Router as WouterRouter } from "wouter";
+import { useHashLocation } from "./lib/use-hash-location";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
@@ -18,6 +19,7 @@ import TopUp from "@/pages/top-up";
 import TransactionHistory from "@/pages/transaction-history";
 import SendMoney from "@/pages/send-money";
 import PayBills from "@/pages/pay-bills";
+import PayForFriend from "@/pages/pay-for-friend";
 import Settings from "@/pages/settings";
 import OperatorDashboard from "@/pages/operator-dashboard";
 import OperatorLogin from "@/pages/operator-login";
@@ -43,6 +45,7 @@ function Router() {
       <Route path="/transactions" component={TransactionHistory} />
       <Route path="/send-money" component={SendMoney} />
       <Route path="/pay-bills" component={PayBills} />
+      <Route path="/pay-for-friend" component={PayForFriend} />
       <Route path="/settings" component={Settings} />
       <Route path="/operator" component={OperatorDashboard} />
       <Route path="/operator-login" component={OperatorLogin} />
@@ -59,15 +62,18 @@ function Router() {
 
 function AppContent() {
   const authState = useAuthState();
+  const [location] = useHashLocation();
 
   return (
     <AuthProvider value={authState}>
-      <TooltipProvider>
-        <div className="mobile-container">
-          <Toaster />
-          <Router />
-        </div>
-      </TooltipProvider>
+      <WouterRouter hook={useHashLocation}>
+        <TooltipProvider>
+          <div className="mobile-container">
+            <Toaster />
+            <Router />
+          </div>
+        </TooltipProvider>
+      </WouterRouter>
     </AuthProvider>
   );
 }

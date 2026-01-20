@@ -22,165 +22,78 @@
   --border: hsl(201.4286 30.4348% 90.9804%);
   --input: hsl(200 23.0769% 97.4510%);
   --ring: hsl(221.2 83.2% 53.3%);
-  --chart-1: hsl(221.2 83.2% 53.3%);
-  --chart-2: hsl(159.7826 100% 36.0784%);
-  --chart-3: hsl(42.0290 92.8251% 56.2745%);
-  --chart-4: hsl(147.1429 78.5047% 41.9608%);
-  --chart-5: hsl(341.4894 75.2000% 50.9804%);
-  --sidebar: hsl(180 6.6667% 97.0588%);
-  --sidebar-foreground: hsl(210 25% 7.8431%);
-  --sidebar-primary: hsl(221.2 83.2% 53.3%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(211.5789 51.3514% 92.7451%);
-  --sidebar-accent-foreground: hsl(221.2 83.2% 53.3%);
-  --sidebar-border: hsl(205.0000 25.0000% 90.5882%);
-  --sidebar-ring: hsl(221.2 83.2% 53.3%);
-  --font-sans: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-serif: Georgia, serif;
-  --font-mono: Menlo, monospace;
-  --radius: 1.3rem;
-  --shadow-2xs: 0px 2px 0px 0px hsl(221.2 83.2% 53.3% / 0.00);
-  --shadow-xs: 0px 2px 0px 0px hsl(221.2 83.2% 53.3% / 0.00);
-  --shadow-sm: 0px 2px 0px 0px hsl(221.2 83.2% 53.3% / 0.00), 0px 1px 2px -1px hsl(221.2 83.2% 53.3% / 0.00);
-  --shadow: 0px 2px 0px 0px hsl(221.2 83.2% 53.3% / 0.00), 0px 1px 2px -1px hsl(221.2 83.2% 53.3% / 0.00);
-  --shadow-md: 0px 2px 0px 0px hsl(221.2 83.2% 53.3% / 0.00), 0px 2px 4px -1px hsl(221.2 83.2% 53.3% / 0.00);
-  --shadow-lg: 0px 2px 0px 0px hsl(221.2 83.2% 53.3% / 0.00), 0px 4px 6px -1px hsl(221.2 83.2% 53.3% / 0.00);
-  --shadow-xl: 0px 2px 0px 0px hsl(221.2 83.2% 53.3% / 0.00), 0px 8px 10px -1px hsl(221.2 83.2% 53.3% / 0.00);
-  --shadow-2xl: 0px 2px 0px 0px hsl(221.2 83.2% 53.3% / 0.00);
-  --tracking-normal: 0em;
-  --spacing: 0.25rem;
+  --radius: 1.5rem;
   --paypass-blue: hsl(221.2 83.2% 53.3%);
   --paypass-green: hsl(159.7826 100% 36.0784%);
   --paypass-red: hsl(356.3033 90.5579% 54.3137%);
 }
 
-.dark {
-  --background: hsl(0 0% 0%);
-  --foreground: hsl(200 6.6667% 91.1765%);
-  --card: hsl(228 9.8039% 10%);
-  --card-foreground: hsl(0 0% 85.0980%);
-  --popover: hsl(0 0% 0%);
-  --popover-foreground: hsl(200 6.6667% 91.1765%);
-  --primary: hsl(221.2 83.2% 53.3%);
-  --primary-foreground: hsl(0 0% 100%);
-  --secondary: hsl(195.0000 15.3846% 94.9020%);
-  --secondary-foreground: hsl(210 25% 7.8431%);
-  --muted: hsl(0 0% 9.4118%);
-  --muted-foreground: hsl(210 3.3898% 46.2745%);
-  --accent: hsl(205.7143 70% 7.8431%);
-  --accent-foreground: hsl(221.2 83.2% 53.3%);
-  --destructive: hsl(356.3033 90.5579% 54.3137%);
-  --destructive-foreground: hsl(0 0% 100%);
-  --border: hsl(210 5.2632% 14.9020%);
-  --input: hsl(207.6923 27.6596% 18.4314%);
-  --ring: hsl(221.2 83.2% 53.3%);
-  --chart-1: hsl(221.2 83.2% 53.3%);
-  --chart-2: hsl(159.7826 100% 36.0784%);
-  --chart-3: hsl(42.0290 92.8251% 56.2745%);
-  --chart-4: hsl(147.1429 78.5047% 41.9608%);
-  --chart-5: hsl(341.4894 75.2000% 50.9804%);
-  --sidebar: hsl(228 9.8039% 10%);
-  --sidebar-foreground: hsl(0 0% 85.0980%);
-  --sidebar-primary: hsl(221.2 83.2% 53.3%);
-  --sidebar-primary-foreground: hsl(0 0% 100%);
-  --sidebar-accent: hsl(205.7143 70% 7.8431%);
-  --sidebar-accent-foreground: hsl(221.2 83.2% 53.3%);
-  --sidebar-border: hsl(205.7143 15.7895% 26.0784%);
-  --sidebar-ring: hsl(221.2 83.2% 53.3%);
-  --font-sans: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
-  --font-serif: Georgia, serif;
-  --font-mono: Menlo, monospace;
-  --radius: 1.3rem;
-  --shadow-2xs: 0px 2px 0px 0px hsl(221.2 83.2% 53.3% / 0.00);
-  --shadow-xs: 0px 2px 0px 0px hsl(221.2 83.2% 53.3% / 0.00);
-  --shadow-sm: 0px 2px 0px 0px hsl(221.2 83.2% 53.3% / 0.00), 0px 1px 2px -1px hsl(221.2 83.2% 53.3% / 0.00);
-  --shadow: 0px 2px 0px 0px hsl(221.2 83.2% 53.3% / 0.00), 0px 1px 2px -1px hsl(221.2 83.2% 53.3% / 0.00);
-  --shadow-md: 0px 2px 0px 0px hsl(221.2 83.2% 53.3% / 0.00), 0px 2px 4px -1px hsl(221.2 83.2% 53.3% / 0.00);
-  --shadow-lg: 0px 2px 0px 0px hsl(221.2 83.2% 53.3% / 0.00), 0px 4px 6px -1px hsl(221.2 83.2% 53.3% / 0.00);
-  --shadow-xl: 0px 2px 0px 0px hsl(221.2 83.2% 53.3% / 0.00), 0px 8px 10px -1px hsl(221.2 83.2% 53.3% / 0.00);
-  --shadow-2xl: 0px 2px 0px 0px hsl(221.2 83.2% 53.3% / 0.00);
-}
-
 @layer base {
   * {
     @apply border-border;
+    -webkit-tap-highlight-color: transparent;
   }
 
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans antialiased bg-slate-50 text-foreground;
+    overflow-x: hidden;
   }
 
   /* Mobile-first container for app */
   .mobile-container {
-    @apply max-w-sm mx-auto bg-white min-h-screen relative overflow-hidden;
+    @apply max-w-[430px] mx-auto bg-white min-h-screen relative shadow-xl overflow-x-hidden;
+    display: flex;
+    flex-direction: column;
   }
 
-  /* PayPass specific colors */
-  .text-paypass-blue {
-    color: var(--paypass-blue);
-  }
-
-  .bg-paypass-blue {
-    background-color: var(--paypass-blue);
-  }
-
-  .text-paypass-green {
-    color: var(--paypass-green);
-  }
-
-  .bg-paypass-green {
-    background-color: var(--paypass-green);
-  }
-
-  .text-paypass-red {
-    color: var(--paypass-red);
-  }
-
-  .bg-paypass-red {
-    background-color: var(--paypass-red);
-  }
-
-  /* Gradient backgrounds */
-  .bg-gradient-paypass {
-    background: linear-gradient(135deg, var(--paypass-blue), var(--paypass-green));
-  }
-
-  /* Animation utilities */
-  .animate-pulse {
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-
-  .animate-spin {
-    animation: spin 1s linear infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
-  }
-
-  @keyframes spin {
-    to { transform: rotate(360deg); }
-  }
-
-  /* Desktop responsive adjustments */
+  /* Desktop responsive adjustments - simulate a phone */
   @media (min-width: 768px) {
     .mobile-container {
-      @apply max-w-sm border-8 border-gray-800 rounded-3xl my-8 shadow-2xl;
+      @apply border-[12px] border-slate-900 rounded-[3rem] my-8 h-[844px] min-h-[844px] shadow-2xl;
+      position: relative;
+    }
+    
+    /* Phone Notch */
+    .mobile-container::before {
+      content: "";
+      @apply absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-slate-900 rounded-b-2xl z-50;
     }
   }
 
-  /* Custom scrollbar for mobile */
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 4px;
+  /* Touch-friendly buttons */
+  button, [role="button"] {
+    @apply active:scale-95 transition-transform duration-100;
+    min-height: 44px; /* Apple Human Interface Guidelines */
   }
 
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
+  /* Native-like scroll */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+@layer components {
+  .app-header {
+    @apply sticky top-0 z-40 bg-white/80 backdrop-blur-md px-6 py-4 border-b border-slate-100;
   }
 
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: hsl(var(--muted-foreground) / 0.3);
-    border-radius: 2px;
+  .app-content {
+    @apply flex-1 px-6 py-4 overflow-y-auto hide-scrollbar;
+  }
+
+  .app-nav {
+    @apply sticky bottom-0 z-40 bg-white/90 backdrop-blur-lg px-6 py-3 border-t border-slate-100 flex justify-around items-center pb-8;
+  }
+
+  .card-native {
+    @apply bg-white rounded-3xl border border-slate-100 shadow-sm p-4 active:bg-slate-50 transition-colors;
+  }
+
+  .input-native {
+    @apply h-14 rounded-2xl bg-slate-50 border-none px-4 focus:ring-2 focus:ring-primary transition-all;
   }
 }
