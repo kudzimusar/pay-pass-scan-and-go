@@ -68,10 +68,8 @@ function AppContent() {
     <AuthProvider value={authState}>
       <WouterRouter hook={useHashLocation}>
         <TooltipProvider>
-          <div className="mobile-container">
-            <Toaster />
-            <Router />
-          </div>
+          <Toaster />
+          <Router />
         </TooltipProvider>
       </WouterRouter>
     </AuthProvider>

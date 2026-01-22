@@ -86,18 +86,21 @@ async function handleMockApiRequest(
 
     if (url.includes("/profile") && method === "GET") {
       mockResponse = await mockApiService.getUserProfile();
+      return createMockResponse(mockResponse);
+    }
+
+    if (url.includes("/wallet") && method === "GET") {
+      // Mock wallet data
       return createMockResponse({
-        success: true,
-        user: mockResponse,
+        usdBalance: "1465.00",
+        zwlBalance: "25000.00",
+        userId: 1
       });
     }
 
     if (url.includes("/transactions") && method === "GET") {
       mockResponse = await mockApiService.getTransactions();
-      return createMockResponse({
-        success: true,
-        transactions: mockResponse,
-      });
+      return createMockResponse(mockResponse);
     }
 
     if (url.includes("/topup") && method === "POST") {

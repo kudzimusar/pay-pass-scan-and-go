@@ -114,8 +114,9 @@ export default function PayForFriendPage() {
   const totalMonthlySupport = MOCK_FRIENDS.reduce((acc, f) => acc + f.spentThisMonth, 0);
 
   return (
-    <div className="mobile-container">
-      {/* App Header */}
+    <div className="min-h-screen bg-slate-50 flex justify-center items-start p-0 sm:p-4">
+      <div className="mobile-container bg-white shadow-2xl sm:rounded-[3rem] overflow-hidden relative">
+        {/* App Header */}
       <header className="app-header flex items-center justify-between">
         <Button variant="ghost" size="icon" className="rounded-full" onClick={() => setLocation("/")}>
           <ChevronLeft className="w-6 h-6" />
@@ -246,7 +247,8 @@ export default function PayForFriendPage() {
           <Settings className="w-6 h-6" />
           <span className="text-[10px] font-medium">Settings</span>
         </Button>
-      </nav>
+        </nav>
+      </div>
     </div>
   );
 }

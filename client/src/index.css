@@ -39,17 +39,15 @@
     overflow-x: hidden;
   }
 
-  /* Mobile-first container for app */
+  /* Mobile-first container for specific app-like pages */
   .mobile-container {
-    @apply max-w-[430px] mx-auto bg-white min-h-screen relative shadow-xl overflow-x-hidden;
-    display: flex;
-    flex-direction: column;
+    @apply w-full max-w-[430px] mx-auto bg-white min-h-screen relative overflow-x-hidden flex flex-col;
   }
 
   /* Desktop responsive adjustments - simulate a phone */
   @media (min-width: 768px) {
     .mobile-container {
-      @apply border-[12px] border-slate-900 rounded-[3rem] my-8 h-[844px] min-h-[844px] shadow-2xl;
+      @apply border-[12px] border-slate-900 rounded-[3rem] h-[844px] min-h-[844px] shadow-2xl;
       position: relative;
     }
     
