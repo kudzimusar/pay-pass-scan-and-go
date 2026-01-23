@@ -100,7 +100,13 @@ async function handleMockApiRequest(
 
     if (url.includes("/transactions") && method === "GET") {
       mockResponse = await mockApiService.getTransactions();
-      return createMockResponse(mockResponse);
+      // Map mock data fields to match schema expected by UI
+      const mappedTransactions = mockResponse.map((t: any) => ({
+        ...t,
+        createdAt: t.date, // Map 'date' to 'createdAt' for the UI
+        category: t.type === 'payment' ? 'shop' : t.type // Map 'payment' to 'shop' for icons
+      }));
+      return createMockResponse(mappedTransactions);
     }
 
     if (url.includes("/topup") && method === "POST") {

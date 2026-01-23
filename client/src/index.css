@@ -23,9 +23,9 @@
   --input: hsl(200 23.0769% 97.4510%);
   --ring: hsl(221.2 83.2% 53.3%);
   --radius: 1.5rem;
-  --paypass-blue: hsl(221.2 83.2% 53.3%);
-  --paypass-green: hsl(159.7826 100% 36.0784%);
-  --paypass-red: hsl(356.3033 90.5579% 54.3137%);
+  --paypass-blue: #2563eb;
+  --paypass-green: #10b981;
+  --paypass-red: #ef4444;
 }
 
 @layer base {
@@ -75,6 +75,10 @@
 }
 
 @layer components {
+  .bg-gradient-paypass {
+    background: linear-gradient(135deg, #2563eb 0%, #10b981 100%);
+  }
+
   .app-header {
     @apply sticky top-0 z-40 bg-white/80 backdrop-blur-md px-6 py-4 border-b border-slate-100;
   }
@@ -93,5 +97,20 @@
 
   .input-native {
     @apply h-14 rounded-2xl bg-slate-50 border-none px-4 focus:ring-2 focus:ring-primary transition-all;
+  }
+}
+
+@layer utilities {
+  .text-paypass-blue {
+    color: var(--paypass-blue);
+  }
+  .text-paypass-green {
+    color: var(--paypass-green);
+  }
+  .bg-paypass-blue {
+    background-color: var(--paypass-blue);
+  }
+  .bg-paypass-green {
+    background-color: var(--paypass-green);
   }
 }
