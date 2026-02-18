@@ -26,6 +26,7 @@
     "validate:performance": "npm run test:performance",
     "test": "jest",
     "test:unit": "jest --testMatch='**/*.test.{ts,tsx}' --coverage",
+    "test:whatsapp": "vitest run tests/unit/whatsapp-service.test.ts",
     "test:integration": "jest --testMatch='**/*.spec.{ts,tsx}'",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
@@ -256,6 +257,7 @@
     "tailwindcss": "^3.4.17",
     "ts-jest": "^29.4.6",
     "typedoc": "^0.25.7",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^4.0.18"
   }
 }
