@@ -23,6 +23,7 @@ import {
   WhatsappPaymentSession
 } from "../../../shared/schema";
 import { eq, and, desc } from "drizzle-orm";
+import { db } from "./drizzle";
 import { NotificationService } from "./notification-service";
 
 // WhatsApp API Configuration

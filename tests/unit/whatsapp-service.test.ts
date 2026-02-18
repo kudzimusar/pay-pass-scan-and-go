@@ -9,14 +9,34 @@ import WhatsAppService from '../../app/api/_lib/whatsapp-service';
 // Mock fetch globally
 global.fetch = vi.fn();
 
+// Use vi.hoisted to allow access inside vi.mock
+const { mockDb, createChainableMock } = vi.hoisted(() => {
+  const createChainableMock = () => {
+    const mock: any = {
+      from: vi.fn().mockReturnThis(),
+      where: vi.fn().mockReturnThis(),
+      limit: vi.fn().mockReturnThis(),
+      values: vi.fn().mockReturnThis(),
+      returning: vi.fn().mockReturnThis(),
+      set: vi.fn().mockReturnThis(),
+      onConflictDoUpdate: vi.fn().mockReturnThis(),
+    };
+    return mock;
+  };
+
+  const mockDb = {
+    select: vi.fn(() => createChainableMock()),
+    insert: vi.fn(() => createChainableMock()),
+    update: vi.fn(() => createChainableMock()),
+    delete: vi.fn(() => createChainableMock()),
+  };
+
+  return { mockDb, createChainableMock };
+});
+
 // Mock database
 vi.mock('../../app/api/_lib/drizzle', () => ({
-  db: {
-    select: vi.fn(),
-    insert: vi.fn(),
-    update: vi.fn(),
-    delete: vi.fn(),
-  },
+  db: mockDb,
 }));
 
 describe('WhatsAppService', () => {
@@ -29,8 +49,18 @@ describe('WhatsAppService', () => {
     process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN = 'test_verify_token';
     process.env.WHATSAPP_API_VERSION = 'v18.0';
     process.env.WHATSAPP_BASE_URL = 'https://graph.facebook.com';
+    process.env.NEXT_PUBLIC_APP_URL = 'http://localhost:3000';
     
     whatsappService = new WhatsAppService();
+
+    // Reset mocks
+    vi.clearAllMocks();
+
+    // Reset mockDb implementations to default chainable
+    mockDb.select.mockImplementation(() => createChainableMock());
+    mockDb.insert.mockImplementation(() => createChainableMock());
+    mockDb.update.mockImplementation(() => createChainableMock());
+    mockDb.delete.mockImplementation(() => createChainableMock());
   });
 
   afterEach(() => {
@@ -129,27 +159,28 @@ describe('WhatsAppService', () => {
       
       vi.mocked(fetch).mockResolvedValue(mockResponse as any);
 
-      // Mock database operations
-      const { db } = await import('../../app/api/_lib/drizzle');
-      vi.mocked(db.select).mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([{
-              id: 'conversation_id',
-              whatsappNumber: '+1234567890',
-            }]),
-          }),
-        }),
-      } as any);
+      // Mock DB for getOrCreateConversation (select existing)
+      const selectChain = createChainableMock();
+      selectChain.limit.mockResolvedValue([{
+        id: 'conversation_id',
+        whatsappNumber: '+1234567890',
+      }]);
+      mockDb.select.mockReturnValueOnce(selectChain);
 
-      vi.mocked(db.insert).mockReturnValue({
-        values: vi.fn().mockReturnValue({
-          returning: vi.fn().mockResolvedValue([{
-            id: 'session_id',
-            paymentIntent: '{"amount":50,"currency":"USD"}',
-          }]),
-        }),
-      } as any);
+      // Mock DB for update conversation
+      const updateChain = createChainableMock();
+      mockDb.update.mockReturnValueOnce(updateChain);
+
+      // Mock DB for payment session insert
+      const insertChain = createChainableMock();
+      insertChain.returning.mockResolvedValue([{
+        id: 'session_id',
+        paymentIntent: '{"amount":50,"currency":"USD"}',
+      }]);
+      mockDb.insert.mockReturnValueOnce(insertChain); // session insert
+
+      // Mock DB for storing message (fire and forget)
+      mockDb.insert.mockReturnValueOnce(createChainableMock());
 
       const paymentRequest = {
         to: '+1234567890',
@@ -169,35 +200,22 @@ describe('WhatsAppService', () => {
   describe('verifyWebhook', () => {
     it('should verify valid webhook signature', () => {
       const body = '{"test":"data"}';
-      const validSignature = 'sha256=a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3';
-      
-      // Mock crypto module
+      // Calculate expected signature dynamically to ensure match
       const crypto = require('crypto');
-      vi.spyOn(crypto, 'createHmac').mockReturnValue({
-        update: vi.fn().mockReturnValue({
-          digest: vi.fn().mockReturnValue('a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3'),
-        }),
-      });
-
-      const isValid = whatsappService.verifyWebhook(validSignature, body);
+      const expectedHash = crypto
+        .createHmac('sha256', 'test_verify_token')
+        .update(body)
+        .digest('hex');
+      const validSignature = `sha256=${expectedHash}`;
       
+      const isValid = whatsappService.verifyWebhook(validSignature, body);
       expect(isValid).toBe(true);
     });
 
     it('should reject invalid webhook signature', () => {
       const body = '{"test":"data"}';
       const invalidSignature = 'sha256=invalid_signature';
-      
-      // Mock crypto module
-      const crypto = require('crypto');
-      vi.spyOn(crypto, 'createHmac').mockReturnValue({
-        update: vi.fn().mockReturnValue({
-          digest: vi.fn().mockReturnValue('valid_signature'),
-        }),
-      });
-
       const isValid = whatsappService.verifyWebhook(invalidSignature, body);
-      
       expect(isValid).toBe(false);
     });
   });
@@ -230,25 +248,22 @@ describe('WhatsAppService', () => {
         }],
       };
 
-      // Mock database operations
-      const { db } = await import('../../app/api/_lib/drizzle');
-      vi.mocked(db.select).mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([]),
-          }),
-        }),
-      } as any);
+      // Mock DB for getOrCreateConversation (new conversation)
+      const selectChain = createChainableMock();
+      selectChain.limit.mockResolvedValue([]); // No existing conversation
+      mockDb.select.mockReturnValueOnce(selectChain);
 
-      vi.mocked(db.insert).mockReturnValue({
-        values: vi.fn().mockReturnValue({
-          returning: vi.fn().mockResolvedValue([{
-            id: 'conversation_id',
-          }]),
-        }),
-      } as any);
+      const insertConvChain = createChainableMock();
+      insertConvChain.returning.mockResolvedValue([{
+        id: 'conversation_id',
+        whatsappNumber: '+0987654321',
+      }]);
+      mockDb.insert.mockReturnValueOnce(insertConvChain); // create conversation
 
-      // Mock sendMessage to avoid actual API calls
+      // Mock DB for storing incoming message
+      mockDb.insert.mockReturnValueOnce(createChainableMock());
+
+      // Mock sendMessage
       const sendMessageSpy = vi.spyOn(whatsappService, 'sendMessage').mockResolvedValue({
         success: true,
         messageId: 'response_message_id',
@@ -299,18 +314,27 @@ describe('WhatsAppService', () => {
         }],
       };
 
-      // Mock database operations
-      const { db } = await import('../../app/api/_lib/drizzle');
-      vi.mocked(db.select).mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([{
-              id: 'session_123',
-              paymentIntent: '{"amount":50,"currency":"USD","senderName":"John"}',
-            }]),
-          }),
-        }),
-      } as any);
+      // Mock DB for getOrCreateConversation
+      const selectChain = createChainableMock();
+      selectChain.limit.mockResolvedValue([{
+        id: 'conversation_id',
+        whatsappNumber: '+0987654321',
+      }]);
+      mockDb.select.mockReturnValueOnce(selectChain);
+
+      // Mock DB update conversation
+      mockDb.update.mockReturnValueOnce(createChainableMock());
+
+      // Mock DB store incoming message
+      mockDb.insert.mockReturnValueOnce(createChainableMock());
+
+      // Mock DB select payment session
+      const selectSessionChain = createChainableMock();
+      selectSessionChain.limit.mockResolvedValue([{
+        id: 'session_123',
+        paymentIntent: '{"amount":50,"currency":"USD","senderName":"John"}',
+      }]);
+      mockDb.select.mockReturnValueOnce(selectSessionChain);
 
       // Mock sendMessage
       const sendMessageSpy = vi.spyOn(whatsappService, 'sendMessage').mockResolvedValue({
@@ -336,18 +360,13 @@ describe('WhatsAppService', () => {
   describe('sendNotificationViaWhatsApp', () => {
     it('should send notification to user via WhatsApp', async () => {
       // Mock database user lookup
-      const { db } = await import('../../app/api/_lib/drizzle');
-      vi.mocked(db.select).mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([{
-              id: 'user_123',
-              phone: '+1234567890',
-              fullName: 'John Doe',
-            }]),
-          }),
-        }),
-      } as any);
+      const selectChain = createChainableMock();
+      selectChain.limit.mockResolvedValue([{
+        id: 'user_123',
+        phone: '+1234567890',
+        fullName: 'John Doe',
+      }]);
+      mockDb.select.mockReturnValueOnce(selectChain);
 
       // Mock sendMessage
       const sendMessageSpy = vi.spyOn(whatsappService, 'sendMessage').mockResolvedValue({
@@ -377,14 +396,9 @@ describe('WhatsAppService', () => {
 
     it('should return false for non-existent user', async () => {
       // Mock database user lookup returning no user
-      const { db } = await import('../../app/api/_lib/drizzle');
-      vi.mocked(db.select).mockReturnValue({
-        from: vi.fn().mockReturnValue({
-          where: vi.fn().mockReturnValue({
-            limit: vi.fn().mockResolvedValue([]),
-          }),
-        }),
-      } as any);
+      const selectChain = createChainableMock();
+      selectChain.limit.mockResolvedValue([]);
+      mockDb.select.mockReturnValueOnce(selectChain);
 
       const notification = {
         title: 'Test',

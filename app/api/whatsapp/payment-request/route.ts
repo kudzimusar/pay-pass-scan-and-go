@@ -10,6 +10,8 @@ import WhatsAppService from '../../_lib/whatsapp-service';
 import { verifyJWT } from '../../_lib/auth';
 import { storage } from '../../_lib/storage';
 import { users, friendNetworks } from '../../../../shared/schema';
+import { db } from '../../_lib/drizzle';
+import { eq, and } from 'drizzle-orm';
 
 const whatsappService = new WhatsAppService();
 
