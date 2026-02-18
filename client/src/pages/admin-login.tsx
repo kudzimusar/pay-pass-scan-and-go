@@ -151,14 +151,6 @@ export default function AdminLogin() {
               </Button>
             </Link>
           </div>
-
-          <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <h4 className="font-semibold mb-2">Demo Admin Accounts:</h4>
-            <div className="text-sm space-y-1">
-              <div><strong>System Admin:</strong> +263700000001 PIN: 1234</div>
-              <div><strong>Platform Manager:</strong> +263700000002 PIN: 1234</div>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>

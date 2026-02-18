@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { z } from "zod"
 import bcrypt from "bcryptjs"
 import { storage } from "../../_lib/storage"
-import { generateToken, normalizePhoneNumber } from "../../_lib/auth"
+import { signToken, normalizePhoneNumber } from "../../_lib/auth"
 import type { User } from "../../_lib/storage"
 
 function toSafeUser(u: User) {
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       paypassUsername: `@${fullName.toLowerCase().replace(/\s+/g, '_')}`,
     })
 
-    const token = await generateToken({ type: "user", userId: user.id, phone: user.phone })
+    const token = signToken({ type: "user", userId: user.id, phone: user.phone })
 
     return NextResponse.json({ 
       success: true,

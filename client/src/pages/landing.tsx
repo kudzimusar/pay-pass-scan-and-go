@@ -43,15 +43,6 @@ export default function Landing() {
               <Link href="/login">
                 <Button className="w-full mb-4">Sign In</Button>
               </Link>
-              <div className="text-sm text-gray-600">
-                <p className="font-semibold mb-2">Demo Accounts:</p>
-                <div className="text-xs space-y-1">
-                  <div>John Doe: +263771234567</div>
-                  <div>Sarah Wilson: +263772345678</div>
-                  <div>Mike Johnson: +263773456789</div>
-                  <div className="text-gray-500">All PIN: 1234</div>
-                </div>
-              </div>
             </CardContent>
           </Card>
 
@@ -70,15 +61,6 @@ export default function Landing() {
               <Link href="/operator-login">
                 <Button className="w-full mb-4 bg-green-600 hover:bg-green-700">Operator Login</Button>
               </Link>
-              <div className="text-sm text-gray-600">
-                <p className="font-semibold mb-2">Demo Accounts:</p>
-                <div className="text-xs space-y-1">
-                  <div>City Bus Lines: +263712345678</div>
-                  <div>ZUPCO Transport: +263775432109</div>
-                  <div>Harare Kombis: +263787654321</div>
-                  <div className="text-gray-500">All PIN: 1234</div>
-                </div>
-              </div>
             </CardContent>
           </Card>
 
@@ -97,15 +79,6 @@ export default function Landing() {
               <Link href="/merchant-login">
                 <Button className="w-full mb-4 bg-orange-600 hover:bg-orange-700">Merchant Login</Button>
               </Link>
-              <div className="text-sm text-gray-600">
-                <p className="font-semibold mb-2">Demo Accounts:</p>
-                <div className="text-xs space-y-1">
-                  <div>Pick n Pay: +263711111111</div>
-                  <div>ZESA Harare: +263722222222</div>
-                  <div>City of Harare: +263733333333</div>
-                  <div className="text-gray-500">All PIN: 1234</div>
-                </div>
-              </div>
             </CardContent>
           </Card>
 
@@ -124,15 +97,6 @@ export default function Landing() {
               <Link href="/partner-login">
                 <Button className="w-full mb-4 bg-red-600 hover:bg-red-700">Partner Login</Button>
               </Link>
-              <div className="text-sm text-gray-600">
-                <p className="font-semibold mb-2">Demo Accounts:</p>
-                <div className="text-xs space-y-1">
-                  <div>EcoCash: +263744444444</div>
-                  <div>CBZ Bank: +263755555555</div>
-                  <div>OneMoney: +263766666666</div>
-                  <div className="text-gray-500">All PIN: 1234</div>
-                </div>
-              </div>
             </CardContent>
           </Card>
 
@@ -151,14 +115,6 @@ export default function Landing() {
               <Link href="/admin-login">
                 <Button className="w-full mb-4 bg-purple-600 hover:bg-purple-700">Admin Login</Button>
               </Link>
-              <div className="text-sm text-gray-600">
-                <p className="font-semibold mb-2">Demo Accounts:</p>
-                <div className="text-xs space-y-1">
-                  <div>System Admin: +263700000001</div>
-                  <div>Platform Manager: +263700000002</div>
-                  <div className="text-gray-500">All PIN: 1234</div>
-                </div>
-              </div>
             </CardContent>
           </Card>
 

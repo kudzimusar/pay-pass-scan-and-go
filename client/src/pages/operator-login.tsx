@@ -151,16 +151,6 @@ export default function OperatorLogin() {
               </Button>
             </Link>
           </div>
-
-          <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <h4 className="font-semibold mb-2">Demo Accounts:</h4>
-            <div className="text-sm space-y-1">
-              <div><strong>City Bus Lines:</strong> +263712345678 PIN: 1234</div>
-              <div><strong>ZUPCO Transport:</strong> +263775432109 PIN: 1234</div>
-              <div><strong>Harare Kombis:</strong> +263787654321 PIN: 1234</div>
-              <div><strong>Metro Peach:</strong> +263796543210 PIN: 1234</div>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>

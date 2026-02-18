@@ -155,15 +155,6 @@ export default function PartnerLogin() {
               </Button>
             </Link>
           </div>
-
-          <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <h4 className="font-semibold mb-2">Demo Partner Accounts:</h4>
-            <div className="text-sm space-y-1">
-              <div><strong>EcoCash:</strong> +263744444444 PIN: 1234</div>
-              <div><strong>CBZ Bank:</strong> +263755555555 PIN: 1234</div>
-              <div><strong>OneMoney:</strong> +263766666666 PIN: 1234</div>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>

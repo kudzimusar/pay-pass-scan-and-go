@@ -182,12 +182,12 @@ export default function TopUp() {
             />
           </div>
 
-          {/* Demo Instructions */}
+          {/* Instructions */}
           <div className="bg-blue-50 p-4 rounded-lg">
             <h3 className="font-medium text-paypass-blue mb-2">Top Up Instructions</h3>
             <p className="text-sm text-gray-700">
-              Mobile Money transactions use Paynow integration (Demo).
-              International Remittance simulates generic wallet credit.
+              Select your preferred payment method to add funds instantly to your wallet.
+              Mobile Money transactions are secured by Paynow.
             </p>
           </div>
         </div>

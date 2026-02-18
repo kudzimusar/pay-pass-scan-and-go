@@ -155,15 +155,6 @@ export default function MerchantLogin() {
               </Button>
             </Link>
           </div>
-
-          <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-            <h4 className="font-semibold mb-2">Demo Merchant Accounts:</h4>
-            <div className="text-sm space-y-1">
-              <div><strong>Pick n Pay:</strong> +263711111111 PIN: 1234</div>
-              <div><strong>ZESA Harare:</strong> +263722222222 PIN: 1234</div>
-              <div><strong>City of Harare:</strong> +263733333333 PIN: 1234</div>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>

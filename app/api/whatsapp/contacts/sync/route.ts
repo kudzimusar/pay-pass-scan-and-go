@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';
 import WhatsAppService from '../../../_lib/whatsapp-service';
-import { verifyJWT } from '../../../_lib/auth';
+import { getAuthFromRequest } from '../../../_lib/auth';
 import { storage } from '../../../_lib/storage';
 import { users, friendNetworks, whatsappContacts } from '../../../../../shared/schema';
 import { db } from '../../../_lib/drizzle';
@@ -28,15 +28,15 @@ const contactSyncSchema = z.object({
 export async function POST(request: NextRequest): Promise<NextResponse> {
   try {
     // Verify authentication
-    const authResult = await verifyJWT(request);
-    if (!authResult.success || !authResult.user) {
+    const authUser = getAuthFromRequest(request);
+    if (!authUser || !authUser.userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const currentUser = authResult.user;
+    const currentUser = { ...authUser, id: authUser.userId };
 
     // Parse and validate request body
     const body = await request.json();
@@ -138,15 +138,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     // Verify authentication
-    const authResult = await verifyJWT(request);
-    if (!authResult.success || !authResult.user) {
+    const authUser = getAuthFromRequest(request);
+    if (!authUser || !authUser.userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const currentUser = authResult.user;
+    const currentUser = { ...authUser, id: authUser.userId };
 
     // Get user's WhatsApp contacts
     const contacts = await whatsappService.getUserContacts(currentUser.id);
@@ -211,15 +211,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 export async function DELETE(request: NextRequest): Promise<NextResponse> {
   try {
     // Verify authentication
-    const authResult = await verifyJWT(request);
-    if (!authResult.success || !authResult.user) {
+    const authUser = getAuthFromRequest(request);
+    if (!authUser || !authUser.userId) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    const currentUser = authResult.user;
+    const currentUser = { ...authUser, id: authUser.userId };
     const { searchParams } = new URL(request.url);
     const contactId = searchParams.get('contactId');
 
