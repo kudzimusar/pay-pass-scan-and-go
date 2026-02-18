@@ -190,6 +190,8 @@ export interface StorageInterface {
 
 // Import implementations
 import { MemoryStorage } from "./storage-memory"
+import { NeonStorage } from "./storage-neon"
 
 // Create and export a single storage instance
-export const storage = new MemoryStorage()
+// Use Neon/Drizzle storage if DATABASE_URL is present, otherwise fallback to memory
+export const storage = process.env.DATABASE_URL ? new NeonStorage() : new MemoryStorage()
