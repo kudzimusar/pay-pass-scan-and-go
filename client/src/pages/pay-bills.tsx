@@ -10,14 +10,13 @@ import {
   Smartphone, 
   Wifi, 
   Tv, 
-  GraduationCap,
-  ChevronRight
+  GraduationCap
 } from "lucide-react";
 
 export default function PayBills() {
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const { token } = useAuth();
+  const { user } = useAuth();
 
   const billCategories = [
     {
@@ -83,12 +82,23 @@ export default function PayBills() {
   ];
 
   const handleBillPayment = async (category: typeof billCategories[0]) => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please login to pay bills.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
-      const response = await apiRequest('POST', '/api/wallet/topup', {
-        amount: `-${category.amount}`,
-        currency: category.currency,
-        method: `${category.title.toLowerCase()}_bill`
+      const response = await apiRequest('POST', '/api/payment/process', {
+        userId: user.id,
+        amount: parseFloat(category.amount),
+        merchant: category.title,
+        description: `Bill Payment: ${category.description}`,
+        type: 'bill_payment'
       });
 
       const result = await response.json();
@@ -97,6 +107,12 @@ export default function PayBills() {
         toast({
           title: "Bill Payment Successful!",
           description: `${category.title} bill of ${category.currency} ${category.amount} has been paid.`,
+        });
+      } else {
+         toast({
+          title: "Payment Failed",
+          description: result.error || "Unable to process bill payment.",
+          variant: "destructive",
         });
       }
     } catch (error) {
@@ -141,15 +157,6 @@ export default function PayBills() {
           {billCategories.map((category) => (
             <BillCategory key={category.id} category={category} />
           ))}
-        </div>
-
-        {/* Demo Notice */}
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <h3 className="font-medium text-paypass-blue mb-2">Demo Mode</h3>
-          <p className="text-sm text-gray-700">
-            In this demo, bill payments are simulated with preset amounts. 
-            In the real app, you would enter actual bill amounts and account details.
-          </p>
         </div>
 
         {/* Recent Bills Section */}

@@ -50,8 +50,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Perform compliance check
+    const userId = user.userId!;
     const complianceReport = await complianceEngine.performComplianceCheck(
-      user.id,
+      userId,
       amount,
       'ZW',
       []
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
     if (complianceReport.overallStatus === 'non_compliant') {
       financialLogger.logTransaction({
         operationId,
-        userId: user.id,
+        userId,
         operationType: 'topup',
         amount,
         currency,
@@ -87,13 +88,13 @@ export async function POST(request: NextRequest) {
 
     // Execute top-up
     const startTime = Date.now();
-    const result = await paynowProvider.topup(user.id, amount, currency);
+    const result = await paynowProvider.topup(userId, amount, currency);
     const duration = Date.now() - startTime;
 
     // Log transaction
     financialLogger.logTransaction({
       operationId,
-      userId: user.id,
+      userId,
       operationType: 'topup',
       amount,
       currency,

@@ -9,7 +9,7 @@ import { join } from 'path';
 import { format } from 'date-fns';
 
 export interface FinancialLog {
-  timestamp: string;
+  timestamp?: string;
   operationId: string;
   userId: string;
   operationType: 'transfer' | 'topup' | 'payment' | 'withdrawal' | 'refund';
@@ -69,7 +69,7 @@ class FinancialLogger {
   public logTransaction(log: FinancialLog): void {
     const logEntry = {
       ...log,
-      timestamp: new Date().toISOString(),
+      timestamp: log.timestamp || new Date().toISOString(),
     };
 
     // Write to file for persistence

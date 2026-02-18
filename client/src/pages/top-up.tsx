@@ -13,22 +13,57 @@ import {
 
 export default function TopUp() {
   const { toast } = useToast();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
 
   const handleTopUp = async (method: string, currency: 'USD' | 'ZWL', amount: string) => {
+    if (!user) {
+        toast({
+            title: "Authentication Required",
+            description: "Please login to top up wallet.",
+            variant: "destructive",
+        });
+        return;
+    }
+
     try {
-      const response = await apiRequest('POST', '/api/wallet/topup', {
+      let endpoint = '/api/wallet/topup';
+      let payload: any = {
         amount,
         currency,
-        method
-      });
+        method,
+        userId: user.id
+      };
 
+      // Use real Paynow integration for Mobile Money
+      if (method === 'EcoCash' || method === 'TeleCash') {
+        endpoint = '/api/mobile-money/paynow-topup';
+        // Paynow endpoint expects amount as number
+        payload = {
+            amount: parseFloat(amount),
+            currency
+        };
+      }
+
+      const response = await apiRequest('POST', endpoint, payload);
       const result = await response.json();
       
       if (result.success) {
+        if (endpoint === '/api/mobile-money/paynow-topup') {
+             toast({
+              title: "Top-up Initiated!",
+              description: result.message || "Please check your phone to authorize payment.",
+            });
+        } else {
+            toast({
+              title: "Top-up Successful!",
+              description: `${currency} ${amount} has been added to your wallet.`,
+            });
+        }
+      } else {
         toast({
-          title: "Top-up Successful!",
-          description: `${currency} ${amount} has been added to your wallet.`,
+            title: "Top-up Failed",
+            description: result.message || result.error || "Unable to process top-up.",
+            variant: "destructive",
         });
       }
     } catch (error) {
@@ -149,10 +184,10 @@ export default function TopUp() {
 
           {/* Demo Instructions */}
           <div className="bg-blue-50 p-4 rounded-lg">
-            <h3 className="font-medium text-paypass-blue mb-2">Demo Mode</h3>
+            <h3 className="font-medium text-paypass-blue mb-2">Top Up Instructions</h3>
             <p className="text-sm text-gray-700">
-              In this demo, tapping any top-up option will simulate adding funds to your wallet. 
-              In the real app, you would be redirected to the respective payment provider.
+              Mobile Money transactions use Paynow integration (Demo).
+              International Remittance simulates generic wallet credit.
             </p>
           </div>
         </div>

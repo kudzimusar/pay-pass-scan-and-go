@@ -5,7 +5,7 @@ import { FinancialCore } from "../../../_lib/financial-core"
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     console.log("=== PAYMENT REQUEST RESPONSE API ===")
-    await ensureSeeded()
+    await storage.ensureSeeded()
     const { id } = await params
     const requestId = id
 
@@ -64,20 +64,6 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
 
     console.log("Payment request found:", paymentRequest)
 
-      // Update request status
-      console.log("Updating request status to accepted")
-      const updatedRequest = await updatePaymentRequestStatus(requestId, "accepted", new Date())
-      if (!updatedRequest) {
-        console.log("Failed to update request status; returning success since payment already processed")
-        return NextResponse.json({
-          success: true,
-          message: "Payment processed but request status could not be updated",
-          newBalance: result.newBalance,
-          transactionId: result.transactionId,
-          warning: true,
-        })
-      }
-
     // Check if already responded
     if (paymentRequest.status !== "pending") {
       return NextResponse.json(
@@ -90,27 +76,27 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
 
     if (action === "decline") {
-      // Simply update the request status
-      await storage.updatePaymentRequestStatus(requestId, "declined")
-
       // Decline the request
-      const updatedRequest = await updatePaymentRequestStatus(requestId, "declined", new Date())
+      const updatedRequest = await storage.updatePaymentRequestStatus(requestId, "declined", new Date())
       if (!updatedRequest) {
-        console.log("Failed to update request status; treating as already processed/removed")
-        return NextResponse.json({ success: true, message: "Request declined" })
+        console.log("Failed to update request status")
+        return NextResponse.json({ success: false, error: "Failed to update status" }, { status: 500 })
       }
 
-      // Get recipient user for the notification
-      const recipient = await getUserById(userId)
-      if (recipient) {
+      // Get sender user for the notification
+      // Note: `paymentRequest.senderId` is the one who MADE the request, and expects payment.
+      // `userId` here is the one responding (the payer).
+      // So we notify the SENDER that the payer declined.
+      const payer = await storage.getUserById(userId)
+      if (payer) {
         console.log("Creating notification for sender")
         // Create notification for sender
-        await createNotification({
-          userId: request.senderId,
+        await storage.createNotification({
+          userId: paymentRequest.senderId,
           type: "request_declined",
           title: "Payment Request Declined",
-          message: `${recipient.fullName} declined your payment request for $${request.amount.toFixed(2)}`,
-          data: { requestId, amount: request.amount },
+          message: `${payer.fullName} declined your payment request for $${paymentRequest.amount.toFixed(2)}`,
+          data: { requestId, amount: paymentRequest.amount },
           isRead: false,
         })
       }
@@ -124,9 +110,9 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
     }
 
     if (action === "accept") {
-      // Get user to check balance
-      const user = await storage.getUserById(userId)
-      if (!user) {
+      // Get user (payer) to check balance
+      const payer = await storage.getUserById(userId)
+      if (!payer) {
         return NextResponse.json(
           {
             success: false,
@@ -137,17 +123,18 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       }
 
       // Check if user has sufficient funds
-      if (user.walletBalance < paymentRequest.amount) {
+      if (payer.walletBalance < paymentRequest.amount) {
         return NextResponse.json(
           {
             success: false,
-            error: `Insufficient funds. You have $${user.walletBalance.toFixed(2)} but need $${paymentRequest.amount.toFixed(2)}`,
+            error: `Insufficient funds. You have $${payer.walletBalance.toFixed(2)} but need $${paymentRequest.amount.toFixed(2)}`,
           },
           { status: 400 },
         )
       }
 
       // Process the payment using FinancialCore
+      // Payer pays sender
       const result = await FinancialCore.processOperation({
         userId,
         amount: paymentRequest.amount,
@@ -172,20 +159,44 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
       }
 
       // Update the payment request status
-      await storage.updatePaymentRequestStatus(requestId, "accepted")
+      const updatedRequest = await storage.updatePaymentRequestStatus(requestId, "accepted", new Date())
+      if (!updatedRequest) {
+        console.log("Failed to update request status after payment processed")
+        // This is tricky, payment went through but status update failed.
+        // We log it but return success for the payment.
+      }
 
-      // Credit the sender (requester)
+      // FinancialCore handles recipient crediting if recipientId is provided in `processOperation`?
+      // Let's check `financial-core.ts`.
+      // It says: "Handle recipient for transfers".
+      // `processOperation` checks `operation.category === "transfer"`.
+      // Here category is "payment_request".
+      // Wait, `processRequestPayment` in `financial-core.ts` uses category "payment_request".
+      // But does `processOperation` handle crediting for "payment_request"?
+      // Let's check `financial-core.ts` again.
+
+      /*
+      if (operation.category === "transfer" && operation.recipientId) {
+         // ... credit recipient ...
+      }
+      */
+
+      // It seems it ONLY handles it for "transfer".
+      // So for "payment_request", we might need to handle crediting explicitly here or update `financial-core.ts`.
+      // The original code in `route.ts` (the broken one) had explicit crediting logic.
+
+      // Credit the sender (requester) explicitly here
       const sender = await storage.getUserById(paymentRequest.senderId)
       if (sender) {
         const senderNewBalance = sender.walletBalance + paymentRequest.amount
         await storage.updateUserWalletBalance(paymentRequest.senderId, senderNewBalance)
 
-        // Create transaction for sender
+        // Create transaction for sender (recipient of funds)
         await storage.createTransaction({
           userId: paymentRequest.senderId,
-          type: "payment_received",
+          type: "payment_received", // This type might need to be added to Transaction interface or cast
           amount: paymentRequest.amount,
-          description: `Payment received from ${user.fullName}: ${paymentRequest.description}`,
+          description: `Payment received from ${payer.fullName}: ${paymentRequest.description}`,
           status: "completed",
           isPaid: true,
           category: "payment_received",
@@ -193,7 +204,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
             requestId,
             payerId: userId,
             transactionId: result.transactionId,
-          },
+          } as any, // Cast if needed
+          transactionHash: `recv_${result.transactionId}`
         })
 
         console.log(`Sender balance updated: ${sender.walletBalance} → ${senderNewBalance}`)
@@ -219,15 +231,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   } catch (error) {
     console.error("=== PAYMENT REQUEST RESPONSE ERROR ===")
     console.error("Error details:", error)
-    console.error("Stack trace:", error instanceof Error ? error.stack : "No stack trace")
-
-    // Always return JSON, never plain text
+    // Return JSON error
     return NextResponse.json(
       {
         success: false,
         error: "Failed to process payment request response",
-        details:
-          process.env.NODE_ENV === "development" ? (error instanceof Error ? error.message : String(error)) : undefined,
       },
       { status: 500 },
     )
