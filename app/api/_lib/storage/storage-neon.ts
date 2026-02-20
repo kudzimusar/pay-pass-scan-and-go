@@ -1,7 +1,7 @@
 import { neon } from "@neondatabase/serverless"
 import type { User, Operator, Admin, Merchant, Partner, Transaction, Route, PaymentRequest, NotificationRecord, StorageInterface } from "./index"
 
-const sql = neon(process.env.DATABASE_URL!)
+const sql = process.env.DATABASE_URL ? neon(process.env.DATABASE_URL) : (null as any)
 
 export class NeonStorage implements StorageInterface {
   async ensureSeeded(): Promise<void> {

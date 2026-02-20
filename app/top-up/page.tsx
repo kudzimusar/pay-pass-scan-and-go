@@ -1,7 +1,23 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { useAuth } from "@/components/auth-provider"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import {
+  ArrowLeft,
+  AlertCircle,
+  CheckCircle,
+  Smartphone,
+  Building,
+  CreditCard,
+  Plus
+} from "lucide-react"
 
 export default function TopUpPage() {
   const { user, refreshUserData } = useAuth()
@@ -15,10 +31,10 @@ export default function TopUpPage() {
 
   useEffect(() => {
     if (!user) {
-      router.push("/")
-      return
+      // In a real app, you might redirect here, but for now we'll just show the loading spinner until auth loads
+      // or redirect if we are sure auth is initialized and user is null
     }
-  }, [user, router])
+  }, [user])
 
   const paymentMethods = [
     {
@@ -53,36 +69,46 @@ export default function TopUpPage() {
       setError("Enter a valid amount")
       return
     }
+
+    setIsLoading(true);
+
     try {
+      // Use the Paynow endpoint we created/verified
       const token = localStorage.getItem("auth_token") || ""
-      const res = await fetch("/api/wallet/topup", {
+      const res = await fetch("/api/mobile-money/paynow-topup", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ userId: user.id, amount: amt, method: "wallet_topup" }),
+        body: JSON.stringify({
+          amount: amt,
+          phone: phoneNumber || user.phone, // Use provided phone or user phone
+          method: selectedMethod
+        }),
       })
+
       if (!res.ok) {
         const text = await res.text()
         const maybe = text.trim().startsWith("{") ? JSON.parse(text) : null
         throw new Error(maybe?.error || text || `HTTP ${res.status}`)
       }
-      const ct = res.headers.get("content-type") || ""
-      if (!ct.includes("application/json")) {
-        const text = await res.text()
-        throw new Error(text || "Invalid server response")
-      }
+
       const data = await res.json()
+
       if (data.success) {
+        // Poll for status or just show success message if it's instant (mock)
         await refreshUserData()
-        setSuccess(`Successfully added $${amt.toFixed(2)} to your wallet!`)
+        setSuccess(`Successfully initiated top-up of $${amt.toFixed(2)}! ${data.message || ''}`)
         setAmount("")
+        setPhoneNumber("")
       } else {
         setError(data.error || "Top-up failed. Please try again.")
       }
     } catch (e: any) {
       setError(e?.message || "Top-up failed. Please try again.")
+    } finally {
+      setIsLoading(false)
     }
   }
 

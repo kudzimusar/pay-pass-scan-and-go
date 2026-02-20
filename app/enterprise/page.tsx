@@ -48,7 +48,7 @@ import {
 // Import enterprise components
 import EnterpriseBillingDashboard from '@/components/enterprise/billing-dashboard';
 import BulkPaymentProcessing from '@/components/enterprise/bulk-payments';
-import EnterpriseAccountManagement from '@/components/enterprise/account-management';
+import { AccountManagement as EnterpriseAccountManagement } from '@/components/enterprise/account-management';
 
 interface DashboardData {
   summary: {
